@@ -28,7 +28,7 @@ export function FacultyDashboard() {
     }
     
     const token = localStorage.getItem('schoolToken');
-    axios.get('http://localhost:5000/api/faculty/students', {
+    axios.get((import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/api/faculty/students', {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => setStudents(res.data)).catch(console.error);
   }, [navigate, user.role]);
@@ -43,7 +43,7 @@ export function FacultyDashboard() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('schoolToken');
-      await axios.post('http://localhost:5000/api/faculty/marks', {
+      await axios.post((import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/api/faculty/marks', {
         studentId: selectedStudent._id,
         ...gradeForm
       }, {
