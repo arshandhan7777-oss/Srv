@@ -139,18 +139,19 @@ export function Navbar() {
             </nav>
 
             {/* Action Button & Mobile Menu */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 md:gap-4">
                 <Link
                   to="/portal/login"
                   className={twMerge(
-                    "hidden md:flex items-center justify-center px-6 py-2.5 rounded-full font-bold text-sm transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5",
+                    "flex items-center justify-center px-4 py-2 md:px-6 md:py-2.5 rounded-full font-bold text-xs md:text-sm transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5",
                     scrolled 
                       ? "bg-slate-900 text-white hover:bg-slate-800 shadow-slate-900/25" 
                       : "bg-white text-slate-900 hover:bg-slate-50 shadow-black/10"
                   )}
                 >
-                  <User size={16} className="mr-2" />
-                  Portal Login
+                  <User size={16} className="md:mr-2" />
+                  <span className="hidden md:inline">Portal Login</span>
+                  <span className="md:hidden ml-1.5">Login</span>
                 </Link>
                 <Link
                   to="/contact"
