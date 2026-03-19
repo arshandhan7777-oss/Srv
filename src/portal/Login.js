@@ -50,13 +50,15 @@ export function Login() {
           className="flex flex-col items-center"
         >
           {/* Branded Logo Block */}
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-1.5 rounded-2xl bg-emerald-900 shadow-md flex items-center justify-center shrink-0 overflow-hidden">
-               <img src={srvLogo} alt="SRV Logo" className="h-14 w-auto object-cover rounded-xl drop-shadow" />
+          <div className="flex items-center gap-4 mb-8">
+            <div className="w-20 h-20 rounded-[1.25rem] bg-emerald-900 shadow-xl shadow-emerald-900/20 border-2 border-slate-50 flex items-center justify-center shrink-0 p-1.5">
+              <div className="w-full h-full bg-white rounded-xl flex items-center justify-center overflow-hidden">
+                 <img src={srvLogo} alt="SRV Logo" className="w-full h-full object-contain scale-[1.3] drop-shadow-sm" />
+              </div>
             </div>
             <div className="flex flex-col items-start">
-              <span className="font-display text-4xl font-bold tracking-tight text-slate-900 leading-none">SRV</span>
-              <span className="text-xs uppercase tracking-widest font-bold text-emerald-700 block mt-0.5">School</span>
+              <span className="font-display text-5xl font-extrabold tracking-tight text-slate-900 leading-none">SRV</span>
+              <span className="text-sm uppercase tracking-widest font-bold text-emerald-700 block mt-1">School</span>
             </div>
           </div>
           
