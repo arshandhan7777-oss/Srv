@@ -77,8 +77,8 @@ export function Navbar() {
             {/* ── Logo ── */}
             <Link to="/" className="flex items-center gap-2.5 group shrink-0">
               <div className="p-1.5 rounded-[1.25rem] bg-emerald-900 shadow-md flex items-center justify-center transition-all duration-300">
-                <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center p-1">
-                  <img src={srvLogo} alt="SRV Logo" className="w-full h-full object-contain" />
+                <div className="w-11 h-11 md:w-12 md:h-12 bg-white rounded-xl flex items-center justify-center p-0.5">
+                  <img src={srvLogo} alt="SRV Logo" className="w-full h-full object-contain scale-110" />
                 </div>
               </div>
               <div className="flex flex-col leading-none">

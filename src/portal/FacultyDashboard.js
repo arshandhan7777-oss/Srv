@@ -63,8 +63,8 @@ export function FacultyDashboard() {
       <div className="bg-slate-900 text-white px-8 py-4 flex justify-between items-center shadow-md">
         <div className="flex items-center gap-4">
           <div className="p-1.5 rounded-[1.25rem] bg-emerald-900 shadow-lg flex items-center justify-center shrink-0">
-            <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center p-1.5">
-              <img src={srvLogo} alt="SRV" className="w-full h-full object-contain" />
+            <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center p-1">
+              <img src={srvLogo} alt="SRV" className="w-full h-full object-contain scale-110" />
             </div>
           </div>
           <div>

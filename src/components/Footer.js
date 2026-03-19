@@ -14,8 +14,8 @@ export function Footer() {
           {/* Brand */}
           <div className="lg:col-span-4 space-y-6">
             <Link to="/" className="flex items-center gap-4">
-              <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-2xl flex items-center justify-center p-2.5 shadow-lg shadow-emerald-900/40 border border-slate-100 overflow-hidden shrink-0">
-                <img src={srvLogo} alt="SRV" className="w-full h-full object-contain" />
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-2xl flex items-center justify-center p-1 md:p-1.5 shadow-lg shadow-emerald-900/40 border border-slate-100 overflow-hidden shrink-0">
+                <img src={srvLogo} alt="SRV" className="w-full h-full object-contain scale-110" />
               </div>
               <div className="flex flex-col">
                 <span className="font-display text-3xl font-bold tracking-tight text-white mb-0.5">SRV</span>
