@@ -90,8 +90,8 @@ export function AdminDashboard() {
       {/* Top Navbar */}
       <div className="bg-emerald-900 text-white px-8 py-4 flex justify-between items-center shadow-md">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-emerald-900/20 flex items-center justify-center shrink-0 overflow-hidden pr-0.5">
-            <img src={srvLogo} alt="SRV" className="w-full h-full object-contain scale-[1.4] transition-transform" />
+          <div className="w-14 h-14 bg-white rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center shrink-0 p-1.5">
+            <img src={srvLogo} alt="SRV" className="w-full h-full object-contain transition-transform hover:scale-105" />
           </div>
           <h1 className="font-display font-bold text-xl">Admin Portal</h1>
         </div>
