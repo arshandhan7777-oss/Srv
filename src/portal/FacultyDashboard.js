@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Users, LogOut, CheckSquare, BookOpen, AlertCircle } from 'lucide-react';
+import srvLogo from '../assest/fav_logo/srv-t.png';
 
 export function FacultyDashboard() {
   const [students, setStudents] = useState([]);
@@ -62,7 +63,7 @@ export function FacultyDashboard() {
       <div className="bg-slate-900 text-white px-8 py-4 flex justify-between items-center shadow-md">
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-            <img src="/srv T.png" alt="SRV" className="h-6" />
+            <img src={srvLogo} alt="SRV" className="h-6" />
           </div>
           <div>
             <h1 className="font-display font-bold text-lg leading-tight">Faculty Portal</h1>

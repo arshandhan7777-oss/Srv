@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { LogOut, Bell, Download, FileText, Calendar as CalIcon, TrendingUp, Sparkles, CheckCircle2, Coffee } from 'lucide-react';
+import srvLogo from '../assest/fav_logo/srv-t.png';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -84,7 +85,7 @@ export function ParentDashboard() {
       <div className="bg-slate-900 text-white px-4 sm:px-8 py-4 flex justify-between items-center shadow-md">
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 bg-white rounded-lg flex flex-col items-center justify-center overflow-hidden">
-             <img src="/srv T.png" alt="SRV" className="h-6" />
+             <img src={srvLogo} alt="SRV" className="h-6" />
           </div>
           <div>
             <h1 className="font-display font-bold text-lg leading-tight">Parent Portal</h1>

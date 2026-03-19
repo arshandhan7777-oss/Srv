@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import srvLogo from '../assest/fav_logo/srv w.png';
+import srvLogo from '../assest/fav_logo/srv-w.png';
 
 const navLinks = [
   { name: 'Home', path: '/' },

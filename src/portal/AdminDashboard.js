@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Users, UserPlus, BookOpen, LogOut, CheckCircle2, Coffee } from 'lucide-react';
+import srvLogo from '../assest/fav_logo/srv-t.png';
 
 export function AdminDashboard() {
   const [stats, setStats] = useState({ totalStudents: 0, totalFaculty: 0 });
@@ -90,7 +91,7 @@ export function AdminDashboard() {
       <div className="bg-emerald-900 text-white px-8 py-4 flex justify-between items-center shadow-md">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-            <img src="/srv T.png" alt="SRV" className="h-6" />
+            <img src={srvLogo} alt="SRV" className="h-6" />
           </div>
           <h1 className="font-display font-bold text-xl">Admin Portal</h1>
         </div>
