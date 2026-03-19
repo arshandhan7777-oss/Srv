@@ -29,7 +29,7 @@ export function Contact() {
           <span className="text-emerald-600 font-semibold tracking-widest uppercase text-sm mb-4 block">
             We'd love to hear from you
           </span>
-          <h1 className="text-5xl md:text-6xl font-display font-bold text-slate-900 mb-6">Contact Us</h1>
+          <h2 className="text-4xl md:text-5xl font-display font-bold text-slate-900 mb-6">Get in Touch</h2>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
             Whether you have a question about admissions, curriculum, or anything else, our team is highly responsive and ready to assist you.
           </p>

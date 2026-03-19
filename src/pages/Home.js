@@ -143,7 +143,7 @@ export function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
-              className="text-5xl sm:text-6xl md:text-7xl font-display font-semibold text-white leading-tight mb-6 drop-shadow-lg tracking-wide"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-[68px] font-display font-semibold text-white leading-tight mb-6 drop-shadow-lg tracking-wide"
             >
               SRV Matriculation School
             </motion.h1>
@@ -333,15 +333,15 @@ export function Home() {
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                 <div className="relative z-10">
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-8 shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3
+                  <div className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center mb-8 shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3
                     ${feature.color === 'emerald' ? 'bg-emerald-100 text-emerald-600' :
                       feature.color === 'amber' ? 'bg-amber-100 text-amber-600' :
                         feature.color === 'blue' ? 'bg-blue-100 text-blue-600' :
                           'bg-purple-100 text-purple-600'}`}
                   >
-                    <feature.icon size={28} strokeWidth={2} />
+                    <feature.icon size={36} strokeWidth={2} className="md:w-10 md:h-10 w-8 h-8" />
                   </div>
-                  <h3 className="text-xl font-display font-bold text-slate-900 mb-4">{feature.title}</h3>
+                  <h3 className="text-xl md:text-2xl font-display font-bold text-slate-900 mb-4">{feature.title}</h3>
                   <p className="text-slate-600 leading-relaxed text-[15px]">{feature.description}</p>
                 </div>
               </motion.div>
@@ -537,7 +537,7 @@ export function Home() {
               viewport={{ once: true }}
               className="flex flex-col items-center text-center"
             >
-              <Calendar className="text-amber-500 mb-5" size={40} strokeWidth={2} />
+              <Calendar className="text-amber-500 mb-5 w-12 h-12 md:w-14 md:h-14" strokeWidth={2} />
               <h3 className="text-4xl md:text-5xl font-display font-bold text-white mb-3"><AnimatedCounter value="1988" /></h3>
               <p className="text-slate-300 font-medium tracking-wide">Established</p>
             </motion.div>
@@ -550,7 +550,7 @@ export function Home() {
               transition={{ delay: 0.1 }}
               className="flex flex-col items-center text-center"
             >
-              <Award className="text-amber-500 mb-5" size={40} strokeWidth={2} />
+              <Award className="text-amber-500 mb-5 w-12 h-12 md:w-14 md:h-14" strokeWidth={2} />
               <h3 className="text-4xl md:text-5xl font-display font-bold text-white mb-3"><AnimatedCounter value="36+" /></h3>
               <p className="text-slate-300 font-medium tracking-wide">Year Of Experience</p>
             </motion.div>
@@ -563,7 +563,7 @@ export function Home() {
               transition={{ delay: 0.2 }}
               className="flex flex-col items-center text-center"
             >
-              <Shield className="text-amber-500 mb-5" size={40} strokeWidth={2} />
+              <Shield className="text-amber-500 mb-5 w-12 h-12 md:w-14 md:h-14" strokeWidth={2} />
               <h3 className="text-4xl md:text-5xl font-display font-bold text-white mb-3"><AnimatedCounter value="600+" /></h3>
               <p className="text-slate-300 font-medium tracking-wide">Students</p>
             </motion.div>
@@ -576,7 +576,7 @@ export function Home() {
               transition={{ delay: 0.3 }}
               className="flex flex-col items-center text-center"
             >
-              <Users className="text-amber-500 mb-5" size={40} strokeWidth={2} />
+              <Users className="text-amber-500 mb-5 w-12 h-12 md:w-14 md:h-14" strokeWidth={2} />
               <h3 className="text-4xl md:text-5xl font-display font-bold text-white mb-3"><AnimatedCounter value="30+" /></h3>
               <p className="text-slate-300 font-medium tracking-wide">Well Experienced Teachers</p>
             </motion.div>

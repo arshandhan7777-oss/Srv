@@ -28,7 +28,6 @@ export function Gallery() {
           <span className="text-emerald-600 font-semibold tracking-widest uppercase text-sm mb-4 block">
             Our Campus Life
           </span>
-          <h1 className="text-5xl md:text-6xl font-display font-bold text-slate-900 mb-6">Gallery</h1>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
             Take a visual tour of our state-of-the-art facilities, vibrant student life, and the dynamic environment that makes our school special.
           </p>

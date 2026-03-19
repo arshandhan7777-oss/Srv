@@ -138,11 +138,11 @@ export function SkillDevelopment() {
                 transition={{ delay: idx * 0.08 }}
                 className="group p-8 bg-white rounded-3xl border border-slate-100 shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 relative overflow-hidden"
               >
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 ${c.bg} ${c.text} group-hover:scale-110 transition-transform duration-300`}>
-                  <skill.icon size={26} strokeWidth={2} />
+                <div className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center mb-6 ${c.bg} ${c.text} group-hover:scale-110 transition-transform duration-300`}>
+                  <skill.icon size={36} strokeWidth={2} className="md:w-10 md:h-10 w-8 h-8" />
                 </div>
-                <h4 className="font-display font-bold text-slate-900 text-lg mb-3">{skill.title}</h4>
-                <p className="text-slate-500 text-sm leading-relaxed">{skill.desc}</p>
+                <h4 className="font-display font-bold text-slate-900 text-lg md:text-xl mb-3">{skill.title}</h4>
+                <p className="text-slate-500 text-sm md:text-[15px] leading-relaxed">{skill.desc}</p>
               </motion.div>
             );
           })}

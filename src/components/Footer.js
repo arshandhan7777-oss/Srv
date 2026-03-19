@@ -13,13 +13,13 @@ export function Footer() {
           
           {/* Brand */}
           <div className="lg:col-span-4 space-y-6">
-            <Link to="/" className="flex items-center gap-3">
-              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center p-2 shadow-lg shadow-emerald-900/40 border border-slate-100 overflow-hidden shrink-0">
+            <Link to="/" className="flex items-center gap-4">
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-2xl flex items-center justify-center p-2.5 shadow-lg shadow-emerald-900/40 border border-slate-100 overflow-hidden shrink-0">
                 <img src={srvLogo} alt="SRV" className="w-full h-full object-contain" />
               </div>
               <div className="flex flex-col">
-                <span className="font-display text-2xl font-bold tracking-tight text-white">SRV</span>
-                <span className="text-[10px] uppercase tracking-widest font-semibold text-emerald-400 block -mt-1">School</span>
+                <span className="font-display text-3xl font-bold tracking-tight text-white mb-0.5">SRV</span>
+                <span className="text-[11px] uppercase tracking-widest font-semibold text-emerald-400 block -mt-1">School</span>
               </div>
             </Link>
             <p className="text-sm leading-relaxed text-slate-400 max-w-sm">
@@ -27,8 +27,8 @@ export function Footer() {
             </p>
             <div className="flex items-center gap-3">
               {[Facebook, Twitter, Instagram, Youtube].map((Icon, i) => (
-                <a key={i} href="#" className="w-10 h-10 rounded-full bg-slate-800/80 flex items-center justify-center hover:bg-amber-500 hover:text-white transition-all duration-300 hover:-translate-y-1">
-                  <Icon size={18} />
+                <a key={i} href="#" className="w-11 h-11 md:w-12 md:h-12 rounded-full bg-slate-800/80 flex items-center justify-center hover:bg-amber-500 hover:text-white transition-all duration-300 hover:-translate-y-1 shadow-md">
+                  <Icon size={22} />
                 </a>
               ))}
             </div>

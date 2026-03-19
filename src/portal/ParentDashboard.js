@@ -132,138 +132,147 @@ export function ParentDashboard() {
 
         <div className="grid lg:grid-cols-3 gap-8">
           
-          {/* Marks Chart */}
-          <div className="lg:col-span-2 bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
-            <div className="flex justify-between items-center mb-8">
-              <div className="flex items-center gap-3">
-                <TrendingUp className="text-emerald-500" />
-                <h3 className="text-xl font-display font-bold text-slate-900">Academic Performance</h3>
-              </div>
-              <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-bold">{latestRecord?.term || 'No Data'}</span>
-            </div>
+          {/* LEFT COLUMN: Wide Widgets (Marks & Homework) */}
+          <div className="lg:col-span-2 flex flex-col gap-8">
             
-            {marksData.length > 0 ? (
-              <div className="h-72 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={marksData} margin={{ top: 5, right: 30, left: -20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                    <XAxis dataKey="subject" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 13 }} dy={10} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 13 }} domain={[0, 100]}/>
-                    <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
-                    <Bar dataKey="marks" fill="#10b981" radius={[6, 6, 0, 0]} maxBarSize={50} />
-                  </BarChart>
-                </ResponsiveContainer>
+            {/* Marks Chart */}
+            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+              <div className="flex justify-between items-center mb-8">
+                <div className="flex items-center gap-3">
+                  <TrendingUp className="text-emerald-500" />
+                  <h3 className="text-xl font-display font-bold text-slate-900">Academic Performance</h3>
+                </div>
+                <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-bold">{latestRecord?.term || 'No Data'}</span>
               </div>
-            ) : (
-              <div className="h-72 w-full flex items-center justify-center border-2 border-dashed border-slate-100 rounded-2xl text-slate-400 font-semibold">
-                No academic marks uploaded yet.
-              </div>
-            )}
-          </div>
-
-          {/* Attendance Chart */}
-          <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
-            <div className="flex items-center gap-3 mb-6">
-              <Sparkles className="text-amber-500" />
-              <h3 className="text-xl font-display font-bold text-slate-900">Nlite 21st-Century Skills</h3>
-            </div>
-            
-            {nliteData.length > 0 ? (
-              <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart cx="50%" cy="50%" outerRadius="70%" data={nliteData}>
-                    <PolarGrid stroke="#e2e8f0" />
-                    <PolarAngleAxis dataKey="skill" tick={{ fill: '#64748b', fontSize: 11, fontWeight: 'bold' }} />
-                    <PolarRadiusAxis angle={30} domain={[0, 5]} tick={false} axisLine={false} />
-                    <Radar name="Student" dataKey="score" stroke="#f59e0b" fill="#fde68a" fillOpacity={0.6} />
-                    <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                  </RadarChart>
-                </ResponsiveContainer>
-                <p className="text-center text-xs text-slate-500 font-semibold mt-2">Overall holistic wellbeing and skill analysis</p>
-              </div>
-            ) : (
-              <div className="h-64 w-full flex items-center justify-center border-2 border-dashed border-slate-100 rounded-2xl text-slate-400 font-semibold text-center px-4">
-                No Nlite Skill evaluations published yet.
-              </div>
-            )}
-          </div>
-
-          {/* Attendance Chart */}
-          <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
-            <div className="flex items-center gap-3 mb-6">
-              <CalIcon className="text-blue-500" />
-              <h3 className="text-xl font-display font-bold text-slate-900">Attendance Tracker</h3>
-            </div>
-            
-            {attendanceData.length > 0 ? (
-              <>
-                <div className="h-48 relative w-full flex justify-center">
+              
+              {marksData.length > 0 ? (
+                <div className="h-72 w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={attendanceData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={50}
-                        outerRadius={70}
-                        paddingAngle={5}
-                        dataKey="value"
-                        stroke="none"
-                      >
-                        {attendanceData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
+                    <BarChart data={marksData} margin={{ top: 5, right: 30, left: -20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                      <XAxis dataKey="subject" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 13 }} dy={10} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 13 }} domain={[0, 100]}/>
+                      <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
+                      <Bar dataKey="marks" fill="#10b981" radius={[6, 6, 0, 0]} maxBarSize={50} />
+                    </BarChart>
                   </ResponsiveContainer>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-2xl font-display font-bold text-slate-900">{latestRecord?.attendancePercentage || 0}%</span>
-                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Present</span>
-                  </div>
                 </div>
-                <div className="flex justify-center gap-6 mt-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-                    <span className="text-sm font-semibold text-slate-600">{latestRecord.daysPresent} Days</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-                    <span className="text-sm font-semibold text-slate-600">{latestRecord.totalWorkingDays - latestRecord.daysPresent} Days</span>
-                  </div>
+              ) : (
+                <div className="h-72 w-full flex items-center justify-center border-2 border-dashed border-slate-100 rounded-2xl text-slate-400 font-semibold">
+                  No academic marks uploaded yet.
                 </div>
-              </>
-            ) : (
-              <div className="h-56 w-full flex items-center justify-center border-2 border-dashed border-slate-100 rounded-2xl text-slate-400 font-semibold text-center px-4">
-                No attendance records found.
+              )}
+            </div>
+
+            {/* Homework Section */}
+            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+              <div className="flex items-center gap-3 mb-6">
+                <FileText className="text-blue-500" />
+                <h3 className="text-xl font-display font-bold text-slate-900">Recent Homework & Tasks</h3>
               </div>
-            )}
+              
+              <div className="grid md:grid-cols-2 gap-4">
+                {data.homework?.length > 0 ? data.homework.map(hw => (
+                  <div key={hw._id} className="p-5 border border-slate-100 rounded-2xl bg-slate-50 hover:bg-white transition-colors">
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">{hw.subject}</span>
+                      <span className="text-xs font-bold text-red-500">Due: {new Date(hw.dueDate).toLocaleDateString()}</span>
+                    </div>
+                    <h4 className="font-semibold text-slate-900 text-lg mb-1">{hw.title}</h4>
+                    <p className="text-sm text-slate-600">{hw.description}</p>
+                  </div>
+                )) : (
+                  <div className="col-span-2 p-5 border-2 border-dashed border-slate-100 rounded-2xl text-slate-400 font-semibold text-center">
+                    No recent homework assignments.
+                  </div>
+                )}
+              </div>
+            </div>
+
           </div>
 
-        </div>
-
-        {/* Homework Section */}
-        <div className="mt-8 bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
-          <div className="flex items-center gap-3 mb-6">
-            <FileText className="text-blue-500" />
-            <h3 className="text-xl font-display font-bold text-slate-900">Recent Homework & Tasks</h3>
-          </div>
-          
-          <div className="grid md:grid-cols-2 gap-4">
-            {data.homework?.length > 0 ? data.homework.map(hw => (
-              <div key={hw._id} className="p-5 border border-slate-100 rounded-2xl bg-slate-50 hover:bg-white transition-colors">
-                <div className="flex justify-between items-start mb-2">
-                  <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">{hw.subject}</span>
-                  <span className="text-xs font-bold text-red-500">Due: {new Date(hw.dueDate).toLocaleDateString()}</span>
+          {/* RIGHT COLUMN: Narrow Widgets (Nlite & Attendance) */}
+          <div className="lg:col-span-1 flex flex-col gap-8">
+            
+            {/* Nlite Chart */}
+            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+              <div className="flex items-center gap-3 mb-6">
+                <Sparkles className="text-amber-500" />
+                <h3 className="text-xl font-display font-bold text-slate-900">Nlite 21st-Century Skills</h3>
+              </div>
+              
+              {nliteData.length > 0 ? (
+                <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart cx="50%" cy="50%" outerRadius="70%" data={nliteData}>
+                      <PolarGrid stroke="#e2e8f0" />
+                      <PolarAngleAxis dataKey="skill" tick={{ fill: '#64748b', fontSize: 11, fontWeight: 'bold' }} />
+                      <PolarRadiusAxis angle={30} domain={[0, 5]} tick={false} axisLine={false} />
+                      <Radar name="Student" dataKey="score" stroke="#f59e0b" fill="#fde68a" fillOpacity={0.6} />
+                      <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                  <p className="text-center text-xs text-slate-500 font-semibold mt-2">Overall holistic wellbeing and skill analysis</p>
                 </div>
-                <h4 className="font-semibold text-slate-900 text-lg mb-1">{hw.title}</h4>
-                <p className="text-sm text-slate-600">{hw.description}</p>
+              ) : (
+                <div className="h-64 w-full flex items-center justify-center border-2 border-dashed border-slate-100 rounded-2xl text-slate-400 font-semibold text-center px-4">
+                  No Nlite Skill evaluations published yet.
+                </div>
+              )}
+            </div>
+
+            {/* Attendance Chart */}
+            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 flex-1">
+              <div className="flex items-center gap-3 mb-6">
+                <CalIcon className="text-blue-500" />
+                <h3 className="text-xl font-display font-bold text-slate-900">Attendance Tracker</h3>
               </div>
-            )) : (
-              <div className="col-span-2 p-5 border-2 border-dashed border-slate-100 rounded-2xl text-slate-400 font-semibold text-center">
-                No recent homework assignments.
-              </div>
-            )}
+              
+              {attendanceData.length > 0 ? (
+                <>
+                  <div className="h-48 relative w-full flex justify-center">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={attendanceData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={50}
+                          outerRadius={70}
+                          paddingAngle={5}
+                          dataKey="value"
+                          stroke="none"
+                        >
+                          {attendanceData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                      <span className="text-2xl font-display font-bold text-slate-900">{latestRecord?.attendancePercentage || 0}%</span>
+                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Present</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-center gap-6 mt-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                      <span className="text-sm font-semibold text-slate-600">{latestRecord.daysPresent} Days</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                      <span className="text-sm font-semibold text-slate-600">{latestRecord.totalWorkingDays - latestRecord.daysPresent} Days</span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="h-56 w-full flex items-center justify-center border-2 border-dashed border-slate-100 rounded-2xl text-slate-400 font-semibold text-center px-4">
+                  No attendance records found.
+                </div>
+              )}
+            </div>
+
           </div>
         </div>
 
