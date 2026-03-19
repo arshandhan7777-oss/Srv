@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { LogOut, Bell, Download, FileText, Calendar as CalIcon, TrendingUp, Sparkles, CheckCircle2, Coffee } from 'lucide-react';
+import { LogOut, Bell, Download, FileText, Calendar as CalIcon, TrendingUp, Sparkles, CheckCircle2, Coffee, CreditCard, AlertCircle, Clock, CheckCheck } from 'lucide-react';
 import srvLogo from '../assest/fav_logo/srv-t.png';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import jsPDF from 'jspdf';
@@ -12,6 +12,7 @@ const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6'];
 export function ParentDashboard() {
   const [data, setData] = useState({ student: null, records: [], homework: [], food: null });
   const [loading, setLoading] = useState(true);
+  const [showPayModal, setShowPayModal] = useState(false);
   const navigate = useNavigate();
   const reportRef = useRef();
 
@@ -299,6 +300,120 @@ export function ParentDashboard() {
             </div>
           )}
         </div>
+
+        {/* Pay Fees Section */}
+        <div className="mt-8 bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <CreditCard className="text-violet-600" />
+              <h3 className="text-xl font-display font-bold text-slate-900">Fee Payment</h3>
+            </div>
+            <span className="bg-red-100 text-red-600 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
+              <AlertCircle size={12} /> 1 Due
+            </span>
+          </div>
+
+          {/* Fee Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <div className="bg-red-50 border border-red-100 rounded-2xl p-5">
+              <p className="text-xs font-bold text-red-500 uppercase tracking-widest mb-1">Amount Due</p>
+              <p className="text-3xl font-display font-extrabold text-red-600">₹4,500</p>
+              <p className="text-xs text-red-400 mt-1">Term 3 — 2024–25</p>
+            </div>
+            <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5">
+              <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">Paid This Year</p>
+              <p className="text-3xl font-display font-extrabold text-emerald-700">₹9,000</p>
+              <p className="text-xs text-emerald-400 mt-1">Terms 1 &amp; 2 cleared</p>
+            </div>
+            <div className="bg-violet-50 border border-violet-100 rounded-2xl p-5">
+              <p className="text-xs font-bold text-violet-600 uppercase tracking-widest mb-1">Total Annual Fee</p>
+              <p className="text-3xl font-display font-extrabold text-violet-700">₹13,500</p>
+              <p className="text-xs text-violet-400 mt-1">Academic Year 2024–25</p>
+            </div>
+          </div>
+
+          {/* Term-wise Fee Breakdown */}
+          <h4 className="text-sm font-bold text-slate-700 uppercase tracking-widest mb-4">Term-wise Breakdown</h4>
+          <div className="overflow-x-auto rounded-2xl border border-slate-100 mb-6">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-xs">
+                <tr>
+                  <th className="text-left px-5 py-3">Term</th>
+                  <th className="text-left px-5 py-3">Description</th>
+                  <th className="text-left px-5 py-3">Amount</th>
+                  <th className="text-left px-5 py-3">Due Date</th>
+                  <th className="text-left px-5 py-3">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {[
+                  { term: 'Term 1', desc: 'Tuition + Lab Fee', amount: '₹4,500', due: '15 Jun 2024', status: 'Paid' },
+                  { term: 'Term 2', desc: 'Tuition + Activity Fee', amount: '₹4,500', due: '15 Oct 2024', status: 'Paid' },
+                  { term: 'Term 3', desc: 'Tuition + Exam Fee', amount: '₹4,500', due: '15 Feb 2025', status: 'Due' },
+                ].map((row) => (
+                  <tr key={row.term} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-5 py-4 font-bold text-slate-800">{row.term}</td>
+                    <td className="px-5 py-4 text-slate-600">{row.desc}</td>
+                    <td className="px-5 py-4 font-bold text-slate-900">{row.amount}</td>
+                    <td className="px-5 py-4 text-slate-500">{row.due}</td>
+                    <td className="px-5 py-4">
+                      {row.status === 'Paid' ? (
+                        <span className="flex items-center gap-1 text-emerald-600 font-bold text-xs bg-emerald-100 px-3 py-1 rounded-full w-fit">
+                          <CheckCheck size={12} /> Paid
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 text-red-600 font-bold text-xs bg-red-100 px-3 py-1 rounded-full w-fit">
+                          <Clock size={12} /> Due
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pay Now Button */}
+          <button
+            onClick={() => setShowPayModal(true)}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl shadow-lg shadow-violet-600/25 transition-all hover:-translate-y-0.5"
+          >
+            <CreditCard size={18} />
+            Pay Term 3 Fee — ₹4,500
+          </button>
+        </div>
+
+        {/* Pay Modal */}
+        {showPayModal && (
+          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-display font-bold text-slate-900">Complete Payment</h3>
+                <button onClick={() => setShowPayModal(false)} className="text-slate-400 hover:text-slate-700 transition-colors">✕</button>
+              </div>
+              <div className="bg-slate-50 rounded-2xl p-5 mb-6">
+                <p className="text-sm text-slate-500 mb-1">Paying for</p>
+                <p className="font-bold text-slate-900 text-lg">Term 3 — 2024–25</p>
+                <p className="text-3xl font-display font-extrabold text-violet-700 mt-2">₹4,500</p>
+              </div>
+              <div className="space-y-3 mb-6">
+                <div className="flex gap-3">
+                  <button className="flex-1 py-3 px-4 border-2 border-violet-600 text-violet-700 font-bold rounded-xl text-sm">UPI / QR</button>
+                  <button className="flex-1 py-3 px-4 border-2 border-slate-200 text-slate-600 font-semibold rounded-xl text-sm">Net Banking</button>
+                  <button className="flex-1 py-3 px-4 border-2 border-slate-200 text-slate-600 font-semibold rounded-xl text-sm">Card</button>
+                </div>
+              </div>
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+                <p className="text-xs text-amber-700 font-semibold flex items-center gap-2">
+                  <AlertCircle size={14} /> Payment gateway integration coming soon. Please pay at the school office or use bank transfer.
+                </p>
+              </div>
+              <button onClick={() => setShowPayModal(false)} className="w-full py-3 bg-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-300 transition-colors">
+                Close
+              </button>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
