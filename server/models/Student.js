@@ -8,6 +8,7 @@ const studentSchema = new mongoose.Schema({
   dateOfBirth: { type: Date },
   contactNumber: { type: String },
   address: { type: String },
+  group: { type: String }, // For 11th and 12th graders
   facultyId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // The faculty managing this student
 }, { timestamps: true });
 

@@ -51,27 +51,24 @@ router.post('/faculty', protect, adminOnly, async (req, res) => {
 // @desc    Register a new student and generate their parent account
 // @access  Private (Admin only)
 router.post('/student', protect, adminOnly, async (req, res) => {
-  const { name, grade, section, dateOfBirth, contactNumber, address, facultyId } = req.body;
+  const { name, grade, section, group, dateOfBirth, contactNumber, address } = req.body;
 
   try {
     // 1. Generate SRV Number for Student (e.g., SRV+Year+Random = SRV249012)
     const year = new Date().getFullYear().toString().slice(-2);
     const srvNumber = `SRV${year}${generateRandomDigits()}`;
 
-    // Find the faculty assigned to this grade and section
-    const faculty = await User.findOne({ role: 'faculty', assignedGrade: grade, assignedSection: section });
-    const assignedFacultyId = facultyId || (faculty ? faculty._id : null);
-
-    // 2. Create the Student record
+    // 2. Create the Student record (facultyId starts null, assigned manually via manage faculty)
     const student = await Student.create({
       name,
       srvNumber,
       grade,
       section,
+      group,
       dateOfBirth,
       contactNumber,
       address,
-      facultyId: assignedFacultyId
+      facultyId: null
     });
 
     // 3. Automatically create the Parent login account using the SRV number
@@ -154,6 +151,18 @@ router.post('/food', protect, adminOnly, async (req, res) => {
   }
 });
 
+// @route   GET /api/admin/students
+// @desc    Get all students (for manual assignment viewing)
+// @access  Private (Admin only)
+router.get('/students', protect, adminOnly, async (req, res) => {
+  try {
+    const students = await Student.find().populate('facultyId', 'name srvNumber').sort({ grade: 1, section: 1, name: 1 });
+    res.json(students);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching students' });
+  }
+});
+
 // @route   GET /api/admin/faculty
 // @desc    Get all faculty members
 // @access  Private (Admin only)
@@ -170,15 +179,17 @@ router.get('/faculty', protect, adminOnly, async (req, res) => {
 // @desc    Update faculty assignment and/or password
 // @access  Private (Admin only)
 router.put('/faculty/:id', protect, adminOnly, async (req, res) => {
-  const { assignedGrade, assignedSection, password } = req.body;
+  const { assignedGrade, assignedSection, maxStudents, handledClasses, password } = req.body;
   try {
     const faculty = await User.findById(req.params.id);
     if (!faculty || faculty.role !== 'faculty') {
       return res.status(404).json({ message: 'Faculty not found' });
     }
 
-    if (assignedGrade) faculty.assignedGrade = assignedGrade;
-    if (assignedSection) faculty.assignedSection = assignedSection;
+    if (assignedGrade !== undefined) faculty.assignedGrade = assignedGrade;
+    if (assignedSection !== undefined) faculty.assignedSection = assignedSection;
+    if (maxStudents !== undefined) faculty.maxStudents = maxStudents;
+    if (handledClasses !== undefined) faculty.handledClasses = handledClasses;
 
     if (password) {
       const salt = await bcrypt.genSalt(10);
@@ -187,17 +198,38 @@ router.put('/faculty/:id', protect, adminOnly, async (req, res) => {
 
     await faculty.save();
 
-    // Re-assign matching students to this faculty
-    if (assignedGrade && assignedSection) {
-      await Student.updateMany(
-        { grade: assignedGrade, section: assignedSection },
-        { facultyId: faculty._id }
-      );
-    }
-
-    res.json({ message: 'Faculty updated successfully', faculty: { _id: faculty._id, name: faculty.name, assignedGrade: faculty.assignedGrade, assignedSection: faculty.assignedSection } });
+    res.json({ message: 'Faculty updated successfully', faculty });
   } catch (error) {
     res.status(500).json({ message: 'Error updating faculty' });
+  }
+});
+
+// @route   POST /api/admin/faculty/:id/assign-students
+// @desc    Manually assign students to a faculty (up to their maxStudents limit)
+// @access  Private (Admin only)
+router.post('/faculty/:id/assign-students', protect, adminOnly, async (req, res) => {
+  const { studentIds } = req.body; // array of string IDs
+  try {
+    const faculty = await User.findById(req.params.id);
+    if (!faculty || faculty.role !== 'faculty') {
+      return res.status(404).json({ message: 'Faculty not found' });
+    }
+
+    // Replace their assignment completely
+    // First, unassign anyone currently assigned to them
+    await Student.updateMany({ facultyId: faculty._id }, { $set: { facultyId: null } });
+
+    // Ensure we aren't assigning more than maxStudents
+    const idsToAssign = Array.isArray(studentIds) ? studentIds.slice(0, faculty.maxStudents) : [];
+
+    // Assign the new list
+    if (idsToAssign.length > 0) {
+      await Student.updateMany({ _id: { $in: idsToAssign } }, { $set: { facultyId: faculty._id } });
+    }
+    
+    res.json({ message: `Successfully synced ${idsToAssign.length} students` });
+  } catch (error) {
+    res.status(500).json({ message: 'Error assigning students' });
   }
 });
 

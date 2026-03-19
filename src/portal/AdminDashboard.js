@@ -12,7 +12,7 @@ export function AdminDashboard() {
   const [facultyMsg, setFacultyMsg] = useState({ text: '', type: '' });
 
   // Student Form State
-  const [studentForm, setStudentForm] = useState({ name: '', grade: '', section: '', dateOfBirth: '' });
+  const [studentForm, setStudentForm] = useState({ name: '', grade: '', section: '', group: '', dateOfBirth: '' });
   const [studentMsg, setStudentMsg] = useState({ text: '', type: '' });
 
   // Food Menu Form State
@@ -24,6 +24,10 @@ export function AdminDashboard() {
   const [editingFacultyId, setEditingFacultyId] = useState(null);
   const [editFacultyForm, setEditFacultyForm] = useState({ assignedGrade: '', assignedSection: '', password: '' });
   const [manageFacultyMsg, setManageFacultyMsg] = useState({ text: '', type: '' });
+
+  // Advanced Profile State
+  const [allStudents, setAllStudents] = useState([]);
+  const [selectedFacultyProfile, setSelectedFacultyProfile] = useState(null);
 
   const navigate = useNavigate();
 
@@ -48,6 +52,18 @@ export function AdminDashboard() {
     axios.get('https://srv-backend-3b9s.onrender.com/api/admin/faculty', {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => setFaculties(res.data)).catch(console.error);
+  };
+
+  const fetchStudents = (token) => {
+    axios.get('https://srv-backend-3b9s.onrender.com/api/admin/students', {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(res => setAllStudents(res.data)).catch(console.error);
+  };
+
+  const openFacultyProfile = (faculty) => {
+    const token = localStorage.getItem('schoolToken');
+    fetchStudents(token);
+    setSelectedFacultyProfile(faculty);
   };
 
   const handleLogout = () => {
@@ -115,7 +131,7 @@ export function AdminDashboard() {
         headers: { Authorization: `Bearer ${token}` }
       });
       setStudentMsg({ text: `Success! Student SRV: ${res.data.student.srvNumber} Login pass: ${studentForm.dateOfBirth}`, type: 'success' });
-      setStudentForm({ name: '', grade: '', section: '', dateOfBirth: '' });
+      setStudentForm({ name: '', grade: '', section: '', group: '', dateOfBirth: '' });
       setStats(prev => ({...prev, totalStudents: prev.totalStudents + 1}));
     } catch (err) {
       setStudentMsg({ text: err.response?.data?.message || 'Failed to admit student', type: 'error' });
@@ -251,7 +267,7 @@ export function AdminDashboard() {
                   placeholder="Grade" 
                   required
                   value={studentForm.grade}
-                  onChange={e => setStudentForm({...studentForm, grade: e.target.value})}
+                  onChange={e => setStudentForm({...studentForm, grade: e.target.value, group: ''})}
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500" 
                 />
                 <input 
@@ -271,6 +287,16 @@ export function AdminDashboard() {
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500" 
                 />
               </div>
+              {['11', '12', 'XI', 'XII'].includes(studentForm.grade.toUpperCase().trim()) && (
+                <input 
+                  type="text" 
+                  placeholder="Group Details (e.g. Science, Commerce, Arts)" 
+                  required
+                  value={studentForm.group}
+                  onChange={e => setStudentForm({...studentForm, group: e.target.value})}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500" 
+                />
+              )}
               <button type="submit" className="w-full py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors">
                 Admit Student & Generate Parent Login
               </button>
@@ -384,6 +410,9 @@ export function AdminDashboard() {
                         <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">{faculty.assignedGrade || '-'}</td>
                         <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">{faculty.assignedSection || '-'}</td>
                         <td className="px-5 py-4 flex items-center justify-center gap-3 border-b border-slate-50">
+                          <button onClick={() => openFacultyProfile(faculty)} className="text-emerald-600 hover:text-emerald-800 font-semibold text-xs hover:underline flex items-center gap-1" title="View Profile & Assign Students">
+                            Profile
+                          </button>
                           <button onClick={() => startEditing(faculty)} className="text-blue-600 hover:text-blue-800 font-semibold text-xs hover:underline flex items-center gap-1" title="Edit and Reset Password">
                             <Edit2 size={14} /> Edit
                           </button>
@@ -403,6 +432,171 @@ export function AdminDashboard() {
               </tbody>
             </table>
           </div>
+        </div>
+      </div>
+      
+      {selectedFacultyProfile && (
+        <FacultyProfileModal 
+          faculty={selectedFacultyProfile} 
+          allStudents={allStudents} 
+          onClose={() => setSelectedFacultyProfile(null)} 
+          onUpdate={() => {
+            const token = localStorage.getItem('schoolToken');
+            fetchFaculties(token);
+            fetchStudents(token);
+          }} 
+        />
+      )}
+    </div>
+  );
+}
+
+function FacultyProfileModal({ faculty, allStudents, onClose, onUpdate }) {
+  const [maxStudents, setMaxStudents] = useState(faculty.maxStudents || 30);
+  const [handledClasses, setHandledClasses] = useState(faculty.handledClasses || []);
+  
+  // Initialize assigned students
+  const [assignedIds, setAssignedIds] = useState(
+    allStudents.filter(s => (s.facultyId?._id === faculty._id) || (s.facultyId === faculty._id)).map(s => s._id)
+  );
+
+  const [studentFilter, setStudentFilter] = useState({ grade: '', section: '' });
+  const [saving, setSaving] = useState(false);
+
+  const toggleStudent = (id) => {
+    setAssignedIds(prev => {
+      if (prev.includes(id)) return prev.filter(i => i !== id);
+      if (prev.length >= maxStudents) {
+        alert(`Cannot assign more than ${maxStudents} monitored students to this faculty. Increase limit if needed.`);
+        return prev;
+      }
+      return [...prev, id];
+    });
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const token = localStorage.getItem('schoolToken');
+      
+      // Update limit and handled classes
+      await axios.put(`https://srv-backend-3b9s.onrender.com/api/admin/faculty/${faculty._id}`, { 
+        maxStudents, 
+        handledClasses 
+      }, { headers: { Authorization: `Bearer ${token}` } });
+
+      // Build student assignment payload
+      await axios.post(`https://srv-backend-3b9s.onrender.com/api/admin/faculty/${faculty._id}/assign-students`, { 
+        studentIds: assignedIds 
+      }, { headers: { Authorization: `Bearer ${token}` } });
+
+      alert("Profile and student tracking assignments updated successfully!");
+      onUpdate();
+      onClose();
+    } catch (err) {
+      alert("Failed to save profile. Please check connection.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Filter students
+  const filteredStudents = allStudents.filter(s => {
+    if (studentFilter.grade && s.grade !== studentFilter.grade) return false;
+    if (studentFilter.section && s.section !== studentFilter.section) return false;
+    return true;
+  });
+
+  return (
+    <div className="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4 backdrop-blur-sm overflow-y-auto">
+      <div className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden my-8">
+        
+        {/* Header */}
+        <div className="bg-slate-900 px-6 py-4 flex justify-between items-center text-white">
+          <div>
+            <h2 className="text-xl font-bold font-display">Faculty Profile: {faculty.name}</h2>
+            <p className="text-sm text-slate-300">Class Incharge: {faculty.assignedGrade || '-'}-{faculty.assignedSection || '-'}</p>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg"><X size={20} /></button>
+        </div>
+
+        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+          
+          {/* Left Column: Config */}
+          <div className="space-y-6">
+            <div>
+              <h3 className="font-bold text-slate-800 mb-2 border-b pb-2">Tracking Limit</h3>
+              <p className="text-xs text-slate-500 mb-2">Maximum students this faculty handles as a class tutor.</p>
+              <input type="number" min="1" value={maxStudents} onChange={e => setMaxStudents(Number(e.target.value))} className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-slate-700" />
+            </div>
+
+            <div>
+              <h3 className="font-bold text-slate-800 mb-2 border-b pb-2 flex justify-between items-center">
+                <span>Handled Classes & Subjects</span>
+                <button onClick={() => setHandledClasses([...handledClasses, { grade: '', section: '', subject: '' }])} className="text-xs bg-slate-100 text-slate-700 font-bold px-2 py-1 rounded hover:bg-slate-200">
+                  + Add Subject
+                </button>
+              </h3>
+              <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
+                {handledClasses.map((hc, idx) => (
+                  <div key={idx} className="flex gap-2 p-2 bg-slate-50 rounded-xl border border-slate-100 items-center">
+                    <input type="text" placeholder="Grade" value={hc.grade} onChange={e => { const newHc = [...handledClasses]; newHc[idx].grade = e.target.value; setHandledClasses(newHc); }} className="w-16 px-2 py-1 border rounded text-sm" />
+                    <input type="text" placeholder="Sec" value={hc.section} onChange={e => { const newHc = [...handledClasses]; newHc[idx].section = e.target.value; setHandledClasses(newHc); }} className="w-16 px-2 py-1 border rounded text-sm" />
+                    <input type="text" placeholder="Subject" value={hc.subject} onChange={e => { const newHc = [...handledClasses]; newHc[idx].subject = e.target.value; setHandledClasses(newHc); }} className="flex-1 px-2 py-1 border rounded text-sm min-w-0" />
+                    <button onClick={() => setHandledClasses(handledClasses.filter((_, i) => i !== idx))} className="text-red-400 hover:text-red-600"><X size={16}/></button>
+                  </div>
+                ))}
+                {handledClasses.length === 0 && <p className="text-sm text-slate-400 italic">No additional subjects assigned yet.</p>}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Assign Students */}
+          <div className="flex flex-col h-[500px]">
+             <h3 className="font-bold text-slate-800 mb-2 border-b pb-2 flex justify-between">
+                <span>Assign Tracking Students</span>
+                <span className={`text-sm ${assignedIds.length > maxStudents ? 'text-red-500' : 'text-emerald-600'}`}>{assignedIds.length} / {maxStudents}</span>
+             </h3>
+             <div className="flex gap-2 mb-3">
+               <input type="text" placeholder="Filter Grade" value={studentFilter.grade} onChange={e => setStudentFilter({...studentFilter, grade: e.target.value})} className="w-1/2 px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+               <input type="text" placeholder="Filter Sec" value={studentFilter.section} onChange={e => setStudentFilter({...studentFilter, section: e.target.value})} className="w-1/2 px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+             </div>
+             <div className="flex-1 overflow-y-auto border rounded-xl bg-slate-50 p-2 space-y-1">
+                {filteredStudents.map(s => {
+                  const isAssignedToMe = assignedIds.includes(s._id);
+                  const isAssignedToOther = !isAssignedToMe && s.facultyId && s.facultyId._id !== faculty._id;
+                  
+                  return (
+                    <div key={s._id} className={`flex items-center justify-between p-2 rounded-lg text-sm border bg-white ${isAssignedToMe ? 'border-emerald-300 ring-1 ring-emerald-300' : 'border-slate-200'}`}>
+                      <div>
+                        <p className="font-bold text-slate-800">{s.name} <span className="text-xs font-normal text-slate-500 ml-1">({s.srvNumber})</span></p>
+                        <p className="text-xs flex gap-2">
+                          <span className="bg-slate-100 text-slate-500 px-1.5 rounded">{s.grade}-{s.section}</span>
+                          {s.group && <span className="bg-amber-100 text-amber-700 px-1.5 rounded">{s.group}</span>}
+                          {isAssignedToOther && <span className="text-red-500 text-[10px] ml-1 flex items-center">⚠ Tracked by {s.facultyId.name}</span>}
+                        </p>
+                      </div>
+                      <button 
+                        onClick={() => toggleStudent(s._id)}
+                        className={`text-xs px-3 py-1.5 font-bold rounded-lg ${isAssignedToMe ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600 hover:bg-emerald-50 hover:text-emerald-600'}`}
+                      >
+                        {isAssignedToMe ? 'Assigned' : 'Assign'}
+                      </button>
+                    </div>
+                  );
+                })}
+                {filteredStudents.length === 0 && <p className="text-center p-4 text-slate-500 text-sm">No students match the filters.</p>}
+             </div>
+          </div>
+
+        </div>
+
+        {/* Footer */}
+        <div className="bg-slate-50 p-4 border-t flex justify-end gap-3">
+          <button onClick={onClose} className="px-5 py-2 text-slate-600 font-bold hover:bg-slate-200 rounded-xl">Cancel</button>
+          <button onClick={handleSave} disabled={saving} className="px-5 py-2 bg-emerald-600 text-white font-bold hover:bg-emerald-700 rounded-xl disabled:opacity-50">
+            {saving ? 'Saving...' : 'Save Profile & Assignments'}
+          </button>
         </div>
       </div>
     </div>
