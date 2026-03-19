@@ -23,6 +23,7 @@ const navLinks = [
   { name: 'Gallery', path: '/gallery' },
   { name: 'News & Media', path: '/news' },
   { name: 'Contact Us', path: '/contact' },
+  { name: 'Portal Login', path: '/portal/login' },
 ];
 
 export function Navbar() {
@@ -222,21 +223,6 @@ export function Navbar() {
                     )}
                   </motion.div>
                 ))}
-
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="mt-4 pt-4 border-t border-slate-100 px-4 pb-4"
-                >
-                  <Link
-                    to="/portal/login"
-                    className="w-full flex items-center justify-center px-6 py-3.5 rounded-xl font-bold text-white bg-slate-900 hover:bg-slate-800 transition-colors shadow-xl shadow-slate-900/20"
-                  >
-                    <User size={18} className="mr-2" />
-                    Portal Login
-                  </Link>
-                </motion.div>
               </nav>
             </motion.div>
           )}
