@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { MapPin, Phone, Mail, Instagram, Facebook, Twitter, Youtube, ArrowRight, BookOpen } from 'lucide-react';
-import srvLogo from '../assest/fav_logo/srv-w.png';
+import srvLogo from '../assest/fav_logo/srv-t.png';
 
 export function Footer() {
   return (
@@ -14,7 +14,7 @@ export function Footer() {
           {/* Brand */}
           <div className="lg:col-span-4 space-y-6">
             <Link to="/" className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-white/5 backdrop-blur-sm rounded-xl border border-emerald-800/30 flex items-center justify-center p-1.5 overflow-hidden">
+              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center p-2 shadow-lg shadow-emerald-900/40 border border-slate-100 overflow-hidden shrink-0">
                 <img src={srvLogo} alt="SRV" className="w-full h-full object-contain" />
               </div>
               <div className="flex flex-col">
