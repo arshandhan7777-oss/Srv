@@ -58,6 +58,10 @@ router.post('/student', protect, adminOnly, async (req, res) => {
     const year = new Date().getFullYear().toString().slice(-2);
     const srvNumber = `SRV${year}${generateRandomDigits()}`;
 
+    // Find the faculty assigned to this grade and section
+    const faculty = await User.findOne({ role: 'faculty', assignedGrade: grade, assignedSection: section });
+    const assignedFacultyId = facultyId || (faculty ? faculty._id : null);
+
     // 2. Create the Student record
     const student = await Student.create({
       name,
@@ -67,7 +71,7 @@ router.post('/student', protect, adminOnly, async (req, res) => {
       dateOfBirth,
       contactNumber,
       address,
-      facultyId
+      facultyId: assignedFacultyId
     });
 
     // 3. Automatically create the Parent login account using the SRV number

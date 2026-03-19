@@ -19,6 +19,11 @@ export function FacultyDashboard() {
     nliteSkills: { communication: 5, teamwork: 5, lifelongLearning: 5, positiveAttitude: 5, holisticWellbeing: 5, languageProficiency: 5 }
   });
   const [gradeMsg, setGradeMsg] = useState({ text: '', type: '' });
+
+  // Homework Form State
+  const [hwForm, setHwForm] = useState({ subject: '', title: '', description: '', dueDate: '' });
+  const [hwMsg, setHwMsg] = useState({ text: '', type: '' });
+
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('schoolUser') || '{}');
 
@@ -54,6 +59,25 @@ export function FacultyDashboard() {
       setTimeout(() => setSelectedStudent(null), 2000);
     } catch (err) {
       setGradeMsg({ text: 'Failed to save evaluate student', type: 'error' });
+    }
+  };
+
+  const submitHomework = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('schoolToken');
+      await axios.post('https://srv-backend-3b9s.onrender.com' + '/api/faculty/homework', {
+        grade: user.assignedGrade,
+        section: user.assignedSection,
+        ...hwForm
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setHwMsg({ text: 'Homework published successfully!', type: 'success' });
+      setHwForm({ subject: '', title: '', description: '', dueDate: '' });
+      setTimeout(() => setHwMsg({ text: '', type: '' }), 3000);
+    } catch (err) {
+      setHwMsg({ text: 'Failed to publish homework', type: 'error' });
     }
   };
 
@@ -212,33 +236,38 @@ export function FacultyDashboard() {
                 <BookOpen className="text-amber-500" />
                 <h3 className="text-lg font-display font-bold text-slate-900">Assign Homework</h3>
               </div>
-              <div className="space-y-3">
-                <input type="text" placeholder="Subject" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
-                <input type="text" placeholder="Title" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
-                <textarea placeholder="Description..." rows="3" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
-                <input type="date" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
-                <button className="w-full py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors text-sm">
+              {hwMsg.text && (
+                <div className={`mb-4 px-4 py-2 rounded-lg text-sm font-semibold ${hwMsg.type === 'success' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                  {hwMsg.text}
+                </div>
+              )}
+              <form onSubmit={submitHomework} className="space-y-3">
+                <input type="text" placeholder="Subject" required value={hwForm.subject} onChange={e => setHwForm({...hwForm, subject: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+                <input type="text" placeholder="Title" required value={hwForm.title} onChange={e => setHwForm({...hwForm, title: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+                <textarea placeholder="Description..." rows="3" required value={hwForm.description} onChange={e => setHwForm({...hwForm, description: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+                <input type="date" required value={hwForm.dueDate} onChange={e => setHwForm({...hwForm, dueDate: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+                <button type="submit" className="w-full py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors text-sm">
                   Publish & Notify Parents
                 </button>
-              </div>
+              </form>
             </div>
 
             {/* Quick Actions */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
               <h3 className="text-lg font-display font-bold text-slate-900 mb-4">Quick Actions</h3>
               <div className="space-y-3">
-                <button className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 transition-colors text-left">
+                <button onClick={() => alert('Please select a student from the list to evaluate attendance and Nlite skills.')} className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 transition-colors text-left">
                   <CheckSquare className="text-emerald-600" size={20} />
                   <div>
                     <p className="font-semibold text-sm text-slate-900">Mark Attendance</p>
-                    <p className="text-xs text-slate-500">Record daily present/absent</p>
+                    <p className="text-xs text-slate-500">Select student to record attendance</p>
                   </div>
                 </button>
-                <button className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-amber-500 hover:bg-amber-50 transition-colors text-left">
+                <button onClick={() => alert('Please select a student from the list to evaluate behaviour and Nlite skills.')} className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-amber-500 hover:bg-amber-50 transition-colors text-left">
                   <AlertCircle className="text-amber-600" size={20} />
                   <div>
                     <p className="font-semibold text-sm text-slate-900">Log Behaviour</p>
-                    <p className="text-xs text-slate-500">Add discipline/activity notes</p>
+                    <p className="text-xs text-slate-500">Select student to add behaviour notes</p>
                   </div>
                 </button>
               </div>
