@@ -62,8 +62,10 @@ export function FacultyDashboard() {
       {/* Top Navbar */}
       <div className="bg-slate-900 text-white px-8 py-4 flex justify-between items-center shadow-md">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-white rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center shrink-0 p-1.5">
-            <img src={srvLogo} alt="SRV" className="w-full h-full object-contain transition-transform hover:scale-105" />
+          <div className="p-1.5 rounded-[1.25rem] bg-emerald-900 shadow-lg flex items-center justify-center shrink-0">
+            <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center p-1">
+              <img src={srvLogo} alt="SRV" className="w-full h-full object-contain" />
+            </div>
           </div>
           <div>
             <h1 className="font-display font-bold text-lg leading-tight">Faculty Portal</h1>

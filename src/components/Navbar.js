@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import srvLogo from '../assest/fav_logo/srv-w.png';
+import srvLogo from '../assest/fav_logo/srv-t.png';
 
 const navLinks = [
   { name: 'Home', path: '/' },
@@ -73,11 +73,10 @@ export function Navbar() {
           <div className="flex justify-between items-center">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3 group">
-              <div className={twMerge(
-                "p-1.5 rounded-2xl transition-colors duration-300 flex items-center justify-center shrink-0 overflow-hidden",
-                scrolled ? "bg-emerald-900 shadow-md" : "bg-white/10 backdrop-blur-sm"
-              )}>
-                <img src={srvLogo} alt="SRV Logo" className="h-12 w-auto object-cover rounded-xl drop-shadow" />
+              <div className="p-1.5 rounded-[1.25rem] bg-emerald-900 shadow-md flex items-center justify-center shrink-0 transition-all duration-300">
+                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center p-1">
+                  <img src={srvLogo} alt="SRV Logo" className="w-full h-full object-contain" />
+                </div>
               </div>
               <div className="flex flex-col">
                 <span className={twMerge(
