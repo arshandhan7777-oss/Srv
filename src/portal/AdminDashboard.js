@@ -29,7 +29,7 @@ export function AdminDashboard() {
     
     // Fetch stats
     const token = localStorage.getItem('schoolToken');
-    axios.get((import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/api/admin/stats', {
+    axios.get('https://srv-backend-3b9s.onrender.com' + '/api/admin/stats', {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => setStats(res.data)).catch(console.error);
   }, [navigate]);
@@ -44,7 +44,7 @@ export function AdminDashboard() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('schoolToken');
-      const res = await axios.post((import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/api/admin/faculty', facultyForm, {
+      const res = await axios.post('https://srv-backend-3b9s.onrender.com' + '/api/admin/faculty', facultyForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setFacultyMsg({ text: `Success! Faculty SRV: ${res.data.faculty.srvNumber} - Password: faculty123`, type: 'success' });
@@ -59,7 +59,7 @@ export function AdminDashboard() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('schoolToken');
-      const res = await axios.post((import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/api/admin/student', studentForm, {
+      const res = await axios.post('https://srv-backend-3b9s.onrender.com' + '/api/admin/student', studentForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setStudentMsg({ text: `Success! Student SRV: ${res.data.student.srvNumber} Login pass: ${studentForm.dateOfBirth}`, type: 'success' });
@@ -74,7 +74,7 @@ export function AdminDashboard() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('schoolToken');
-      await axios.post((import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/api/admin/food', foodForm, {
+      await axios.post('https://srv-backend-3b9s.onrender.com' + '/api/admin/food', foodForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setFoodMsg({ text: `${foodForm.day} menu published successfully!`, type: 'success' });

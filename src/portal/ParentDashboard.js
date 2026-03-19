@@ -22,7 +22,7 @@ export function ParentDashboard() {
     }
 
     const token = localStorage.getItem('schoolToken');
-    axios.get((import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/api/parent/dashboard', {
+    axios.get('https://srv-backend-3b9s.onrender.com' + '/api/parent/dashboard', {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => {
       setData(res.data);
