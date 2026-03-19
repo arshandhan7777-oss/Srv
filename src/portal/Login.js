@@ -51,9 +51,9 @@ export function Login() {
         >
           {/* Branded Logo Block */}
           <div className="flex items-center gap-4 mb-8">
-            <div className="p-2 rounded-[1.25rem] bg-emerald-900 shadow-lg flex items-center justify-center shrink-0">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-xl flex items-center justify-center p-1 sm:p-1.5">
-                <img src={srvLogo} alt="SRV Logo" className="w-full h-full object-contain scale-110" />
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-emerald-900 rounded-[20px] p-[4px] shadow-lg shrink-0">
+              <div className="w-full h-full bg-white rounded-[16px] flex items-center justify-center overflow-hidden p-1.5">
+                <img src={srvLogo} alt="SRV Logo" className="w-full h-full object-contain scale-[1.15]" />
               </div>
             </div>
             <div className="flex flex-col items-start">
