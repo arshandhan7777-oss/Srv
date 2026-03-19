@@ -154,4 +154,72 @@ router.post('/food', protect, adminOnly, async (req, res) => {
   }
 });
 
+// @route   GET /api/admin/faculty
+// @desc    Get all faculty members
+// @access  Private (Admin only)
+router.get('/faculty', protect, adminOnly, async (req, res) => {
+  try {
+    const faculty = await User.find({ role: 'faculty' }).select('-password');
+    res.json(faculty);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching faculty' });
+  }
+});
+
+// @route   PUT /api/admin/faculty/:id
+// @desc    Update faculty assignment and/or password
+// @access  Private (Admin only)
+router.put('/faculty/:id', protect, adminOnly, async (req, res) => {
+  const { assignedGrade, assignedSection, password } = req.body;
+  try {
+    const faculty = await User.findById(req.params.id);
+    if (!faculty || faculty.role !== 'faculty') {
+      return res.status(404).json({ message: 'Faculty not found' });
+    }
+
+    if (assignedGrade) faculty.assignedGrade = assignedGrade;
+    if (assignedSection) faculty.assignedSection = assignedSection;
+
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      faculty.password = await bcrypt.hash(password, salt);
+    }
+
+    await faculty.save();
+
+    // Re-assign matching students to this faculty
+    if (assignedGrade && assignedSection) {
+      await Student.updateMany(
+        { grade: assignedGrade, section: assignedSection },
+        { facultyId: faculty._id }
+      );
+    }
+
+    res.json({ message: 'Faculty updated successfully', faculty: { _id: faculty._id, name: faculty.name, assignedGrade: faculty.assignedGrade, assignedSection: faculty.assignedSection } });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating faculty' });
+  }
+});
+
+// @route   DELETE /api/admin/faculty/:id
+// @desc    Delete a faculty member
+// @access  Private (Admin only)
+router.delete('/faculty/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const faculty = await User.findById(req.params.id);
+    if (!faculty || faculty.role !== 'faculty') {
+      return res.status(404).json({ message: 'Faculty not found' });
+    }
+
+    await faculty.deleteOne();
+
+    // Unassign their students
+    await Student.updateMany({ facultyId: req.params.id }, { facultyId: null });
+
+    res.json({ message: 'Faculty deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting faculty' });
+  }
+});
+
 export default router;

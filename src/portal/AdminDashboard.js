@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Users, UserPlus, BookOpen, LogOut, CheckCircle2, Coffee } from 'lucide-react';
+import { Users, UserPlus, BookOpen, LogOut, CheckCircle2, Coffee, Trash2, Edit2, Save, X } from 'lucide-react';
 import srvLogo from '../assest/fav_logo/srv-t.png';
 
 export function AdminDashboard() {
@@ -19,6 +19,12 @@ export function AdminDashboard() {
   const [foodForm, setFoodForm] = useState({ day: 'Monday', breakfast: '', lunch: '', snacks: '' });
   const [foodMsg, setFoodMsg] = useState({ text: '', type: '' });
 
+  // Manage Faculty State
+  const [faculties, setFaculties] = useState([]);
+  const [editingFacultyId, setEditingFacultyId] = useState(null);
+  const [editFacultyForm, setEditFacultyForm] = useState({ assignedGrade: '', assignedSection: '', password: '' });
+  const [manageFacultyMsg, setManageFacultyMsg] = useState({ text: '', type: '' });
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -33,12 +39,57 @@ export function AdminDashboard() {
     axios.get('https://srv-backend-3b9s.onrender.com' + '/api/admin/stats', {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => setStats(res.data)).catch(console.error);
+
+    // Fetch faculties
+    fetchFaculties(token);
   }, [navigate]);
+
+  const fetchFaculties = (token) => {
+    axios.get('https://srv-backend-3b9s.onrender.com/api/admin/faculty', {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(res => setFaculties(res.data)).catch(console.error);
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('schoolToken');
     localStorage.removeItem('schoolUser');
     navigate('/portal/login');
+  };
+
+  const handleDeleteFaculty = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this faculty member?')) return;
+    try {
+      const token = localStorage.getItem('schoolToken');
+      await axios.delete(`https://srv-backend-3b9s.onrender.com/api/admin/faculty/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setManageFacultyMsg({ text: 'Faculty deleted successfully', type: 'success' });
+      fetchFaculties(token);
+      setStats(prev => ({...prev, totalFaculty: prev.totalFaculty - 1}));
+      setTimeout(() => setManageFacultyMsg({text:'', type:''}), 3000);
+    } catch (err) {
+      setManageFacultyMsg({ text: 'Failed to delete faculty', type: 'error' });
+    }
+  };
+
+  const handleUpdateFaculty = async (id) => {
+    try {
+      const token = localStorage.getItem('schoolToken');
+      await axios.put(`https://srv-backend-3b9s.onrender.com/api/admin/faculty/${id}`, editFacultyForm, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setManageFacultyMsg({ text: 'Faculty updated successfully', type: 'success' });
+      setEditingFacultyId(null);
+      fetchFaculties(token);
+      setTimeout(() => setManageFacultyMsg({text:'', type:''}), 3000);
+    } catch (err) {
+      setManageFacultyMsg({ text: 'Failed to update faculty', type: 'error' });
+    }
+  };
+
+  const startEditing = (faculty) => {
+    setEditingFacultyId(faculty._id);
+    setEditFacultyForm({ assignedGrade: faculty.assignedGrade || '', assignedSection: faculty.assignedSection || '', password: '' });
   };
 
   const handeFacultySubmit = async (e) => {
@@ -279,6 +330,79 @@ export function AdminDashboard() {
               Publish Menu to Parents
             </button>
           </form>
+        </div>
+        {/* Manage Faculty Panel */}
+        <div className="mt-8 bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+          <div className="flex items-center gap-3 mb-6">
+            <Users className="text-blue-500" />
+            <h2 className="text-xl font-display font-bold text-slate-900">Manage Faculty</h2>
+          </div>
+          
+          {manageFacultyMsg.text && (
+            <div className={`mb-4 px-4 py-3 rounded-lg text-sm font-semibold ${manageFacultyMsg.type === 'success' ? 'bg-blue-100 text-blue-800 border border-blue-200' : 'bg-red-100 text-red-800 border border-red-200'}`}>
+              {manageFacultyMsg.text}
+            </div>
+          )}
+
+          <div className="overflow-x-auto rounded-xl border border-slate-200">
+            <table className="w-full text-left border-collapse min-w-[700px]">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200 text-sm text-slate-500">
+                  <th className="px-5 py-3 font-semibold">SRV No</th>
+                  <th className="px-5 py-3 font-semibold">Name</th>
+                  <th className="px-5 py-3 font-semibold">Grade</th>
+                  <th className="px-5 py-3 font-semibold">Section / Password</th>
+                  <th className="px-5 py-3 font-semibold text-center w-[120px]">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-sm">
+                {faculties.map(faculty => (
+                  <tr key={faculty._id} className="hover:bg-slate-50/50">
+                    <td className="px-5 py-4 font-mono font-medium text-slate-600 border-b border-slate-50">{faculty.srvNumber}</td>
+                    <td className="px-5 py-4 font-semibold text-slate-900 border-b border-slate-50">{faculty.name}</td>
+                    
+                    {editingFacultyId === faculty._id ? (
+                      <>
+                        <td className="px-3 py-3 font-semibold text-slate-700 border-b border-slate-50">
+                          <input type="text" value={editFacultyForm.assignedGrade} onChange={e => setEditFacultyForm({...editFacultyForm, assignedGrade: e.target.value})} className="w-16 px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Grade" />
+                        </td>
+                        <td className="px-3 py-3 font-semibold text-slate-700 border-b border-slate-50 flex items-center gap-2">
+                          <input type="text" value={editFacultyForm.assignedSection} onChange={e => setEditFacultyForm({...editFacultyForm, assignedSection: e.target.value})} className="w-16 px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Sec" />
+                          <input type="text" value={editFacultyForm.password} onChange={e => setEditFacultyForm({...editFacultyForm, password: e.target.value})} className="w-24 px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-xs" placeholder="New Pass" />
+                        </td>
+                        <td className="px-5 py-3 flex items-center justify-center gap-2 border-b border-slate-50">
+                          <button onClick={() => handleUpdateFaculty(faculty._id)} className="p-2 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200" title="Save">
+                            <Save size={16} />
+                          </button>
+                          <button onClick={() => setEditingFacultyId(null)} className="p-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200" title="Cancel">
+                            <X size={16} />
+                          </button>
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">{faculty.assignedGrade || '-'}</td>
+                        <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">{faculty.assignedSection || '-'}</td>
+                        <td className="px-5 py-4 flex items-center justify-center gap-3 border-b border-slate-50">
+                          <button onClick={() => startEditing(faculty)} className="text-blue-600 hover:text-blue-800 font-semibold text-xs hover:underline flex items-center gap-1" title="Edit and Reset Password">
+                            <Edit2 size={14} /> Edit
+                          </button>
+                          <button onClick={() => handleDeleteFaculty(faculty._id)} className="text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50" title="Delete">
+                            <Trash2 size={16} />
+                          </button>
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                ))}
+                {faculties.length === 0 && (
+                  <tr>
+                    <td colSpan="5" className="px-5 py-8 text-center text-slate-500 border-b border-slate-50">No faculty members found.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
