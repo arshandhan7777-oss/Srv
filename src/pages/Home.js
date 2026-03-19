@@ -187,7 +187,7 @@ export function Home() {
             {[
               { label: 'Enrolled Students', value: '1,200+' },
               { label: 'Expert Faculty', value: '150+' },
-              { label: 'Years of Legacy', value: '25' },
+              { label: 'Years of Legacy', value: '36+' },
               { label: 'Alumni Worldwide', value: '10k+' },
             ].map((stat, index) => (
               <motion.div
