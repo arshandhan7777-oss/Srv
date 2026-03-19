@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, User, LogIn, AlertCircle } from 'lucide-react';
+import { User, LogIn, AlertCircle } from 'lucide-react';
 import { motion } from 'motion/react';
+import srvLogo from '../assest/fav_logo/srv-t.png';
 import axios from 'axios';
 
 export function Login() {
@@ -46,12 +47,20 @@ export function Login() {
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center"
+          className="flex flex-col items-center"
         >
-          <div className="w-16 h-16 bg-white rounded-2xl shadow-lg border border-slate-100 flex items-center justify-center mx-auto mb-6">
-            <Lock className="text-emerald-600" size={32} />
+          {/* Branded Logo Block */}
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-1.5 rounded-2xl bg-emerald-900 shadow-md flex items-center justify-center shrink-0 overflow-hidden">
+               <img src={srvLogo} alt="SRV Logo" className="h-14 w-auto object-cover rounded-xl drop-shadow" />
+            </div>
+            <div className="flex flex-col items-start">
+              <span className="font-display text-4xl font-bold tracking-tight text-slate-900 leading-none">SRV</span>
+              <span className="text-xs uppercase tracking-widest font-bold text-emerald-700 block mt-0.5">School</span>
+            </div>
           </div>
-          <h2 className="text-center text-3xl font-display font-bold text-slate-900 tracking-tight">
+          
+          <h2 className="text-center text-2xl font-display font-bold text-slate-900 tracking-tight">
             Portal Access
           </h2>
           <p className="mt-2 text-center text-sm text-slate-600">
@@ -100,7 +109,7 @@ export function Login() {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-slate-400" />
+                  <div className="h-5 w-5 text-slate-400 flex items-center justify-center font-bold font-serif italic">*</div>
                 </div>
                 <input
                   type="password"
