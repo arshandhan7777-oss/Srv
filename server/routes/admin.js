@@ -19,8 +19,22 @@ router.post('/faculty', protect, adminOnly, async (req, res) => {
   const { name, assignedGrade, assignedSection, password } = req.body;
 
   try {
-    // Generate a unique SRV number for faculty (e.g., FAC2026)
-    const srvNumber = `FAC${generateRandomDigits()}`;
+    // Generate a unique sequential SRV number for faculty (e.g., FAC26001)
+    const year = new Date().getFullYear().toString().slice(-2);
+    const prefix = `FAC${year}`;
+    const lastFaculty = await User.findOne({ 
+      role: 'faculty', 
+      srvNumber: { $regex: `^${prefix}` } 
+    }).sort({ srvNumber: -1 });
+
+    let sequence = '001';
+    if (lastFaculty && lastFaculty.srvNumber) {
+      const lastSequence = parseInt(lastFaculty.srvNumber.replace(prefix, ''), 10);
+      if (!isNaN(lastSequence)) {
+        sequence = (lastSequence + 1).toString().padStart(3, '0');
+      }
+    }
+    const srvNumber = `${prefix}${sequence}`;
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password || 'faculty123', salt);
 
@@ -56,9 +70,21 @@ router.post('/student', protect, adminOnly, async (req, res) => {
   const { name, grade, section, group, dateOfBirth, contactNumber, address } = req.body;
 
   try {
-    // 1. Generate SRV Number for Student (e.g., SRV+Year+Random = SRV249012)
+    // 1. Generate SRV Number for Student chronologically (e.g., SRV26001)
     const year = new Date().getFullYear().toString().slice(-2);
-    const srvNumber = `SRV${year}${generateRandomDigits()}`;
+    const prefix = `SRV${year}`;
+    const lastStudent = await Student.findOne({ 
+      srvNumber: { $regex: `^${prefix}` } 
+    }).sort({ srvNumber: -1 });
+
+    let sequence = '001';
+    if (lastStudent && lastStudent.srvNumber) {
+      const lastSequence = parseInt(lastStudent.srvNumber.replace(prefix, ''), 10);
+      if (!isNaN(lastSequence)) {
+        sequence = (lastSequence + 1).toString().padStart(3, '0');
+      }
+    }
+    const srvNumber = `${prefix}${sequence}`;
 
     // 2. Create the Student record (facultyId starts null, assigned manually via manage faculty)
     const student = await Student.create({
