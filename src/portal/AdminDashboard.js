@@ -16,7 +16,9 @@ export function AdminDashboard() {
   const [studentMsg, setStudentMsg] = useState({ text: '', type: '' });
 
   // Food Menu Form State
-  const [foodForm, setFoodForm] = useState({ day: 'Monday', breakfast: '', lunch: '', snacks: '' });
+  const [weeklyMenu, setWeeklyMenu] = useState([]);
+  const [editingDay, setEditingDay] = useState(null);
+  const [editFoodForm, setEditFoodForm] = useState({ breakfast: '', lunch: '', snacks: '' });
   const [foodMsg, setFoodMsg] = useState({ text: '', type: '' });
 
   // Manage Faculty State
@@ -24,6 +26,9 @@ export function AdminDashboard() {
   const [editingFacultyId, setEditingFacultyId] = useState(null);
   const [editFacultyForm, setEditFacultyForm] = useState({ assignedGrade: '', assignedSection: '', password: '' });
   const [manageFacultyMsg, setManageFacultyMsg] = useState({ text: '', type: '' });
+
+  // Manage Students State
+  const [selectedStudentForFees, setSelectedStudentForFees] = useState(null);
 
   // Advanced Profile State
   const [allStudents, setAllStudents] = useState([]);
@@ -46,7 +51,17 @@ export function AdminDashboard() {
 
     // Fetch faculties
     fetchFaculties(token);
+    // Fetch weekly menu
+    fetchWeeklyMenu(token);
+    // Fetch all students for the new tracking table
+    fetchStudents(token);
   }, [navigate]);
+
+  const fetchWeeklyMenu = (token) => {
+    axios.get('https://srv-backend-3b9s.onrender.com/api/admin/food', {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(res => setWeeklyMenu(res.data)).catch(console.error);
+  };
 
   const fetchFaculties = (token) => {
     axios.get('https://srv-backend-3b9s.onrender.com/api/admin/faculty', {
@@ -138,15 +153,16 @@ export function AdminDashboard() {
     }
   };
 
-  const handleFoodSubmit = async (e) => {
-    e.preventDefault();
+  const handleSaveFood = async (day) => {
     try {
       const token = localStorage.getItem('schoolToken');
-      await axios.post('https://srv-backend-3b9s.onrender.com' + '/api/admin/food', foodForm, {
+      await axios.post('https://srv-backend-3b9s.onrender.com' + '/api/admin/food', { day, ...editFoodForm }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setFoodMsg({ text: `${foodForm.day} menu published successfully!`, type: 'success' });
-      setFoodForm({ day: 'Monday', breakfast: '', lunch: '', snacks: '' });
+      setFoodMsg({ text: `${day} menu updated successfully!`, type: 'success' });
+      setEditingDay(null);
+      fetchWeeklyMenu(token);
+      setTimeout(() => setFoodMsg({text:'', type:''}), 3000);
     } catch (err) {
       setFoodMsg({ text: 'Failed to update food menu', type: 'error' });
     }
@@ -321,41 +337,52 @@ export function AdminDashboard() {
             </div>
           )}
 
-          <form onSubmit={handleFoodSubmit} className="space-y-4">
-            <div className="grid md:grid-cols-4 gap-4">
-              <select 
-                value={foodForm.day}
-                onChange={e => setFoodForm({...foodForm, day: e.target.value})}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 font-bold text-slate-700"
-              >
-                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(d => <option key={d}>{d}</option>)}
-              </select>
-              <input 
-                type="text" 
-                placeholder="Breakfast Menu" 
-                value={foodForm.breakfast}
-                onChange={e => setFoodForm({...foodForm, breakfast: e.target.value})}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500" 
-              />
-              <input 
-                type="text" 
-                placeholder="Lunch Menu" 
-                value={foodForm.lunch}
-                onChange={e => setFoodForm({...foodForm, lunch: e.target.value})}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500" 
-              />
-              <input 
-                type="text" 
-                placeholder="Evening Snacks" 
-                value={foodForm.snacks}
-                onChange={e => setFoodForm({...foodForm, snacks: e.target.value})}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500" 
-              />
-            </div>
-            <button type="submit" className="w-full py-3 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 transition-colors">
-              Publish Menu to Parents
-            </button>
-          </form>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => {
+              const isWeekend = day === 'Saturday' || day === 'Sunday';
+              const dayMenu = weeklyMenu.find(m => m.day === day) || { breakfast: '', lunch: '', snacks: '' };
+              const isEditing = editingDay === day;
+
+              return (
+                <div key={day} className={`p-4 rounded-xl border ${isWeekend ? 'bg-slate-50 border-slate-200 opacity-70' : 'bg-white border-slate-200 shadow-sm'}`}>
+                  <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+                    <h3 className="font-bold text-slate-800">{day}</h3>
+                    {!isWeekend && (
+                      isEditing ? (
+                        <div className="flex gap-2">
+                          <button onClick={() => handleSaveFood(day)} className="text-emerald-600 hover:text-emerald-700 p-1"><CheckCircle2 size={18} /></button>
+                          <button onClick={() => setEditingDay(null)} className="text-slate-400 hover:text-slate-600 p-1"><X size={18} /></button>
+                        </div>
+                      ) : (
+                        <button onClick={() => { setEditingDay(day); setEditFoodForm({ breakfast: dayMenu.breakfast, lunch: dayMenu.lunch, snacks: dayMenu.snacks }); }} className="text-blue-500 hover:text-blue-700 text-xs font-semibold flex items-center gap-1"><Edit2 size={12}/> Edit</button>
+                      )
+                    )}
+                  </div>
+                  
+                  {isWeekend ? (
+                    <div className="py-8 text-center flex flex-col items-center justify-center">
+                      <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">Holiday</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 text-sm">
+                      <div>
+                        <p className="text-[10px] text-slate-500 font-bold mb-1 uppercase tracking-wider">Breakfast</p>
+                        {isEditing ? <input type="text" value={editFoodForm.breakfast} onChange={e => setEditFoodForm({...editFoodForm, breakfast: e.target.value})} className="w-full border rounded px-2 py-1 outline-none focus:ring-1 focus:ring-orange-500 text-xs" /> : <p className="font-medium text-slate-800 text-xs">{dayMenu.breakfast || '-'}</p>}
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-slate-500 font-bold mb-1 uppercase tracking-wider">Lunch</p>
+                        {isEditing ? <input type="text" value={editFoodForm.lunch} onChange={e => setEditFoodForm({...editFoodForm, lunch: e.target.value})} className="w-full border rounded px-2 py-1 outline-none focus:ring-1 focus:ring-orange-500 text-xs" /> : <p className="font-medium text-slate-800 text-xs">{dayMenu.lunch || '-'}</p>}
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-slate-500 font-bold mb-1 uppercase tracking-wider">Snacks</p>
+                        {isEditing ? <input type="text" value={editFoodForm.snacks} onChange={e => setEditFoodForm({...editFoodForm, snacks: e.target.value})} className="w-full border rounded px-2 py-1 outline-none focus:ring-1 focus:ring-orange-500 text-xs" /> : <p className="font-medium text-slate-800 text-xs">{dayMenu.snacks || '-'}</p>}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
         {/* Manage Faculty Panel */}
         <div className="mt-8 bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
@@ -433,6 +460,57 @@ export function AdminDashboard() {
             </table>
           </div>
         </div>
+
+        {/* Manage Students Panel */}
+        <div className="mt-8 bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+          <div className="flex items-center gap-3 mb-6">
+            <Users className="text-purple-500" />
+            <h2 className="text-xl font-display font-bold text-slate-900">View All Students</h2>
+          </div>
+          
+          <div className="overflow-x-auto rounded-xl border border-slate-200">
+            <table className="w-full text-left border-collapse min-w-[800px]">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200 text-sm text-slate-500">
+                  <th className="px-5 py-3 font-semibold">SRV No</th>
+                  <th className="px-5 py-3 font-semibold">Name</th>
+                  <th className="px-5 py-3 font-semibold">Grade & Sec</th>
+                  <th className="px-5 py-3 font-semibold">Class In-Charge</th>
+                  <th className="px-5 py-3 font-semibold text-center">Fee Status (Overall)</th>
+                  <th className="px-5 py-3 font-semibold text-center w-[120px]">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-sm">
+                {allStudents.map(student => (
+                  <tr key={student._id} className="hover:bg-slate-50/50">
+                    <td className="px-5 py-4 font-mono font-medium text-slate-600 border-b border-slate-50">{student.srvNumber}</td>
+                    <td className="px-5 py-4 font-semibold text-slate-900 border-b border-slate-50">{student.name}</td>
+                    <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">{student.grade}-{student.section}</td>
+                    <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">
+                      {student.facultyId ? student.facultyId.name : <span className="text-slate-400 italic">Unassigned</span>}
+                    </td>
+                    <td className="px-5 py-4 text-center border-b border-slate-50">
+                      <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${student.fees?.overall === 'Paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                        {student.fees?.overall || 'Unpaid'}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 text-center border-b border-slate-50">
+                      <button onClick={() => setSelectedStudentForFees(student)} className="text-purple-600 hover:text-purple-800 font-semibold text-xs hover:underline flex items-center justify-center gap-1 w-full" title="Manage Fees">
+                        Manage Fees
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {allStudents.length === 0 && (
+                  <tr>
+                    <td colSpan="6" className="px-5 py-8 text-center text-slate-500 border-b border-slate-50">No students found.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
       
       {selectedFacultyProfile && (
@@ -445,6 +523,14 @@ export function AdminDashboard() {
             fetchFaculties(token);
             fetchStudents(token);
           }} 
+        />
+      )}
+
+      {selectedStudentForFees && (
+        <StudentFeeModal 
+          student={selectedStudentForFees} 
+          onClose={() => setSelectedStudentForFees(null)} 
+          onUpdate={() => fetchStudents(localStorage.getItem('schoolToken'))}
         />
       )}
     </div>
@@ -598,6 +684,89 @@ function FacultyProfileModal({ faculty, allStudents, onClose, onUpdate }) {
             {saving ? 'Saving...' : 'Save Profile & Assignments'}
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function StudentFeeModal({ student, onClose, onUpdate }) {
+  const [fees, setFees] = useState({
+    term1: student.fees?.term1 || 'Unpaid',
+    term2: student.fees?.term2 || 'Unpaid',
+    term3: student.fees?.term3 || 'Unpaid',
+    overall: student.fees?.overall || 'Unpaid',
+    additionalFees: student.fees?.additionalFees || '0'
+  });
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const token = localStorage.getItem('schoolToken');
+      await axios.put(`https://srv-backend-3b9s.onrender.com/api/admin/student/${student._id}/fees`, fees, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      onUpdate();
+      onClose();
+    } catch (err) {
+      alert('Failed to save fee details.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const ToggleButton = ({ label, value, onChange }) => (
+    <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
+      <span className="font-semibold text-sm text-slate-700">{label}</span>
+      <button 
+        onClick={() => onChange(value === 'Paid' ? 'Unpaid' : 'Paid')}
+        className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${value === 'Paid' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}`}
+      >
+        {value}
+      </button>
+    </div>
+  );
+
+  return (
+    <div className="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4 backdrop-blur-sm overflow-y-auto">
+      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden my-8">
+        
+        <div className="bg-slate-900 px-6 py-4 flex justify-between items-center text-white">
+          <div>
+            <h2 className="text-xl font-bold font-display">Manage Fees</h2>
+            <p className="text-sm text-slate-300">{student.name} ({student.srvNumber})</p>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg"><X size={20} /></button>
+        </div>
+
+        <div className="p-6 space-y-4">
+          <ToggleButton label="Term 1 Fee" value={fees.term1} onChange={(v) => setFees({...fees, term1: v})} />
+          <ToggleButton label="Term 2 Fee" value={fees.term2} onChange={(v) => setFees({...fees, term2: v})} />
+          <ToggleButton label="Term 3 Fee" value={fees.term3} onChange={(v) => setFees({...fees, term3: v})} />
+          
+          <div className="pt-4 border-t border-slate-100">
+            <ToggleButton label="Overall Core Fees Status" value={fees.overall} onChange={(v) => setFees({...fees, overall: v})} />
+          </div>
+
+          <div className="pt-4 border-t border-slate-100">
+            <label className="block font-semibold text-sm text-slate-700 mb-2">Additional Fees / Uniform / Transport</label>
+            <input 
+              type="text" 
+              value={fees.additionalFees} 
+              onChange={e => setFees({...fees, additionalFees: e.target.value})} 
+              className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none"
+              placeholder="e.g. 5000 for Transport"
+            />
+          </div>
+        </div>
+
+        <div className="bg-slate-50 p-4 border-t flex justify-end gap-3">
+          <button onClick={onClose} className="px-5 py-2 text-slate-600 font-bold hover:bg-slate-200 rounded-xl">Cancel</button>
+          <button onClick={handleSave} disabled={saving} className="px-5 py-2 bg-purple-600 text-white font-bold hover:bg-purple-700 rounded-xl flex items-center gap-2 disabled:opacity-50">
+            <CheckCircle2 size={18} /> {saving ? 'Saving...' : 'Save Fees'}
+          </button>
+        </div>
+
       </div>
     </div>
   );

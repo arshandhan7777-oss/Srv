@@ -254,4 +254,29 @@ router.delete('/faculty/:id', protect, adminOnly, async (req, res) => {
   }
 });
 
+// @route   PUT /api/admin/student/:id/fees
+// @desc    Update a student's fee details
+// @access  Private (Admin only)
+router.put('/student/:id/fees', protect, adminOnly, async (req, res) => {
+  const { term1, term2, term3, overall, additionalFees } = req.body;
+  try {
+    const student = await Student.findById(req.params.id);
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    if (!student.fees) student.fees = {};
+    if (term1) student.fees.term1 = term1;
+    if (term2) student.fees.term2 = term2;
+    if (term3) student.fees.term3 = term3;
+    if (overall) student.fees.overall = overall;
+    if (additionalFees !== undefined) student.fees.additionalFees = additionalFees;
+
+    await student.save();
+    res.json({ message: 'Fees updated successfully', student });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating fees' });
+  }
+});
+
 export default router;
