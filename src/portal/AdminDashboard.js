@@ -30,6 +30,10 @@ export function AdminDashboard() {
   // Manage Students State
   const [selectedStudentForFees, setSelectedStudentForFees] = useState(null);
 
+  // Fees and Settings State
+  const [isOnlineFeeEnabled, setIsOnlineFeeEnabled] = useState(false);
+  const [feeAlerts, setFeeAlerts] = useState([]);
+
   // Advanced Profile State
   const [allStudents, setAllStudents] = useState([]);
   const [selectedFacultyProfile, setSelectedFacultyProfile] = useState(null);
@@ -55,7 +59,29 @@ export function AdminDashboard() {
     fetchWeeklyMenu(token);
     // Fetch all students for the new tracking table
     fetchStudents(token);
+    // Fetch settings and alerts
+    fetchSettingsAndAlerts(token);
   }, [navigate]);
+
+  const fetchSettingsAndAlerts = (token) => {
+    axios.get('https://srv-backend-3b9s.onrender.com/api/admin/settings/fee-toggle', { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => setIsOnlineFeeEnabled(res.data.isOnlineFeeEnabled)).catch(console.error);
+    axios.get('https://srv-backend-3b9s.onrender.com/api/admin/notifications', { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => setFeeAlerts(res.data)).catch(console.error);
+  };
+
+  const handleToggleOnlineFee = async () => {
+    try {
+      const token = localStorage.getItem('schoolToken');
+      const newStatus = !isOnlineFeeEnabled;
+      await axios.put('https://srv-backend-3b9s.onrender.com/api/admin/settings/fee-toggle', { isEnabled: newStatus }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setIsOnlineFeeEnabled(newStatus);
+    } catch (err) {
+      alert('Failed to update fee setting');
+    }
+  };
 
   const fetchWeeklyMenu = (token) => {
     axios.get('https://srv-backend-3b9s.onrender.com/api/admin/food', {
@@ -322,6 +348,45 @@ export function AdminDashboard() {
             </form>
           </div>
 
+        </div>
+
+        {/* Global Settings & Alerts */}
+        <div className="grid md:grid-cols-2 gap-8 mt-8">
+          {/* Global Settings */}
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+            <h2 className="text-xl font-display font-bold text-slate-900 mb-6 flex items-center gap-3">
+              ⚙️ Global Settings
+            </h2>
+            <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl bg-slate-50">
+              <div>
+                <h3 className="font-bold text-slate-800">Online Fee Collection</h3>
+                <p className="text-sm text-slate-500">Allow parents to pay term fees directly via portal.</p>
+              </div>
+              <button 
+                onClick={handleToggleOnlineFee}
+                className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${isOnlineFeeEnabled ? 'bg-emerald-500' : 'bg-slate-300'}`}
+              >
+                <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${isOnlineFeeEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+          </div>
+
+          {/* Fee Alerts */}
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+            <h2 className="text-xl font-display font-bold text-slate-900 mb-6 flex items-center gap-3">
+              🔔 Recent Payment Alerts
+            </h2>
+            <div className="space-y-3 max-h-48 overflow-y-auto pr-2">
+              {feeAlerts.length > 0 ? feeAlerts.map(alert => (
+                <div key={alert._id} className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl text-sm">
+                  <p className="text-emerald-800 font-semibold">{alert.message}</p>
+                  <p className="text-[10px] text-emerald-600 font-bold mt-1 uppercase tracking-wider">{new Date(alert.createdAt).toLocaleString()}</p>
+                </div>
+              )) : (
+                <p className="text-slate-500 text-sm text-center py-4 italic">No recent payments logged.</p>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Cafeteria Menu Panel */}

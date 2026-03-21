@@ -3,6 +3,8 @@ import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
 import Student from '../models/Student.js';
 import FoodMenu from '../models/FoodMenu.js';
+import Setting from '../models/Setting.js';
+import Notification from '../models/Notification.js';
 import { protect, adminOnly } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -276,6 +278,50 @@ router.put('/student/:id/fees', protect, adminOnly, async (req, res) => {
     res.json({ message: 'Fees updated successfully', student });
   } catch (error) {
     res.status(500).json({ message: 'Error updating fees' });
+  }
+});
+
+// @route   GET /api/admin/settings/fee-toggle
+// @desc    Get the online fee setting
+// @access  Private (Admin only)
+router.get('/settings/fee-toggle', protect, adminOnly, async (req, res) => {
+  try {
+    let setting = await Setting.findOne({ key: 'onlineFeePayment' });
+    if (!setting) setting = await Setting.create({ key: 'onlineFeePayment', value: false });
+    res.json({ isOnlineFeeEnabled: setting.value });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching setting' });
+  }
+});
+
+// @route   PUT /api/admin/settings/fee-toggle
+// @desc    Toggle online fee setting
+// @access  Private (Admin only)
+router.put('/settings/fee-toggle', protect, adminOnly, async (req, res) => {
+  const { isEnabled } = req.body;
+  try {
+    let setting = await Setting.findOne({ key: 'onlineFeePayment' });
+    if (!setting) {
+      setting = await Setting.create({ key: 'onlineFeePayment', value: isEnabled });
+    } else {
+      setting.value = isEnabled;
+      await setting.save();
+    }
+    res.json({ message: 'Setting updated successfully', isOnlineFeeEnabled: setting.value });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating setting' });
+  }
+});
+
+// @route   GET /api/admin/notifications
+// @desc    Get system notifications (FEE_ALERTs)
+// @access  Private (Admin only)
+router.get('/notifications', protect, adminOnly, async (req, res) => {
+  try {
+    const notifications = await Notification.find({ type: 'FEE_ALERT' }).sort({ createdAt: -1 }).limit(20);
+    res.json(notifications);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching admin notifications' });
   }
 });
 

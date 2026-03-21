@@ -10,9 +10,11 @@ import html2canvas from 'html2canvas';
 const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6'];
 
 export function ParentDashboard() {
-  const [data, setData] = useState({ student: null, records: [], homework: [], food: null });
+  const [data, setData] = useState({ student: null, records: [], homework: [], food: null, settings: {} });
   const [loading, setLoading] = useState(true);
   const [showPayModal, setShowPayModal] = useState(false);
+  const [selectedTerm, setSelectedTerm] = useState({ id: '', name: '', amount: '' });
+  const [processing, setProcessing] = useState(false);
   const navigate = useNavigate();
   const reportRef = useRef();
 
@@ -54,6 +56,23 @@ export function ParentDashboard() {
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(`${data.student?.name}_ReportCard.pdf`);
     });
+  };
+
+  const handlePayment = async () => {
+    if (!data.settings?.isOnlineFeeEnabled) return;
+    setProcessing(true);
+    try {
+      const token = localStorage.getItem('schoolToken');
+      await axios.post('https://srv-backend-3b9s.onrender.com/api/parent/pay-fee', { term: selectedTerm.id, amount: selectedTerm.amount }, { headers: { Authorization: `Bearer ${token}` }});
+      
+      const res = await axios.get('https://srv-backend-3b9s.onrender.com/api/parent/dashboard', { headers: { Authorization: `Bearer ${token}` }});
+      setData(res.data);
+      setShowPayModal(false);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Payment failed.');
+    } finally {
+      setProcessing(false);
+    }
   };
 
   // Dynamic Data Formatting
@@ -317,33 +336,40 @@ export function ParentDashboard() {
               <CreditCard className="text-violet-600" />
               <h3 className="text-xl font-display font-bold text-slate-900">Fee Payment</h3>
             </div>
-            <span className="bg-red-100 text-red-600 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
-              <AlertCircle size={12} /> 1 Due
-            </span>
+            {!data.settings?.isOnlineFeeEnabled && (
+              <span className="bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                <AlertCircle size={12} /> Online payments disabled
+              </span>
+            )}
+            {data.settings?.isOnlineFeeEnabled && data.student?.fees?.overall !== 'Paid' && (
+               <span className="bg-red-100 text-red-600 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                 <AlertCircle size={12} /> Dues Outstanding
+               </span>
+            )}
           </div>
 
           {/* Fee Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            <div className="bg-red-50 border border-red-100 rounded-2xl p-5">
-              <p className="text-xs font-bold text-red-500 uppercase tracking-widest mb-1">Amount Due</p>
-              <p className="text-3xl font-display font-extrabold text-red-600">₹4,500</p>
-              <p className="text-xs text-red-400 mt-1">Term 3 — 2024–25</p>
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5">
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Overall Core Fees</p>
+              <p className="text-3xl font-display font-extrabold text-slate-800">{data.student?.fees?.overall === 'Paid' ? 'Cleared' : 'Due'}</p>
+              <p className="text-xs text-slate-400 mt-1">Status of full year payment</p>
             </div>
             <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5">
-              <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">Paid This Year</p>
-              <p className="text-3xl font-display font-extrabold text-emerald-700">₹9,000</p>
-              <p className="text-xs text-emerald-400 mt-1">Terms 1 &amp; 2 cleared</p>
+              <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">Paid Status</p>
+              <p className="text-lg font-display font-extrabold text-emerald-700">Term 1: {data.student?.fees?.term1 || 'Unpaid'}</p>
+              <p className="text-[10px] text-emerald-500 mt-1 uppercase font-bold">Tracked via portal</p>
             </div>
             <div className="bg-violet-50 border border-violet-100 rounded-2xl p-5">
-              <p className="text-xs font-bold text-violet-600 uppercase tracking-widest mb-1">Total Annual Fee</p>
-              <p className="text-3xl font-display font-extrabold text-violet-700">₹13,500</p>
-              <p className="text-xs text-violet-400 mt-1">Academic Year 2024–25</p>
+              <p className="text-xs font-bold text-violet-600 uppercase tracking-widest mb-1">Additional Fees</p>
+              <p className="text-3xl font-display font-extrabold text-violet-700">₹{data.student?.fees?.additionalFees || '0'}</p>
+              <p className="text-xs text-violet-400 mt-1">Transport / Uniform / Clubs</p>
             </div>
           </div>
 
           {/* Term-wise Fee Breakdown */}
           <h4 className="text-sm font-bold text-slate-700 uppercase tracking-widest mb-4">Term-wise Breakdown</h4>
-          <div className="overflow-x-auto rounded-2xl border border-slate-100 mb-6">
+          <div className="overflow-x-auto rounded-2xl border border-slate-100">
             <table className="w-full text-sm">
               <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-xs">
                 <tr>
@@ -351,14 +377,14 @@ export function ParentDashboard() {
                   <th className="text-left px-5 py-3">Description</th>
                   <th className="text-left px-5 py-3">Amount</th>
                   <th className="text-left px-5 py-3">Due Date</th>
-                  <th className="text-left px-5 py-3">Status</th>
+                  <th className="text-center px-5 py-3 w-[140px]">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {[
-                  { term: 'Term 1', desc: 'Tuition + Lab Fee', amount: '₹4,500', due: '15 Jun 2024', status: 'Paid' },
-                  { term: 'Term 2', desc: 'Tuition + Activity Fee', amount: '₹4,500', due: '15 Oct 2024', status: 'Paid' },
-                  { term: 'Term 3', desc: 'Tuition + Exam Fee', amount: '₹4,500', due: '15 Feb 2025', status: 'Due' },
+                  { id: 'term1', term: 'Term 1', desc: 'Tuition + Lab Fee', amount: '₹4,500', due: '15 Jun 2024', status: data.student?.fees?.term1 || 'Unpaid' },
+                  { id: 'term2', term: 'Term 2', desc: 'Tuition + Activity Fee', amount: '₹4,500', due: '15 Oct 2024', status: data.student?.fees?.term2 || 'Unpaid' },
+                  { id: 'term3', term: 'Term 3', desc: 'Tuition + Exam Fee', amount: '₹4,500', due: '15 Feb 2025', status: data.student?.fees?.term3 || 'Unpaid' },
                 ].map((row) => (
                   <tr key={row.term} className="hover:bg-slate-50 transition-colors">
                     <td className="px-5 py-4 font-bold text-slate-800">{row.term}</td>
@@ -367,13 +393,19 @@ export function ParentDashboard() {
                     <td className="px-5 py-4 text-slate-500">{row.due}</td>
                     <td className="px-5 py-4">
                       {row.status === 'Paid' ? (
-                        <span className="flex items-center gap-1 text-emerald-600 font-bold text-xs bg-emerald-100 px-3 py-1 rounded-full w-fit">
-                          <CheckCheck size={12} /> Paid
+                        <span className="flex items-center justify-center gap-1 text-emerald-600 font-bold text-xs bg-emerald-100 px-3 py-1.5 rounded-full w-full">
+                          <CheckCheck size={14} /> Paid
                         </span>
                       ) : (
-                        <span className="flex items-center gap-1 text-red-600 font-bold text-xs bg-red-100 px-3 py-1 rounded-full w-fit">
-                          <Clock size={12} /> Due
-                        </span>
+                        data.settings?.isOnlineFeeEnabled ? (
+                          <button onClick={() => { setSelectedTerm({ id: row.id, name: row.term, amount: row.amount }); setShowPayModal(true); }} className="w-full py-1.5 font-bold text-xs bg-violet-100 text-violet-700 hover:bg-violet-600 hover:text-white rounded-lg transition-colors">
+                            Pay Online
+                          </button>
+                        ) : (
+                          <span className="flex items-center justify-center gap-1 text-slate-500 font-bold text-xs bg-slate-100 px-3 py-1.5 rounded-full w-full" title="Online payment disabled. Pay offline.">
+                            Pay at Office
+                          </span>
+                        )
                       )}
                     </td>
                   </tr>
@@ -381,20 +413,11 @@ export function ParentDashboard() {
               </tbody>
             </table>
           </div>
-
-          {/* Pay Now Button */}
-          <button
-            onClick={() => setShowPayModal(true)}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl shadow-lg shadow-violet-600/25 transition-all hover:-translate-y-0.5"
-          >
-            <CreditCard size={18} />
-            Pay Term 3 Fee — ₹4,500
-          </button>
         </div>
 
         {/* Pay Modal */}
         {showPayModal && (
-          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-display font-bold text-slate-900">Complete Payment</h3>
@@ -402,23 +425,17 @@ export function ParentDashboard() {
               </div>
               <div className="bg-slate-50 rounded-2xl p-5 mb-6">
                 <p className="text-sm text-slate-500 mb-1">Paying for</p>
-                <p className="font-bold text-slate-900 text-lg">Term 3 — 2024–25</p>
-                <p className="text-3xl font-display font-extrabold text-violet-700 mt-2">₹4,500</p>
+                <p className="font-bold text-slate-900 text-lg">{selectedTerm.name}</p>
+                <p className="text-3xl font-display font-extrabold text-violet-700 mt-2">{selectedTerm.amount}</p>
               </div>
               <div className="space-y-3 mb-6">
                 <div className="flex gap-3">
                   <button className="flex-1 py-3 px-4 border-2 border-violet-600 text-violet-700 font-bold rounded-xl text-sm">UPI / QR</button>
-                  <button className="flex-1 py-3 px-4 border-2 border-slate-200 text-slate-600 font-semibold rounded-xl text-sm">Net Banking</button>
                   <button className="flex-1 py-3 px-4 border-2 border-slate-200 text-slate-600 font-semibold rounded-xl text-sm">Card</button>
                 </div>
               </div>
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
-                <p className="text-xs text-amber-700 font-semibold flex items-center gap-2">
-                  <AlertCircle size={14} /> Payment gateway integration coming soon. Please pay at the school office or use bank transfer.
-                </p>
-              </div>
-              <button onClick={() => setShowPayModal(false)} className="w-full py-3 bg-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-300 transition-colors">
-                Close
+              <button disabled={processing} onClick={handlePayment} className="w-full py-4 text-center bg-violet-600 text-white font-bold rounded-xl hover:bg-violet-700 transition-colors shadow-lg shadow-violet-600/20 disabled:opacity-50">
+                {processing ? 'Processing Securely...' : 'Approve & Pay Now'}
               </button>
             </div>
           </div>

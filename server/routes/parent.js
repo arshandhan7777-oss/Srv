@@ -4,6 +4,8 @@ import AcademicRecord from '../models/AcademicRecord.js';
 import Homework from '../models/Homework.js';
 import Notification from '../models/Notification.js';
 import FoodMenu from '../models/FoodMenu.js';
+import Setting from '../models/Setting.js';
+import User from '../models/User.js';
 import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -41,11 +43,16 @@ router.get('/dashboard', protect, parentOnly, async (req, res) => {
     const today = days[new Date().getDay()];
     const food = await FoodMenu.findOne({ day: today });
 
+    // Get online fee setting
+    let setting = await Setting.findOne({ key: 'onlineFeePayment' });
+    const isOnlineFeeEnabled = setting ? setting.value : false;
+
     res.json({
       student,
       records,
       homework,
-      food
+      food,
+      settings: { isOnlineFeeEnabled }
     });
 
   } catch (error) {
@@ -90,6 +97,44 @@ router.get('/food', protect, parentOnly, async (req, res) => {
     res.json(menu);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching food menu' });
+  }
+});
+
+// @route   POST /api/parent/pay-fee
+// @desc    Simulate paying a fee term
+// @access  Private (Parent only)
+router.post('/pay-fee', protect, parentOnly, async (req, res) => {
+  const { term, amount } = req.body;
+  try {
+    let setting = await Setting.findOne({ key: 'onlineFeePayment' });
+    if (!setting || setting.value !== true) {
+      return res.status(403).json({ message: 'Online fee payment is currently disabled.' });
+    }
+
+    const parentUser = await User.findById(req.user.id);
+    const student = await Student.findById(parentUser.studentId);
+    if (!student) return res.status(404).json({ message: 'Student record not found' });
+
+    if (!student.fees) student.fees = {};
+    student.fees[term] = 'Paid';
+    await student.save();
+
+    // Notify all admins
+    const admins = await User.find({ role: 'admin' });
+    const notifications = admins.map(admin => ({
+      userId: admin._id,
+      type: 'FEE_ALERT',
+      message: `${parentUser.name} paid ${amount} for ${student.name} (${student.srvNumber}) - ${term}`
+    }));
+    
+    if (notifications.length > 0) {
+      await Notification.insertMany(notifications);
+    }
+
+    res.json({ message: 'Payment successful', student });
+  } catch (error) {
+    console.error('Payment error:', error);
+    res.status(500).json({ message: 'Server error processing payment' });
   }
 });
 
