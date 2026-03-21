@@ -757,10 +757,13 @@ function FacultyProfileModal({ faculty, allStudents, onClose, onUpdate }) {
 function StudentFeeModal({ student, onClose, onUpdate }) {
   const [fees, setFees] = useState({
     term1: student.fees?.term1 || 'Unpaid',
+    term1Amount: student.fees?.term1Amount || 4500,
     term2: student.fees?.term2 || 'Unpaid',
+    term2Amount: student.fees?.term2Amount || 4500,
     term3: student.fees?.term3 || 'Unpaid',
+    term3Amount: student.fees?.term3Amount || 4500,
     overall: student.fees?.overall || 'Unpaid',
-    additionalFees: student.fees?.additionalFees || '0'
+    additionalFees: student.fees?.additionalFees || 0
   });
   const [saving, setSaving] = useState(false);
 
@@ -780,15 +783,26 @@ function StudentFeeModal({ student, onClose, onUpdate }) {
     }
   };
 
-  const ToggleButton = ({ label, value, onChange }) => (
-    <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
-      <span className="font-semibold text-sm text-slate-700">{label}</span>
-      <button 
-        onClick={() => onChange(value === 'Paid' ? 'Unpaid' : 'Paid')}
-        className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${value === 'Paid' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}`}
-      >
-        {value}
-      </button>
+  const FeeRow = ({ label, value, amount, onValueChange, onAmountChange }) => (
+    <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl mb-3">
+      <span className="font-semibold text-sm text-slate-700 w-24">{label}</span>
+      <div className="flex items-center gap-3">
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">₹</span>
+          <input 
+            type="number" 
+            value={amount} 
+            onChange={e => onAmountChange(e.target.value)}
+            className="w-20 pl-7 pr-2 py-1.5 text-sm font-bold border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+          />
+        </div>
+        <button 
+          onClick={() => onValueChange(value === 'Paid' ? 'Unpaid' : 'Paid')}
+          className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors w-20 ${value === 'Paid' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}`}
+        >
+          {value}
+        </button>
+      </div>
     </div>
   );
 
@@ -804,24 +818,35 @@ function StudentFeeModal({ student, onClose, onUpdate }) {
           <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg"><X size={20} /></button>
         </div>
 
-        <div className="p-6 space-y-4">
-          <ToggleButton label="Term 1 Fee" value={fees.term1} onChange={(v) => setFees({...fees, term1: v})} />
-          <ToggleButton label="Term 2 Fee" value={fees.term2} onChange={(v) => setFees({...fees, term2: v})} />
-          <ToggleButton label="Term 3 Fee" value={fees.term3} onChange={(v) => setFees({...fees, term3: v})} />
+        <div className="p-6">
+          <FeeRow label="Term 1" value={fees.term1} amount={fees.term1Amount} onValueChange={v => setFees({...fees, term1: v})} onAmountChange={a => setFees({...fees, term1Amount: a})} />
+          <FeeRow label="Term 2" value={fees.term2} amount={fees.term2Amount} onValueChange={v => setFees({...fees, term2: v})} onAmountChange={a => setFees({...fees, term2Amount: a})} />
+          <FeeRow label="Term 3" value={fees.term3} amount={fees.term3Amount} onValueChange={v => setFees({...fees, term3: v})} onAmountChange={a => setFees({...fees, term3Amount: a})} />
           
-          <div className="pt-4 border-t border-slate-100">
-            <ToggleButton label="Overall Core Fees Status" value={fees.overall} onChange={(v) => setFees({...fees, overall: v})} />
+          <div className="pt-4 border-t border-slate-100 mt-2">
+            <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
+              <span className="font-semibold text-sm text-slate-700">Overall Core Fees</span>
+              <button 
+                onClick={() => setFees({...fees, overall: fees.overall === 'Paid' ? 'Unpaid' : 'Paid'})}
+                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors w-20 ${fees.overall === 'Paid' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}`}
+              >
+                {fees.overall}
+              </button>
+            </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-100">
+          <div className="pt-4 border-t border-slate-100 mt-4">
             <label className="block font-semibold text-sm text-slate-700 mb-2">Additional Fees / Uniform / Transport</label>
-            <input 
-              type="text" 
-              value={fees.additionalFees} 
-              onChange={e => setFees({...fees, additionalFees: e.target.value})} 
-              className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none"
-              placeholder="e.g. 5000 for Transport"
-            />
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">₹</span>
+              <input 
+                type="number" 
+                value={fees.additionalFees} 
+                onChange={e => setFees({...fees, additionalFees: e.target.value})} 
+                className="w-full pl-8 pr-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none font-bold text-slate-700"
+                placeholder="0"
+              />
+            </div>
           </div>
         </div>
 

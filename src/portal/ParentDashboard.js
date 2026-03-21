@@ -97,6 +97,22 @@ export function ParentDashboard() {
     { skill: 'Languages', score: latestRecord.nliteSkills.languageProficiency, fullMark: 5 },
   ] : [];
 
+  // Fee Calculations
+  const term1Amt = Number(data.student?.fees?.term1Amount) || 4500;
+  const term2Amt = Number(data.student?.fees?.term2Amount) || 4500;
+  const term3Amt = Number(data.student?.fees?.term3Amount) || 4500;
+  const extraAmt = Number(data.student?.fees?.additionalFees) || 0;
+  
+  const totalAnnualFee = term1Amt + term2Amt + term3Amt + extraAmt;
+  
+  const term1Paid = data.student?.fees?.term1 === 'Paid' ? term1Amt : 0;
+  const term2Paid = data.student?.fees?.term2 === 'Paid' ? term2Amt : 0;
+  const term3Paid = data.student?.fees?.term3 === 'Paid' ? term3Amt : 0;
+  const totalPaid = term1Paid + term2Paid + term3Paid;
+  const amountDue = totalAnnualFee - totalPaid;
+  
+  const dueCount = [data.student?.fees?.term1, data.student?.fees?.term2, data.student?.fees?.term3].filter(s => s !== 'Paid').length;
+
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-50">Loading Dashboard...</div>;
 
   return (
@@ -341,9 +357,9 @@ export function ParentDashboard() {
                 <AlertCircle size={12} /> Online payments disabled
               </span>
             )}
-            {data.settings?.isOnlineFeeEnabled && data.student?.fees?.overall !== 'Paid' && (
+            {data.settings?.isOnlineFeeEnabled && dueCount > 0 && (
                <span className="bg-red-100 text-red-600 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
-                 <AlertCircle size={12} /> Dues Outstanding
+                 <AlertCircle size={12} /> {dueCount} Term{dueCount > 1 ? 's' : ''} Due
                </span>
             )}
           </div>
@@ -351,19 +367,19 @@ export function ParentDashboard() {
           {/* Fee Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
             <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Overall Core Fees</p>
-              <p className="text-3xl font-display font-extrabold text-slate-800">{data.student?.fees?.overall === 'Paid' ? 'Cleared' : 'Due'}</p>
-              <p className="text-xs text-slate-400 mt-1">Status of full year payment</p>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Total Outstanding Due</p>
+              <p className={`text-3xl font-display font-extrabold ${amountDue > 0 ? 'text-red-500' : 'text-slate-800'}`}>₹{amountDue.toLocaleString()}</p>
+              <p className="text-xs text-slate-400 mt-1">Pending this academic year</p>
             </div>
             <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5">
-              <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">Paid Status</p>
-              <p className="text-lg font-display font-extrabold text-emerald-700">Term 1: {data.student?.fees?.term1 || 'Unpaid'}</p>
-              <p className="text-[10px] text-emerald-500 mt-1 uppercase font-bold">Tracked via portal</p>
+              <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">Total Paid</p>
+              <p className="text-3xl font-display font-extrabold text-emerald-700">₹{totalPaid.toLocaleString()}</p>
+              <p className="text-xs text-emerald-400 mt-1">Payments collected</p>
             </div>
             <div className="bg-violet-50 border border-violet-100 rounded-2xl p-5">
-              <p className="text-xs font-bold text-violet-600 uppercase tracking-widest mb-1">Additional Fees</p>
-              <p className="text-3xl font-display font-extrabold text-violet-700">₹{data.student?.fees?.additionalFees || '0'}</p>
-              <p className="text-xs text-violet-400 mt-1">Transport / Uniform / Clubs</p>
+              <p className="text-xs font-bold text-violet-600 uppercase tracking-widest mb-1">Total Annual</p>
+              <p className="text-3xl font-display font-extrabold text-violet-700">₹{totalAnnualFee.toLocaleString()}</p>
+              <p className="text-xs text-violet-400 mt-1">(Includes Add-on: ₹{extraAmt.toLocaleString()})</p>
             </div>
           </div>
 
@@ -382,9 +398,9 @@ export function ParentDashboard() {
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {[
-                  { id: 'term1', term: 'Term 1', desc: 'Tuition + Lab Fee', amount: '₹4,500', due: '15 Jun 2024', status: data.student?.fees?.term1 || 'Unpaid' },
-                  { id: 'term2', term: 'Term 2', desc: 'Tuition + Activity Fee', amount: '₹4,500', due: '15 Oct 2024', status: data.student?.fees?.term2 || 'Unpaid' },
-                  { id: 'term3', term: 'Term 3', desc: 'Tuition + Exam Fee', amount: '₹4,500', due: '15 Feb 2025', status: data.student?.fees?.term3 || 'Unpaid' },
+                  { id: 'term1', term: 'Term 1', desc: 'Tuition + Lab Fee', amount: `₹${term1Amt.toLocaleString()}`, due: '15 Jun 2024', status: data.student?.fees?.term1 || 'Unpaid' },
+                  { id: 'term2', term: 'Term 2', desc: 'Tuition + Activity Fee', amount: `₹${term2Amt.toLocaleString()}`, due: '15 Oct 2024', status: data.student?.fees?.term2 || 'Unpaid' },
+                  { id: 'term3', term: 'Term 3', desc: 'Tuition + Exam Fee', amount: `₹${term3Amt.toLocaleString()}`, due: '15 Feb 2025', status: data.student?.fees?.term3 || 'Unpaid' },
                 ].map((row) => (
                   <tr key={row.term} className="hover:bg-slate-50 transition-colors">
                     <td className="px-5 py-4 font-bold text-slate-800">{row.term}</td>

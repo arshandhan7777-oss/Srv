@@ -12,10 +12,13 @@ const studentSchema = new mongoose.Schema({
   facultyId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // The faculty managing this student
   fees: {
     term1: { type: String, enum: ['Paid', 'Unpaid'], default: 'Unpaid' },
+    term1Amount: { type: Number, default: 4500 },
     term2: { type: String, enum: ['Paid', 'Unpaid'], default: 'Unpaid' },
+    term2Amount: { type: Number, default: 4500 },
     term3: { type: String, enum: ['Paid', 'Unpaid'], default: 'Unpaid' },
+    term3Amount: { type: Number, default: 4500 },
     overall: { type: String, enum: ['Paid', 'Unpaid'], default: 'Unpaid' },
-    additionalFees: { type: String, default: '0' },
+    additionalFees: { type: Number, default: 0 },
   }
 }, { timestamps: true });
 
