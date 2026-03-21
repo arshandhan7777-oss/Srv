@@ -13,7 +13,8 @@ export function ParentDashboard() {
   const [data, setData] = useState({ student: null, records: [], homework: [], food: null, settings: {} });
   const [loading, setLoading] = useState(true);
   const [showPayModal, setShowPayModal] = useState(false);
-  const [selectedTerm, setSelectedTerm] = useState({ id: '', name: '', amount: '' });
+  const [selectedTerm, setSelectedTerm] = useState({ id: '', name: '', amount: '', balance: '' });
+  const [amountToPay, setAmountToPay] = useState('');
   const [processing, setProcessing] = useState(false);
   const navigate = useNavigate();
   const reportRef = useRef();
@@ -63,11 +64,13 @@ export function ParentDashboard() {
     setProcessing(true);
     try {
       const token = localStorage.getItem('schoolToken');
-      await axios.post('https://srv-backend-3b9s.onrender.com/api/parent/pay-fee', { term: selectedTerm.id, amount: selectedTerm.amount }, { headers: { Authorization: `Bearer ${token}` }});
+      const payVal = amountToPay === '' ? selectedTerm.balance : amountToPay;
+      await axios.post('https://srv-backend-3b9s.onrender.com/api/parent/pay-fee', { term: selectedTerm.id, amountToPay: payVal }, { headers: { Authorization: `Bearer ${token}` }});
       
       const res = await axios.get('https://srv-backend-3b9s.onrender.com/api/parent/dashboard', { headers: { Authorization: `Bearer ${token}` }});
       setData(res.data);
       setShowPayModal(false);
+      setAmountToPay('');
     } catch (err) {
       alert(err.response?.data?.message || 'Payment failed.');
     } finally {
@@ -105,10 +108,12 @@ export function ParentDashboard() {
   
   const totalAnnualFee = term1Amt + term2Amt + term3Amt + extraAmt;
   
-  const term1Paid = data.student?.fees?.term1 === 'Paid' ? term1Amt : 0;
-  const term2Paid = data.student?.fees?.term2 === 'Paid' ? term2Amt : 0;
-  const term3Paid = data.student?.fees?.term3 === 'Paid' ? term3Amt : 0;
-  const totalPaid = term1Paid + term2Paid + term3Paid;
+  const term1Paid = Number(data.student?.fees?.term1Paid) || 0;
+  const term2Paid = Number(data.student?.fees?.term2Paid) || 0;
+  const term3Paid = Number(data.student?.fees?.term3Paid) || 0;
+  const extraPaid = Number(data.student?.fees?.additionalPaid) || 0;
+  
+  const totalPaid = term1Paid + term2Paid + term3Paid + extraPaid;
   const amountDue = totalAnnualFee - totalPaid;
   
   const dueCount = [data.student?.fees?.term1, data.student?.fees?.term2, data.student?.fees?.term3].filter(s => s !== 'Paid').length;
@@ -391,22 +396,25 @@ export function ParentDashboard() {
                 <tr>
                   <th className="text-left px-5 py-3">Term</th>
                   <th className="text-left px-5 py-3">Description</th>
-                  <th className="text-left px-5 py-3">Amount</th>
-                  <th className="text-left px-5 py-3">Due Date</th>
+                  <th className="text-left px-5 py-3">Total / Paid</th>
+                  <th className="text-left px-5 py-3">Balance Due</th>
                   <th className="text-center px-5 py-3 w-[140px]">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {[
-                  { id: 'term1', term: 'Term 1', desc: 'Tuition + Lab Fee', amount: `₹${term1Amt.toLocaleString()}`, due: '15 Jun 2024', status: data.student?.fees?.term1 || 'Unpaid' },
-                  { id: 'term2', term: 'Term 2', desc: 'Tuition + Activity Fee', amount: `₹${term2Amt.toLocaleString()}`, due: '15 Oct 2024', status: data.student?.fees?.term2 || 'Unpaid' },
-                  { id: 'term3', term: 'Term 3', desc: 'Tuition + Exam Fee', amount: `₹${term3Amt.toLocaleString()}`, due: '15 Feb 2025', status: data.student?.fees?.term3 || 'Unpaid' },
+                  { id: 'term1', term: 'Term 1', desc: 'Tuition + Lab Fee', amount: term1Amt, paid: term1Paid, due: '15 Jun 2024', status: data.student?.fees?.term1 || 'Unpaid' },
+                  { id: 'term2', term: 'Term 2', desc: 'Tuition + Activity Fee', amount: term2Amt, paid: term2Paid, due: '15 Oct 2024', status: data.student?.fees?.term2 || 'Unpaid' },
+                  { id: 'term3', term: 'Term 3', desc: 'Tuition + Exam Fee', amount: term3Amt, paid: term3Paid, due: '15 Feb 2025', status: data.student?.fees?.term3 || 'Unpaid' },
                 ].map((row) => (
                   <tr key={row.term} className="hover:bg-slate-50 transition-colors">
                     <td className="px-5 py-4 font-bold text-slate-800">{row.term}</td>
                     <td className="px-5 py-4 text-slate-600">{row.desc}</td>
-                    <td className="px-5 py-4 font-bold text-slate-900">{row.amount}</td>
-                    <td className="px-5 py-4 text-slate-500">{row.due}</td>
+                    <td className="px-5 py-4 font-semibold text-slate-600">
+                      ₹{row.amount.toLocaleString()} <br/>
+                      <span className="text-[10px] text-emerald-600 uppercase tracking-widest font-bold">Paid: ₹{row.paid.toLocaleString()}</span>
+                    </td>
+                    <td className="px-5 py-4 font-bold text-red-500">₹{(row.amount - row.paid).toLocaleString()}</td>
                     <td className="px-5 py-4">
                       {row.status === 'Paid' ? (
                         <span className="flex items-center justify-center gap-1 text-emerald-600 font-bold text-xs bg-emerald-100 px-3 py-1.5 rounded-full w-full">
@@ -414,12 +422,15 @@ export function ParentDashboard() {
                         </span>
                       ) : (
                         data.settings?.isOnlineFeeEnabled ? (
-                          <button onClick={() => { setSelectedTerm({ id: row.id, name: row.term, amount: row.amount }); setShowPayModal(true); }} className="w-full py-1.5 font-bold text-xs bg-violet-100 text-violet-700 hover:bg-violet-600 hover:text-white rounded-lg transition-colors">
-                            Pay Online
-                          </button>
+                          <div className="flex flex-col gap-1 items-center">
+                            {row.status === 'Partial' && <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-md">PARTIAL</span>}
+                            <button onClick={() => { setSelectedTerm({ id: row.id, name: row.term, amount: row.amount, balance: row.amount - row.paid }); setShowPayModal(true); }} className="w-full py-1.5 font-bold text-[11px] bg-violet-100 text-violet-700 hover:bg-violet-600 hover:text-white rounded-lg transition-colors">
+                              Pay Online
+                            </button>
+                          </div>
                         ) : (
-                          <span className="flex items-center justify-center gap-1 text-slate-500 font-bold text-xs bg-slate-100 px-3 py-1.5 rounded-full w-full" title="Online payment disabled. Pay offline.">
-                            Pay at Office
+                          <span className="flex items-center justify-center gap-1 text-slate-500 font-bold text-[11px] bg-slate-100 px-3 py-1.5 rounded-full w-full" title="Online payment disabled. Pay offline.">
+                            {row.status === 'Partial' ? 'Partial' : 'Pay at Office'}
                           </span>
                         )
                       )}
@@ -442,8 +453,22 @@ export function ParentDashboard() {
               <div className="bg-slate-50 rounded-2xl p-5 mb-6">
                 <p className="text-sm text-slate-500 mb-1">Paying for</p>
                 <p className="font-bold text-slate-900 text-lg">{selectedTerm.name}</p>
-                <p className="text-3xl font-display font-extrabold text-violet-700 mt-2">{selectedTerm.amount}</p>
+                <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider font-bold">Total Remaining Balance</p>
+                <p className="text-3xl font-display font-extrabold text-violet-700 mt-1">₹{selectedTerm.balance?.toLocaleString()}</p>
               </div>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-bold text-slate-600 mb-2">Amount to Pay Now (₹)</label>
+                <input 
+                  type="number" 
+                  value={amountToPay} 
+                  onChange={(e) => setAmountToPay(e.target.value)} 
+                  placeholder={`e.g. ${selectedTerm.balance}`}
+                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none font-bold text-slate-800"
+                />
+                <p className="text-xs text-slate-400 mt-2 italic">You can pay partially or the full balance.</p>
+              </div>
+
               <div className="space-y-3 mb-6">
                 <div className="flex gap-3">
                   <button className="flex-1 py-3 px-4 border-2 border-violet-600 text-violet-700 font-bold rounded-xl text-sm">UPI / QR</button>

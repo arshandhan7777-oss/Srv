@@ -260,7 +260,7 @@ router.delete('/faculty/:id', protect, adminOnly, async (req, res) => {
 // @desc    Update a student's fee details
 // @access  Private (Admin only)
 router.put('/student/:id/fees', protect, adminOnly, async (req, res) => {
-  const { term1, term1Amount, term2, term2Amount, term3, term3Amount, overall, additionalFees } = req.body;
+  const { term1, term1Amount, term1Paid, term2, term2Amount, term2Paid, term3, term3Amount, term3Paid, overall, additionalFees, additionalPaid } = req.body;
   try {
     const student = await Student.findById(req.params.id);
     if (!student) {
@@ -270,12 +270,16 @@ router.put('/student/:id/fees', protect, adminOnly, async (req, res) => {
     if (!student.fees) student.fees = {};
     if (term1) student.fees.term1 = term1;
     if (term1Amount !== undefined) student.fees.term1Amount = Number(term1Amount);
+    if (term1Paid !== undefined) student.fees.term1Paid = Number(term1Paid);
     if (term2) student.fees.term2 = term2;
     if (term2Amount !== undefined) student.fees.term2Amount = Number(term2Amount);
+    if (term2Paid !== undefined) student.fees.term2Paid = Number(term2Paid);
     if (term3) student.fees.term3 = term3;
     if (term3Amount !== undefined) student.fees.term3Amount = Number(term3Amount);
+    if (term3Paid !== undefined) student.fees.term3Paid = Number(term3Paid);
     if (overall) student.fees.overall = overall;
     if (additionalFees !== undefined) student.fees.additionalFees = Number(additionalFees);
+    if (additionalPaid !== undefined) student.fees.additionalPaid = Number(additionalPaid);
 
     await student.save();
     res.json({ message: 'Fees updated successfully', student });

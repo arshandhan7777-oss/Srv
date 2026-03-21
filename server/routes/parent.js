@@ -104,7 +104,7 @@ router.get('/food', protect, parentOnly, async (req, res) => {
 // @desc    Simulate paying a fee term
 // @access  Private (Parent only)
 router.post('/pay-fee', protect, parentOnly, async (req, res) => {
-  const { term, amount } = req.body;
+  const { term, amount, amountToPay } = req.body;
   try {
     let setting = await Setting.findOne({ key: 'onlineFeePayment' });
     if (!setting || setting.value !== true) {
@@ -116,7 +116,22 @@ router.post('/pay-fee', protect, parentOnly, async (req, res) => {
     if (!student) return res.status(404).json({ message: 'Student record not found' });
 
     if (!student.fees) student.fees = {};
-    student.fees[term] = 'Paid';
+    
+    let paidVal = Number(amountToPay) || 0;
+    const termPaidKey = `${term}Paid`;
+    const termAmtKey = `${term}Amount`;
+    
+    student.fees[termPaidKey] = (Number(student.fees[termPaidKey]) || 0) + paidVal;
+    
+    const targetAmt = student.fees[termAmtKey] || 4500;
+    if (student.fees[termPaidKey] >= targetAmt) {
+      student.fees[term] = 'Paid';
+    } else if (student.fees[termPaidKey] > 0) {
+      student.fees[term] = 'Partial';
+    } else {
+      student.fees[term] = 'Unpaid';
+    }
+    
     await student.save();
 
     // Notify all admins
