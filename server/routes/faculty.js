@@ -3,6 +3,7 @@ import Student from '../models/Student.js';
 import AcademicRecord from '../models/AcademicRecord.js';
 import Homework from '../models/Homework.js';
 import Notification from '../models/Notification.js';
+import Attendance from '../models/Attendance.js';
 import { protect, facultyOrAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -126,6 +127,40 @@ router.post('/homework', protect, facultyOrAdmin, async (req, res) => {
     res.status(201).json({ message: 'Homework added successfully', homework });
   } catch (error) {
     res.status(500).json({ message: 'Server error adding homework' });
+  }
+});
+
+// @route   POST /api/faculty/attendance
+// @desc    Submit daily or weekly attendance for the class
+// @access  Private (Faculty/Admin)
+router.post('/attendance', protect, facultyOrAdmin, async (req, res) => {
+  const { date, records } = req.body;
+  if (!date || !records) return res.status(400).json({ message: 'Date and records are required.' });
+
+  try {
+    const parsedDate = new Date(date).setHours(0, 0, 0, 0); // Normalize to midnight
+
+    let attendanceDoc = await Attendance.findOne({ 
+      facultyId: req.user.id, 
+      date: new Date(parsedDate) 
+    });
+
+    if (attendanceDoc) {
+      attendanceDoc.records = records;
+      await attendanceDoc.save();
+    } else {
+      attendanceDoc = await Attendance.create({
+        facultyId: req.user.id,
+        grade: req.user.assignedGrade,
+        section: req.user.assignedSection,
+        date: new Date(parsedDate),
+        records
+      });
+    }
+
+    res.json({ message: 'Attendance accurately recorded for ' + new Date(parsedDate).toLocaleDateString(), attendanceDoc });
+  } catch (error) {
+    res.status(500).json({ message: 'Error saving attendance sheet', error: error.message });
   }
 });
 

@@ -24,6 +24,40 @@ export function FacultyDashboard() {
   const [hwForm, setHwForm] = useState({ subject: '', title: '', description: '', dueDate: '' });
   const [hwMsg, setHwMsg] = useState({ text: '', type: '' });
 
+  // Attendance Form State
+  const [showAttModal, setShowAttModal] = useState(false);
+  const [attDate, setAttDate] = useState(new Date().toISOString().split('T')[0]);
+  const [attRecords, setAttRecords] = useState({});
+  const [attMsg, setAttMsg] = useState({ text: '', type: '' });
+  
+  const openAttendanceModal = () => {
+    const initialRecords = {};
+    students.forEach(s => {
+      initialRecords[s._id] = 'Present';
+    });
+    setAttRecords(initialRecords);
+    setShowAttModal(true);
+    setAttMsg({ text: '', type: '' });
+  };
+
+  const submitAttendance = async (e) => {
+    e.preventDefault();
+    try {
+      const recordsArray = Object.keys(attRecords).map(studentId => ({
+        studentId, status: attRecords[studentId], remarks: ''
+      }));
+      const token = localStorage.getItem('schoolToken');
+      await axios.post('https://srv-backend-3b9s.onrender.com/api/faculty/attendance', {
+        date: attDate,
+        records: recordsArray
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      setAttMsg({ text: 'Daily attendance successfully saved!', type: 'success' });
+      setTimeout(() => setShowAttModal(false), 2000);
+    } catch (err) {
+      setAttMsg({ text: 'Error saving attendance.', type: 'error' });
+    }
+  };
+
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('schoolUser') || '{}');
 
@@ -242,8 +276,17 @@ export function FacultyDashboard() {
                 </div>
               )}
               <form onSubmit={submitHomework} className="space-y-3">
-                <input type="text" placeholder="Subject" required value={hwForm.subject} onChange={e => setHwForm({...hwForm, subject: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
-                <input type="text" placeholder="Title" required value={hwForm.title} onChange={e => setHwForm({...hwForm, title: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+                <select required value={hwForm.subject} onChange={e => setHwForm({...hwForm, subject: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                  <option value="" disabled>Select Subject</option>
+                  <option value="English">English</option>
+                  <option value="Tamil">Tamil</option>
+                  <option value="Hindi">Hindi</option>
+                  <option value="Mathematics">Mathematics</option>
+                  <option value="Science">Science</option>
+                  <option value="Social Science">Social Science</option>
+                  <option value="Computer Science">Computer Science</option>
+                </select>
+                <input type="text" placeholder="Topic" required value={hwForm.title} onChange={e => setHwForm({...hwForm, title: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
                 <textarea placeholder="Description..." rows="3" required value={hwForm.description} onChange={e => setHwForm({...hwForm, description: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
                 <input type="date" required value={hwForm.dueDate} onChange={e => setHwForm({...hwForm, dueDate: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
                 <button type="submit" className="w-full py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors text-sm">
@@ -256,7 +299,7 @@ export function FacultyDashboard() {
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
               <h3 className="text-lg font-display font-bold text-slate-900 mb-4">Quick Actions</h3>
               <div className="space-y-3">
-                <button onClick={() => alert('Please select a student from the list to evaluate attendance and Nlite skills.')} className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 transition-colors text-left">
+                <button onClick={openAttendanceModal} className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 transition-colors text-left">
                   <CheckSquare className="text-emerald-600" size={20} />
                   <div>
                     <p className="font-semibold text-sm text-slate-900">Mark Attendance</p>
@@ -277,6 +320,54 @@ export function FacultyDashboard() {
         </div>
 
       </div>
+      {/* Attendance Modal */}
+      {showAttModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl relative max-h-[90vh] flex flex-col">
+            <button onClick={() => setShowAttModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 font-bold z-10">✕</button>
+            <h3 className="text-2xl font-display font-bold text-slate-900 mb-6 shrink-0">Daily Register</h3>
+            
+            {attMsg.text && (
+              <div className={`mb-4 px-4 py-3 shrink-0 rounded-xl text-sm font-semibold ${attMsg.type === 'success' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                {attMsg.text}
+              </div>
+            )}
+
+            <form onSubmit={submitAttendance} className="flex flex-col overflow-hidden">
+              <div className="shrink-0 mb-6">
+                <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Date of Class</label>
+                <input type="date" required value={attDate} onChange={e => setAttDate(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500" />
+              </div>
+
+              <div className="space-y-2 overflow-y-auto pr-2 mb-6">
+                <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Student Roster</label>
+                {students.map(s => (
+                  <div key={s._id} className="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl">
+                    <div className="flex flex-col">
+                      <span className="font-bold text-slate-800 text-sm">{s.name}</span>
+                      <span className="text-xs font-mono text-slate-500">{s.srvNumber}</span>
+                    </div>
+                    <select 
+                      value={attRecords[s._id] || 'Present'} 
+                      onChange={e => setAttRecords({...attRecords, [s._id]: e.target.value})}
+                      className={`text-sm font-bold border rounded-lg px-2 py-1 outline-none ${attRecords[s._id] === 'Absent' ? 'bg-red-100 text-red-700 border-red-200' : attRecords[s._id] === 'Half-Day' ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200'}`}
+                    >
+                      <option value="Present">Present</option>
+                      <option value="Half-Day">Half-Day</option>
+                      <option value="Absent">Absent</option>
+                    </select>
+                  </div>
+                ))}
+              </div>
+
+              <button type="submit" className="w-full py-3.5 mt-auto shrink-0 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors shadow-lg">
+                Save Register
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

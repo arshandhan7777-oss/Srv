@@ -86,9 +86,13 @@ export function ParentDashboard() {
     marks: val
   })) : [];
 
-  const attendanceData = latestRecord ? [
-    { name: 'Present', value: latestRecord.daysPresent },
-    { name: 'Absent', value: Math.max(latestRecord.totalWorkingDays - latestRecord.daysPresent, 0) },
+  const totalClasses = data.attendance?.length || 0;
+  const presentClasses = data.attendance?.filter(a => a.status === 'Present' || a.status === 'Half-Day').length || 0;
+  const finalAttendancePercentage = totalClasses > 0 ? Math.round((presentClasses / totalClasses) * 100) : 0;
+
+  const attendanceData = totalClasses > 0 ? [
+    { name: 'Present', value: presentClasses },
+    { name: 'Absent', value: totalClasses - presentClasses },
   ] : [];
 
   const nliteData = latestRecord?.nliteSkills ? [
@@ -291,18 +295,18 @@ export function ParentDashboard() {
                       </PieChart>
                     </ResponsiveContainer>
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                      <span className="text-2xl font-display font-bold text-slate-900">{latestRecord?.attendancePercentage || 0}%</span>
+                      <span className="text-2xl font-display font-bold text-slate-900">{finalAttendancePercentage}%</span>
                       <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Present</span>
                     </div>
                   </div>
                   <div className="flex justify-center gap-6 mt-4">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-                      <span className="text-sm font-semibold text-slate-600">{latestRecord.daysPresent} Days</span>
+                      <span className="text-sm font-semibold text-slate-600">{presentClasses} Days</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-                      <span className="text-sm font-semibold text-slate-600">{latestRecord.totalWorkingDays - latestRecord.daysPresent} Days</span>
+                      <span className="text-sm font-semibold text-slate-600">{totalClasses - presentClasses} Days</span>
                     </div>
                   </div>
                 </>
@@ -346,6 +350,36 @@ export function ParentDashboard() {
           ) : (
             <div className="p-6 border-2 border-dashed border-slate-100 rounded-2xl text-slate-400 font-semibold text-center">
               Today's food menu has not been published by the administration yet.
+            </div>
+          )}
+        </div>
+
+        {/* Homework & Assignments Section */}
+        <div className="mt-8 bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+          <div className="flex items-center gap-3 mb-6">
+            <BookOpen className="text-pink-500" />
+            <h3 className="text-xl font-display font-bold text-slate-900">Homework & Assignments</h3>
+          </div>
+          
+          {data.homework && data.homework.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {data.homework.map((hw) => (
+                <div key={hw._id} className="p-5 bg-pink-50 border border-pink-100 rounded-2xl flex flex-col">
+                  <span className="text-[10px] font-bold text-pink-500 uppercase tracking-widest bg-pink-100 px-2 py-1 rounded w-max mb-3">
+                    {hw.subject}
+                  </span>
+                  <h4 className="font-display font-bold text-slate-900 text-lg mb-2 leading-tight">{hw.title}</h4>
+                  <p className="text-sm text-slate-600 mb-4 flex-1">{hw.description}</p>
+                  <div className="flex items-center justify-between text-xs font-bold pt-3 border-t border-pink-200/60 text-slate-500">
+                    <div className="flex items-center gap-1.5"><CalIcon size={12} className="text-pink-400" /> Due:</div>
+                    <span className="text-pink-700 bg-pink-200/40 px-2 py-0.5 rounded">{new Date(hw.dueDate).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-6 border-2 border-dashed border-slate-100 rounded-2xl text-slate-400 font-semibold text-center mt-4">
+              No active homework or assignments currently published by the faculty.
             </div>
           )}
         </div>

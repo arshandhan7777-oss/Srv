@@ -4,6 +4,7 @@ import AcademicRecord from '../models/AcademicRecord.js';
 import Homework from '../models/Homework.js';
 import Notification from '../models/Notification.js';
 import FoodMenu from '../models/FoodMenu.js';
+import Attendance from '../models/Attendance.js';
 import Setting from '../models/Setting.js';
 import User from '../models/User.js';
 import { protect } from '../middleware/auth.js';
@@ -47,11 +48,28 @@ router.get('/dashboard', protect, parentOnly, async (req, res) => {
     let setting = await Setting.findOne({ key: 'onlineFeePayment' });
     const isOnlineFeeEnabled = setting ? setting.value : false;
 
+    // Get attendance specifically for this student
+    const classAttendance = await Attendance.find({
+      grade: student.grade,
+      section: student.section,
+      'records.studentId': student._id
+    }).sort({ date: 1 });
+
+    const attendanceFlat = classAttendance.map(doc => {
+      const p = doc.records.find(r => r.studentId.toString() === student._id.toString());
+      return {
+        date: doc.date,
+        status: p ? p.status : 'Absent',
+        remarks: p ? p.remarks : ''
+      };
+    });
+
     res.json({
       student,
       records,
       homework,
       food,
+      attendance: attendanceFlat,
       settings: { isOnlineFeeEnabled }
     });
 
