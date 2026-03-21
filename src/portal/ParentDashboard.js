@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { LogOut, Bell, Download, FileText, Calendar as CalIcon, TrendingUp, Sparkles, CheckCircle2, Coffee, CreditCard, AlertCircle, Clock, CheckCheck } from 'lucide-react';
 import srvLogo from '../assest/fav_logo/srv-t.png';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -94,6 +94,16 @@ export function ParentDashboard() {
     { name: 'Present', value: presentClasses },
     { name: 'Absent', value: totalClasses - presentClasses },
   ] : [];
+
+  const behaviorChartData = data.behavior?.map(b => ({
+    date: new Date(b.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    score: b.score,
+    remarks: b.remarks
+  })) || [];
+
+  const avgBehaviorScore = data.behavior?.length 
+    ? (data.behavior.reduce((acc, curr) => acc + curr.score, 0) / data.behavior.length).toFixed(1) 
+    : 10;
 
   const nliteData = latestRecord?.nliteSkills ? [
     { skill: 'Comm.', score: latestRecord.nliteSkills.communication, fullMark: 5 },
@@ -317,6 +327,61 @@ export function ParentDashboard() {
               )}
             </div>
 
+          </div>
+        </div>
+
+        {/* Behavior Analytics Section */}
+        <div className="mt-8 bg-white rounded-3xl p-8 shadow-sm border border-slate-100 flex flex-col lg:flex-row gap-8">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-6">
+              <TrendingUp className="text-amber-500" />
+              <h3 className="text-xl font-display font-bold text-slate-900">Behavior Analytics</h3>
+            </div>
+            
+            <div className="flex items-end gap-3 mb-6">
+              <span className="text-5xl font-display font-black text-slate-900 leading-none">{avgBehaviorScore}</span>
+              <span className="text-sm font-bold text-slate-500 mb-1 uppercase tracking-widest">/ 10 Avg Score</span>
+            </div>
+
+            <div className="h-64 mt-4 relative">
+              {behaviorChartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={behaviorChartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                    <Line type="monotone" dataKey="score" stroke="#f59e0b" strokeWidth={3} dot={{ r: 4, fill: '#f59e0b', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
+                    <CartesianGrid stroke="#f1f5f9" strokeDasharray="5 5" vertical={false} />
+                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} dy={10} />
+                    <YAxis domain={[0, 10]} axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} dx={-10} />
+                    <Tooltip 
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px' }}
+                      cursor={{ stroke: '#fef3c7', strokeWidth: 2, strokeDasharray: '5 5' }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center border-2 border-dashed border-slate-100 rounded-2xl text-slate-400 font-semibold">
+                  <TrendingUp size={32} className="mb-2 text-slate-300" />
+                  No behavior tracking points logged yet.
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="lg:w-1/3 bg-amber-50 rounded-2xl p-6 border border-amber-100 flex flex-col h-auto lg:h-[400px]">
+            <h4 className="font-bold text-amber-800 mb-4 flex items-center gap-2"><Sparkles size={16} /> Recent Remarks</h4>
+            <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+              {behaviorChartData.slice().reverse().filter(b => b.remarks).map((b, i) => (
+                <div key={i} className="bg-white p-4 rounded-xl border border-amber-200/50 shadow-sm">
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-xs font-bold text-amber-500 uppercase tracking-widest">{b.date}</span>
+                    <span className="text-[10px] font-black bg-amber-100 text-amber-700 px-2 py-1 rounded w-max">{b.score} / 10</span>
+                  </div>
+                  <p className="text-sm text-slate-700 font-medium">{b.remarks}</p>
+                </div>
+              ))}
+              {behaviorChartData.filter(b => b.remarks).length === 0 && (
+                <p className="text-sm tracking-tight text-amber-600/70 font-medium text-center mt-4">No specific remarks added by faculty.</p>
+              )}
+            </div>
           </div>
         </div>
 

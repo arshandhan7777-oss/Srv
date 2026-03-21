@@ -4,6 +4,7 @@ import AcademicRecord from '../models/AcademicRecord.js';
 import Homework from '../models/Homework.js';
 import Notification from '../models/Notification.js';
 import Attendance from '../models/Attendance.js';
+import Behavior from '../models/Behavior.js';
 import { protect, facultyOrAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -161,6 +162,40 @@ router.post('/attendance', protect, facultyOrAdmin, async (req, res) => {
     res.json({ message: 'Attendance accurately recorded for ' + new Date(parsedDate).toLocaleDateString(), attendanceDoc });
   } catch (error) {
     res.status(500).json({ message: 'Error saving attendance sheet', error: error.message });
+  }
+});
+
+// @route   POST /api/faculty/behavior
+// @desc    Submit daily behavior scores for the class
+// @access  Private (Faculty/Admin)
+router.post('/behavior', protect, facultyOrAdmin, async (req, res) => {
+  const { date, records } = req.body;
+  if (!date || !records) return res.status(400).json({ message: 'Date and records are required.' });
+
+  try {
+    const parsedDate = new Date(date).setHours(0, 0, 0, 0);
+
+    let behaviorDoc = await Behavior.findOne({ 
+      facultyId: req.user.id, 
+      date: new Date(parsedDate) 
+    });
+
+    if (behaviorDoc) {
+      behaviorDoc.records = records;
+      await behaviorDoc.save();
+    } else {
+      behaviorDoc = await Behavior.create({
+        facultyId: req.user.id,
+        grade: req.user.assignedGrade,
+        section: req.user.assignedSection,
+        date: new Date(parsedDate),
+        records
+      });
+    }
+
+    res.json({ message: 'Behavior logs saved for ' + new Date(parsedDate).toLocaleDateString(), behaviorDoc });
+  } catch (error) {
+    res.status(500).json({ message: 'Error saving behavior logs', error: error.message });
   }
 });
 

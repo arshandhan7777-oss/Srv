@@ -5,6 +5,7 @@ import Homework from '../models/Homework.js';
 import Notification from '../models/Notification.js';
 import FoodMenu from '../models/FoodMenu.js';
 import Attendance from '../models/Attendance.js';
+import Behavior from '../models/Behavior.js';
 import Setting from '../models/Setting.js';
 import User from '../models/User.js';
 import { protect } from '../middleware/auth.js';
@@ -64,12 +65,29 @@ router.get('/dashboard', protect, parentOnly, async (req, res) => {
       };
     });
 
+    // Get behavior specifically for this student
+    const classBehavior = await Behavior.find({
+      grade: student.grade,
+      section: student.section,
+      'records.studentId': student._id
+    }).sort({ date: 1 });
+
+    const behaviorFlat = classBehavior.map(doc => {
+      const p = doc.records.find(r => r.studentId.toString() === student._id.toString());
+      return {
+        date: doc.date,
+        score: p ? p.score : null,
+        remarks: p ? p.remarks : ''
+      };
+    }).filter(b => b.score !== null);
+
     res.json({
       student,
       records,
       homework,
       food,
       attendance: attendanceFlat,
+      behavior: behaviorFlat,
       settings: { isOnlineFeeEnabled }
     });
 

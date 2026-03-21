@@ -40,6 +40,22 @@ export function FacultyDashboard() {
     setAttMsg({ text: '', type: '' });
   };
 
+  // Behavior Form State
+  const [showBhvModal, setShowBhvModal] = useState(false);
+  const [bhvDate, setBhvDate] = useState(new Date().toISOString().split('T')[0]);
+  const [bhvRecords, setBhvRecords] = useState({});
+  const [bhvMsg, setBhvMsg] = useState({ text: '', type: '' });
+
+  const openBehaviorModal = () => {
+    const initialRecords = {};
+    students.forEach(s => {
+      initialRecords[s._id] = { score: 10, remarks: '' };
+    });
+    setBhvRecords(initialRecords);
+    setShowBhvModal(true);
+    setBhvMsg({ text: '', type: '' });
+  };
+
   const submitAttendance = async (e) => {
     e.preventDefault();
     try {
@@ -55,6 +71,26 @@ export function FacultyDashboard() {
       setTimeout(() => setShowAttModal(false), 2000);
     } catch (err) {
       setAttMsg({ text: 'Error saving attendance.', type: 'error' });
+    }
+  };
+
+  const submitBehavior = async (e) => {
+    e.preventDefault();
+    try {
+      const recordsArray = Object.keys(bhvRecords).map(studentId => ({
+        studentId,
+        score: bhvRecords[studentId].score,
+        remarks: bhvRecords[studentId].remarks
+      }));
+      const token = localStorage.getItem('schoolToken');
+      await axios.post('https://srv-backend-3b9s.onrender.com/api/faculty/behavior', {
+        date: bhvDate,
+        records: recordsArray
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      setBhvMsg({ text: 'Behavior logs successfully saved!', type: 'success' });
+      setTimeout(() => setShowBhvModal(false), 2000);
+    } catch (err) {
+      setBhvMsg({ text: 'Error saving behavior logs.', type: 'error' });
     }
   };
 
@@ -306,11 +342,11 @@ export function FacultyDashboard() {
                     <p className="text-xs text-slate-500">Select student to record attendance</p>
                   </div>
                 </button>
-                <button onClick={() => alert('Please select a student from the list to evaluate behaviour and Nlite skills.')} className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-amber-500 hover:bg-amber-50 transition-colors text-left">
+                <button onClick={openBehaviorModal} className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-amber-500 hover:bg-amber-50 transition-colors text-left">
                   <AlertCircle className="text-amber-600" size={20} />
                   <div>
-                    <p className="font-semibold text-sm text-slate-900">Log Behaviour</p>
-                    <p className="text-xs text-slate-500">Select student to add behaviour notes</p>
+                    <p className="font-semibold text-sm text-slate-900">Log Daily Behavior</p>
+                    <p className="text-xs text-slate-500">Assign points and add daily remarks</p>
                   </div>
                 </button>
               </div>
@@ -362,6 +398,64 @@ export function FacultyDashboard() {
 
               <button type="submit" className="w-full py-3.5 mt-auto shrink-0 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors shadow-lg">
                 Save Register
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Behavior Modal */}
+      {showBhvModal && (
+        <div className="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-2xl w-full shadow-2xl relative max-h-[90vh] flex flex-col">
+            <button onClick={() => setShowBhvModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 font-bold z-10">✕</button>
+            <h3 className="text-2xl font-display font-bold text-slate-900 mb-6 shrink-0 flex items-center gap-3"><AlertCircle className="text-amber-500" /> Daily Behavior Log</h3>
+            
+            {bhvMsg.text && (
+              <div className={`mb-4 px-4 py-3 shrink-0 rounded-xl text-sm font-semibold ${bhvMsg.type === 'success' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                {bhvMsg.text}
+              </div>
+            )}
+
+            <form onSubmit={submitBehavior} className="flex flex-col overflow-hidden">
+              <div className="shrink-0 mb-6">
+                <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Date</label>
+                <input type="date" required value={bhvDate} onChange={e => setBhvDate(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:ring-2 focus:ring-amber-500" />
+              </div>
+
+              <div className="space-y-3 overflow-y-auto pr-2 mb-6">
+                <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Student Behavior Roster</label>
+                {students.map(s => (
+                  <div key={s._id} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                    <div className="flex flex-col w-full sm:w-1/3 shrink-0">
+                      <span className="font-bold text-slate-800 text-sm">{s.name}</span>
+                      <span className="text-xs font-mono text-slate-500">{s.srvNumber}</span>
+                    </div>
+                    
+                    <div className="flex-1 w-full flex items-center gap-3">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Score / 10</span>
+                        <input type="number" min="1" max="10" required
+                          value={bhvRecords[s._id]?.score || 10}
+                          onChange={e => setBhvRecords({...bhvRecords, [s._id]: { ...bhvRecords[s._id], score: Number(e.target.value) }})}
+                          className="w-16 px-2 py-1.5 text-center font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg outline-none"
+                        />
+                      </div>
+                      <div className="flex-1 flex flex-col">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Remarks (Optional)</span>
+                        <input type="text" placeholder="Great participation..."
+                          value={bhvRecords[s._id]?.remarks || ''}
+                          onChange={e => setBhvRecords({...bhvRecords, [s._id]: { ...bhvRecords[s._id], remarks: e.target.value }})}
+                          className="w-full px-3 py-1.5 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-amber-400"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <button type="submit" className="w-full py-3.5 mt-auto shrink-0 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors shadow-lg">
+                Publish Behavior Logs
               </button>
             </form>
           </div>
