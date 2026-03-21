@@ -19,6 +19,7 @@ import { Facilities } from './pages/Facilities';
 
 // Portal Imports
 import { Login } from './portal/Login';
+import { AdminLogin } from './portal/AdminLogin';
 import { AdminDashboard } from './portal/AdminDashboard';
 import { FacultyDashboard } from './portal/FacultyDashboard';
 import { ParentDashboard } from './portal/ParentDashboard';
@@ -44,6 +45,7 @@ export default function App() {
         {/* Portal Routes without Main Layout */}
         <Route path="/portal">
           <Route path="login" element={<Login />} />
+          <Route path="admin-login" element={<AdminLogin />} />
           <Route path="admin" element={<AdminDashboard />} />
           <Route path="faculty" element={<FacultyDashboard />} />
           <Route path="parent" element={<ParentDashboard />} />

@@ -8,6 +8,7 @@ import axios from 'axios';
 export function Login() {
   const [srvNumber, setSrvNumber] = useState('');
   const [password, setPassword] = useState('');
+  const [loginRole, setLoginRole] = useState('parent');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -20,13 +21,18 @@ export function Login() {
     try {
       const { data } = await axios.post('https://srv-backend-3b9s.onrender.com' + '/api/auth/login', { srvNumber, password });
       
+      if (data.role !== loginRole) {
+        setError(`Your account role (${data.role}) does not match the selected login type (${loginRole}).`);
+        setLoading(false);
+        return;
+      }
+
       // Save auth data
       localStorage.setItem('schoolToken', data.token);
       localStorage.setItem('schoolUser', JSON.stringify(data));
 
       // Redirect based on role
-      if (data.role === 'admin') navigate('/portal/admin');
-      else if (data.role === 'faculty') navigate('/portal/faculty');
+      if (data.role === 'faculty') navigate('/portal/faculty');
       else if (data.role === 'parent') navigate('/portal/parent');
 
     } catch (err) {
@@ -66,7 +72,7 @@ export function Login() {
             Portal Access
           </h2>
           <p className="mt-2 text-center text-sm text-slate-600">
-            Sign in to the SRV School Management System
+            Sign in to the SRV Faculty and Parent Portal
           </p>
         </motion.div>
       </div>
@@ -78,6 +84,24 @@ export function Login() {
         className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10"
       >
         <div className="bg-white py-10 px-4 shadow-2xl sm:rounded-3xl border border-slate-100 sm:px-10">
+          
+          <div className="flex p-1 mb-8 bg-slate-100 rounded-xl">
+            <button
+              onClick={() => { setLoginRole('parent'); setError(''); }}
+              type="button"
+              className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${loginRole === 'parent' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              Parent
+            </button>
+            <button
+              onClick={() => { setLoginRole('faculty'); setError(''); }}
+              type="button"
+              className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${loginRole === 'faculty' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              Faculty
+            </button>
+          </div>
+
           <form className="space-y-6" onSubmit={handleLogin}>
             {error && (
               <div className="bg-red-50 text-red-600 border border-red-200 rounded-xl p-4 flex gap-3 items-start text-sm">
@@ -88,7 +112,7 @@ export function Login() {
 
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
-                SRV Number / Username
+                {loginRole === 'parent' ? 'Parent ID' : 'Faculty ID'}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -100,7 +124,7 @@ export function Login() {
                   value={srvNumber}
                   onChange={(e) => setSrvNumber(e.target.value)}
                   className="block w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow outline-none bg-slate-50 focus:bg-white"
-                  placeholder="e.g. SRV249012"
+                  placeholder={loginRole === 'parent' ? "e.g. SRV112233" : "e.g. FAC112233"}
                 />
               </div>
             </div>
@@ -132,7 +156,7 @@ export function Login() {
               >
                 {loading ? 'Authenticating...' : (
                   <>
-                    <LogIn size={18} /> Sign In
+                    <LogIn size={18} /> Sign In as {loginRole === 'parent' ? 'Parent' : 'Faculty'}
                   </>
                 )}
               </button>
@@ -140,10 +164,17 @@ export function Login() {
           </form>
 
           <div className="mt-8 text-center">
-            <p className="text-xs text-slate-500">
-              Parents: Use the credentials provided by the school administration.<br/>
-              Default password is usually your child's Date of Birth (DDMMYYYY).
-            </p>
+            {loginRole === 'parent' ? (
+              <p className="text-xs text-slate-500">
+                Parents: Enter ID (e.g., SRV112233)<br/>
+                Default password is usually your child's Date of Birth (DDMMYYYY).
+              </p>
+            ) : (
+              <p className="text-xs text-slate-500">
+                Faculty: Enter ID (e.g., FAC112233)<br/>
+                Use your university-assigned faculty ID to access the system.
+              </p>
+            )}
           </div>
         </div>
       </motion.div>

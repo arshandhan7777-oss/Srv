@@ -13,7 +13,7 @@ const generateToken = (id, role, srvNumber) => {
 };
 
 // @route   POST /api/auth/login
-// @desc    Auth user & get token (Admin, Faculty, Parent)
+// @desc    Auth user & get token (Faculty, Parent)
 // @access  Public
 router.post('/login', async (req, res) => {
   const { srvNumber, password } = req.body;
@@ -22,6 +22,11 @@ router.post('/login', async (req, res) => {
     const user = await User.findOne({ srvNumber });
 
     if (user && (await bcrypt.compare(password, user.password))) {
+      // Reject admin logins on the public portal
+      if (user.role === 'admin') {
+        return res.status(403).json({ message: 'Admins must use the dedicated Admin Portal to log in.' });
+      }
+
       res.json({
         _id: user._id,
         name: user.name,
@@ -34,6 +39,37 @@ router.post('/login', async (req, res) => {
       });
     } else {
       res.status(401).json({ message: 'Invalid SRV Number or Password' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Database Error', details: error.message, stack: error.stack });
+  }
+});
+
+// @route   POST /api/auth/admin-login
+// @desc    Auth admin & get token
+// @access  Public
+router.post('/admin-login', async (req, res) => {
+  const { srvNumber, password } = req.body;
+
+  try {
+    const user = await User.findOne({ srvNumber });
+
+    if (user && (await bcrypt.compare(password, user.password))) {
+      // Reject non-admin logins on the admin portal
+      if (user.role !== 'admin') {
+        return res.status(403).json({ message: 'Access restricted to administrators only.' });
+      }
+
+      res.json({
+        _id: user._id,
+        name: user.name,
+        srvNumber: user.srvNumber,
+        role: user.role,
+        token: generateToken(user._id, user.role, user.srvNumber),
+      });
+    } else {
+      res.status(401).json({ message: 'Invalid Admin SRV Number or Password' });
     }
   } catch (error) {
     console.error(error);

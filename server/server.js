@@ -30,14 +30,18 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => {
-    console.log('Connected to MongoDB successfully');
-  })
-  .catch((err) => {
-    console.error('MongoDB connection error. Please check your network/IP whitelist in MongoDB Atlas:');
-    console.error(err.message);
-  });
+if (process.env.MONGODB_URI) {
+  mongoose.connect(process.env.MONGODB_URI)
+    .then(() => {
+      console.log('Connected to MongoDB successfully');
+    })
+    .catch((err) => {
+      console.error('MongoDB connection error. Please check your network/IP whitelist in MongoDB Atlas:');
+      console.error(err.message);
+    });
+} else {
+  console.warn('MONGODB_URI is not defined in the environment. Skipping database connection.');
+}
 
 // Always start the Express server, even if DB fails initially
 app.listen(PORT, () => {
