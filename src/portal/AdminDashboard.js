@@ -34,6 +34,11 @@ export function AdminDashboard() {
   const [isOnlineFeeEnabled, setIsOnlineFeeEnabled] = useState(false);
   const [feeAlerts, setFeeAlerts] = useState([]);
 
+  // Password Requests
+  const [pwRequests, setPwRequests] = useState([]);
+  const [resettingPwFor, setResettingPwFor] = useState(null);
+  const [newAdminProvidedPw, setNewAdminProvidedPw] = useState('');
+
   // Advanced Profile State
   const [allStudents, setAllStudents] = useState([]);
   const [selectedFacultyProfile, setSelectedFacultyProfile] = useState(null);
@@ -68,6 +73,8 @@ export function AdminDashboard() {
       .then(res => setIsOnlineFeeEnabled(res.data.isOnlineFeeEnabled)).catch(console.error);
     axios.get('https://srv-backend-3b9s.onrender.com/api/admin/notifications', { headers: { Authorization: `Bearer ${token}` } })
       .then(res => setFeeAlerts(res.data)).catch(console.error);
+    axios.get('https://srv-backend-3b9s.onrender.com/api/admin/password-requests', { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => setPwRequests(res.data)).catch(console.error);
   };
 
   const handleToggleOnlineFee = async () => {
@@ -147,6 +154,22 @@ export function AdminDashboard() {
   const startEditing = (faculty) => {
     setEditingFacultyId(faculty._id);
     setEditFacultyForm({ assignedGrade: faculty.assignedGrade || '', assignedSection: faculty.assignedSection || '', password: '' });
+  };
+
+  const handleApprovePwReset = async () => {
+    if (!newAdminProvidedPw) return alert('Enter a new password');
+    try {
+      const token = localStorage.getItem('schoolToken');
+      await axios.post(`https://srv-backend-3b9s.onrender.com/api/admin/password-requests/${resettingPwFor._id}/approve`, 
+        { newPassword: newAdminProvidedPw },
+        { headers: { Authorization: `Bearer ${token}` }}
+      );
+      setResettingPwFor(null);
+      setNewAdminProvidedPw('');
+      fetchSettingsAndAlerts(token); // refresh list
+    } catch (err) {
+      alert(err.response?.data?.message || 'Error resetting password');
+    }
   };
 
   const handeFacultySubmit = async (e) => {
@@ -351,7 +374,7 @@ export function AdminDashboard() {
         </div>
 
         {/* Global Settings & Alerts */}
-        <div className="grid md:grid-cols-2 gap-8 mt-8">
+        <div className="grid md:grid-cols-3 gap-8 mt-8">
           {/* Global Settings */}
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
             <h2 className="text-xl font-display font-bold text-slate-900 mb-6 flex items-center gap-3">
@@ -384,6 +407,40 @@ export function AdminDashboard() {
                 </div>
               )) : (
                 <p className="text-slate-500 text-sm text-center py-4 italic">No recent payments logged.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Password Reset Requests */}
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+            <h2 className="text-xl font-display font-bold text-slate-900 mb-6 flex items-center gap-3">
+              🔑 Recovery Requests
+            </h2>
+            <div className="space-y-3 max-h-48 overflow-y-auto pr-2">
+              {pwRequests.length > 0 ? pwRequests.map(req => (
+                <div key={req._id} className="p-3 bg-indigo-50 border border-indigo-100 rounded-xl text-sm">
+                  <div className="flex justify-between items-start mb-2">
+                    <p className="text-indigo-800 font-bold">{req.srvNumber} <span className="text-xs bg-indigo-200 text-indigo-800 px-2 py-0.5 rounded ml-1">{req.role}</span></p>
+                    <p className="text-[10px] text-indigo-600 font-bold uppercase tracking-wider">{new Date(req.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  {resettingPwFor?._id === req._id ? (
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        placeholder="New Pass..."
+                        value={newAdminProvidedPw}
+                        onChange={e => setNewAdminProvidedPw(e.target.value)}
+                        className="flex-1 px-2 py-1 text-xs font-bold border border-indigo-200 rounded outline-none w-full"
+                      />
+                      <button onClick={handleApprovePwReset} className="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold px-2 py-1 rounded transition">Save</button>
+                      <button onClick={() => { setResettingPwFor(null); setNewAdminProvidedPw(''); }} className="bg-slate-200 hover:bg-slate-300 text-slate-600 text-[10px] font-bold px-2 py-1 rounded transition">X</button>
+                    </div>
+                  ) : (
+                    <button onClick={() => setResettingPwFor(req)} className="w-full bg-white border border-indigo-200 text-indigo-600 text-xs font-bold py-1.5 rounded-lg hover:bg-indigo-600 hover:text-white transition">Action Reset</button>
+                  )}
+                </div>
+              )) : (
+                <p className="text-slate-500 text-sm text-center py-4 italic">No pending requests.</p>
               )}
             </div>
           </div>

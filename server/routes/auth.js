@@ -2,6 +2,7 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import PasswordReset from '../models/PasswordReset.js';
 
 const router = express.Router();
 
@@ -102,6 +103,56 @@ router.post('/setup-admin', async (req, res) => {
     res.status(201).json({ message: 'Admin created successfully', srvNumber: admin.srvNumber });
   } catch (error) {
     res.status(500).json({ message: 'Server error setup admin', error: error.message, stack: error.stack });
+  }
+});
+
+// @route   POST /api/auth/forgot-password
+// @desc    Submit a request to reset a password
+// @access  Public
+router.post('/forgot-password', async (req, res) => {
+  const { srvNumber } = req.body;
+  try {
+    const user = await User.findOne({ srvNumber });
+    if (!user) return res.status(404).json({ message: 'User not found.' });
+
+    const existingRequest = await PasswordReset.findOne({ srvNumber, status: 'Pending' });
+    if (existingRequest) {
+      return res.status(400).json({ message: 'A reset request is already pending for this ID.' });
+    }
+
+    await PasswordReset.create({
+      srvNumber: user.srvNumber,
+      role: user.role
+    });
+
+    res.json({ message: 'Password reset request sent to Admin.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error request reset' });
+  }
+});
+
+// @route   GET /api/auth/reset-status/:srvNumber
+// @desc    Check status and get new password when approved
+// @access  Public
+router.get('/reset-status/:srvNumber', async (req, res) => {
+  try {
+    const srvNumber = req.params.srvNumber;
+    const requests = await PasswordReset.find({ srvNumber }).sort({ createdAt: -1 });
+
+    if (!requests || requests.length === 0) {
+      return res.status(404).json({ message: 'No reset requests found for this ID.' });
+    }
+
+    const latest = requests[0];
+    if (latest.status === 'Reset') {
+      const p = latest.newPassword;
+      await PasswordReset.deleteMany({ srvNumber });
+      return res.json({ status: 'Reset', newPassword: p });
+    } else {
+      return res.json({ status: 'Pending' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error checking status' });
   }
 });
 

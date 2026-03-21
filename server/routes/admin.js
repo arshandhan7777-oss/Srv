@@ -5,6 +5,7 @@ import Student from '../models/Student.js';
 import FoodMenu from '../models/FoodMenu.js';
 import Setting from '../models/Setting.js';
 import Notification from '../models/Notification.js';
+import PasswordReset from '../models/PasswordReset.js';
 import { protect, adminOnly } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -355,6 +356,48 @@ router.get('/notifications', protect, adminOnly, async (req, res) => {
     res.json(notifications);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching admin notifications' });
+  }
+});
+
+// @route   GET /api/admin/password-requests
+// @desc    Get all pending password reset requests
+// @access  Private (Admin only)
+router.get('/password-requests', protect, adminOnly, async (req, res) => {
+  try {
+    const requests = await PasswordReset.find({ status: 'Pending' }).sort({ createdAt: -1 });
+    res.json(requests);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching password requests' });
+  }
+});
+
+// @route   POST /api/admin/password-requests/:id/approve
+// @desc    Approve and process a password reset
+// @access  Private (Admin only)
+router.post('/password-requests/:id/approve', protect, adminOnly, async (req, res) => {
+  const { newPassword } = req.body;
+  try {
+    if (!newPassword) return res.status(400).json({ message: 'New password is required.' });
+
+    const request = await PasswordReset.findById(req.params.id);
+    if (!request) return res.status(404).json({ message: 'Request not found.' });
+
+    const user = await User.findOne({ srvNumber: request.srvNumber });
+    if (!user) return res.status(404).json({ message: 'User account no longer exists.' });
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    await user.save();
+
+    // Update request
+    request.status = 'Reset';
+    request.newPassword = newPassword;
+    await request.save();
+
+    res.json({ message: 'Password successfully reset.', request });
+  } catch (error) {
+    res.status(500).json({ message: 'Error approving password request' });
   }
 });
 

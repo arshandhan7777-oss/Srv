@@ -11,7 +11,37 @@ export function Login() {
   const [loginRole, setLoginRole] = useState('parent');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotTab, setForgotTab] = useState('request');
+  const [forgotSrv, setForgotSrv] = useState('');
+  const [forgotMsg, setForgotMsg] = useState({ text: '', type: '' });
+  const [forgotLoading, setForgotLoading] = useState(false);
   const navigate = useNavigate();
+
+  const handleForgotSubmit = async (e) => {
+    e.preventDefault();
+    if (!forgotSrv) return;
+    setForgotLoading(true);
+    setForgotMsg({ text: '', type: '' });
+    
+    try {
+      if (forgotTab === 'request') {
+        const { data } = await axios.post('https://srv-backend-3b9s.onrender.com/api/auth/forgot-password', { srvNumber: forgotSrv });
+        setForgotMsg({ text: data.message, type: 'success' });
+      } else {
+        const { data } = await axios.get(`https://srv-backend-3b9s.onrender.com/api/auth/reset-status/${forgotSrv}`);
+        if (data.status === 'Reset') {
+          setForgotMsg({ text: `Your password was reset to: ${data.newPassword}`, type: 'success' });
+        } else {
+          setForgotMsg({ text: 'Your request is still Pending approval.', type: 'info' });
+        }
+      }
+    } catch (err) {
+      setForgotMsg({ text: err.response?.data?.message || 'Error communicating with server.', type: 'error' });
+    } finally {
+      setForgotLoading(false);
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -148,6 +178,16 @@ export function Login() {
               </div>
             </div>
 
+            <div className="flex justify-end">
+              <button 
+                type="button" 
+                onClick={() => { setShowForgotModal(true); setForgotMsg({text:'', type:''}); setForgotSrv(''); }}
+                className="text-xs font-bold text-emerald-600 hover:text-emerald-700 transition"
+              >
+                Forgot Password?
+              </button>
+            </div>
+
             <div>
               <button
                 type="submit"
@@ -178,6 +218,65 @@ export function Login() {
           </div>
         </div>
       </motion.div>
+
+      {/* Forgot Password Modal */}
+      {showForgotModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl relative">
+            <button 
+              onClick={() => setShowForgotModal(false)} 
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 font-bold"
+            >
+              ✕
+            </button>
+            <h3 className="text-xl font-display font-bold text-slate-900 mb-4">Password Recovery</h3>
+            
+            <div className="flex p-1 mb-6 bg-slate-100 rounded-xl">
+              <button
+                onClick={() => { setForgotTab('request'); setForgotMsg({text:'', type:''}); }}
+                className={`flex-1 py-1.5 text-xs font-bold justify-center flex items-center rounded-lg transition-all ${forgotTab === 'request' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500'}`}
+              >
+                Request Reset
+              </button>
+              <button
+                onClick={() => { setForgotTab('status'); setForgotMsg({text:'', type:''}); }}
+                className={`flex-1 py-1.5 text-xs font-bold justify-center flex items-center rounded-lg transition-all ${forgotTab === 'status' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500'}`}
+              >
+                Check Status
+              </button>
+            </div>
+
+            <form onSubmit={handleForgotSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-2">Enter your ID (SRV / FAC)</label>
+                <input 
+                  type="text" 
+                  required
+                  value={forgotSrv}
+                  onChange={e => setForgotSrv(e.target.value)}
+                  placeholder="e.g. SRV26001"
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-bold"
+                />
+              </div>
+
+              {forgotMsg.text && (
+                <div className={`p-3 rounded-xl text-xs font-bold border ${forgotMsg.type === 'error' ? 'bg-red-50 text-red-600 border-red-200' : forgotMsg.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
+                  {forgotMsg.text}
+                </div>
+              )}
+
+              <button 
+                type="submit" 
+                disabled={forgotLoading}
+                className="w-full py-2.5 bg-slate-900 text-white font-bold text-sm rounded-xl hover:bg-slate-800 transition disabled:opacity-70"
+              >
+                {forgotLoading ? 'Processing...' : forgotTab === 'request' ? 'Submit to Administration' : 'Check Recovery Status'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
