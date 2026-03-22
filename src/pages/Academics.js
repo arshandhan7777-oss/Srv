@@ -92,7 +92,7 @@ export function Academics() {
                   <BookOpen size={18} className="text-amber-500" /> Curriculum
                 </p>
                 <p className="text-sm">
-                  Our school is recognized by the Tamil Nadu government and follows a curriculum that meets the Directorate of School Education's criteria. To improve linguistic skills, we have made three languages obligatory in grades I–V. Apart from academics, we encourage our students to participate in extracurricular activities.
+                  Our school is recognized by the Tamil Nadu government and follows a curriculum that meets the Directorate of School Education's criteria. To improve linguistic skills, we have made three languages obligatory in grades I-V. Apart from academics, we encourage our students to participate in extracurricular activities.
                 </p>
               </div>
             </div>

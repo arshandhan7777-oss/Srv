@@ -67,7 +67,7 @@ export function StatsCtaBanner() {
             <h3 className="text-4xl md:text-5xl font-display font-bold text-white mb-3">
               <AnimatedCounter value="1988" />
             </h3>
-            <p className="text-slate-300 font-medium tracking-wide">Established</p>
+            <p className="text-slate-300 font-medium tracking-wide ">Established</p>
           </motion.div>
 
           <motion.div

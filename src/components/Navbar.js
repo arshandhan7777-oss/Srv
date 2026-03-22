@@ -22,7 +22,7 @@ const navLinks = [
   { name: 'Admission', path: '/admission' },
   { name: 'Gallery', path: '/gallery' },
   { name: 'News & Media', path: '/news' },
-  { name: 'Contact Us', path: '/contact' },
+  // { name: 'Contact Us', path: '/contact' },
 ];
 
 export function Navbar() {

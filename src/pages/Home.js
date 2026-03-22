@@ -143,7 +143,7 @@ export function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-[68px] font-display font-semibold text-white leading-tight mb-6 drop-shadow-lg tracking-wide"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-[68px] font-display font-semibold text-white leading-tight mb-6 drop-shadow-lg tracking-wide luxurious-roman-regular"
             >
               SRV Matriculation School
             </motion.h1>
@@ -171,7 +171,7 @@ export function Home() {
               </Link>
               <Link
                 to="/contact"
-                className="px-8 py-3.5 bg-white text-slate-900 rounded-full font-medium hover:bg-slate-100 transition-all duration-300 min-w-[180px]"
+                className="px-8 py-3.5 bg-white text-slate-900 rounded-full font-medium hover:bg-green-100 transition-all duration-300 min-w-[180px] hover:border-2 hover:border-green-300"
               >
                 Contact Us
               </Link>
@@ -182,7 +182,7 @@ export function Home() {
 
       {/* Stats Bar */}
       <section className="relative z-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full py-16">
-        <div className="bg-white shadow-xl rounded-2xl p-8 md:p-12 border border-slate-100">
+        <div className="bg-white shadow-xl shadow-green-50 rounded-2xl p-8 md:p-12 border border-green-300">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 divide-x-0 md:divide-x divide-slate-200/60">
             {[
               { label: 'Enrolled Students', value: '1,200+' },
@@ -196,7 +196,7 @@ export function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ delay: index * 0.1 }}
-                className="text-center md:px-4"
+                className="text-center md:px-4 luxurious-roman-regular"
               >
                 <div className="text-4xl md:text-5xl font-display font-bold text-slate-900 mb-2">
                   <AnimatedCounter value={stat.value} />
@@ -247,7 +247,7 @@ export function Home() {
               viewport={{ once: true }}
               className="space-y-6"
             >
-              <h2 className="text-3xl md:text-[2.5xl] lg:text-4xl font-display font-bold text-amber-500 leading-tight">
+              <h2 className="text-3xl md:text-[2.5xl] lg:text-4xl font-display font-bold text-amber-500 leading-tight ">
                 Welcome To Sri Ramakrishna Vidyalaya Matriculation School
               </h2>
 
@@ -304,7 +304,7 @@ export function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
-              className="text-4xl md:text-5xl font-display font-bold text-slate-900 mb-6"
+              className="text-4xl md:text-5xl font-display font-bold text-slate-900 mb-6 "
             >
               Excellence in Every Step
             </motion.h3>
@@ -327,13 +327,13 @@ export function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1, duration: 0.6 }}
-                className="group p-8 rounded-3xl bg-white border border-slate-100 shadow-xl shadow-slate-200/40 hover:shadow-2xl hover:shadow-emerald-900/10 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden"
+                className="group p-8 rounded-xl bg-white border border-slate-100 shadow-xl shadow-slate-200/40 hover:shadow-2xl hover:shadow-emerald-900/10 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden"
               >
                 {/* Decorative hover gradient */}
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                 <div className="relative z-10">
-                  <div className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center mb-8 shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3
+                  <div className={`w-16 h-16 md:w-20 md:h-20 rounded-md flex items-center justify-center mb-8 shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3
                     ${feature.color === 'emerald' ? 'bg-emerald-100 text-emerald-600' :
                       feature.color === 'amber' ? 'bg-amber-100 text-amber-600' :
                         feature.color === 'blue' ? 'bg-blue-100 text-blue-600' :
@@ -341,7 +341,7 @@ export function Home() {
                   >
                     <feature.icon size={36} strokeWidth={2} className="md:w-10 md:h-10 w-8 h-8" />
                   </div>
-                  <h3 className="text-xl md:text-2xl font-display font-bold text-slate-900 mb-4">{feature.title}</h3>
+                  <h3 className="text-xl md:text-2xl font-display title-serif font-bold text-slate-900 mb-4">{feature.title}</h3>
                   <p className="text-slate-600 leading-relaxed text-[15px]">{feature.description}</p>
                 </div>
               </motion.div>
@@ -526,7 +526,7 @@ export function Home() {
 
       {/* Footer CTA & Stats Banner */}
       <section className="py-24 relative overflow-hidden bg-slate-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 luxurious-roman-regular">
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-12 mb-20 border-b border-white/10 pb-20 mt-8">

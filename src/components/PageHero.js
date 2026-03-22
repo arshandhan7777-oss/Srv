@@ -35,16 +35,16 @@ export function PageHero({ title, breadcrumb }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         >
-          <h1 className="text-5xl md:text-6xl font-display font-bold text-white mb-4 drop-shadow-lg">
+          <h1 className="text-5xl md:text-6xl font-display font-bold text-white mb-4 drop-shadow-lg luxurious-roman-regular">
             {title}
           </h1>
-          <div className="flex items-center justify-center gap-2 text-sm font-medium">
+          {/* <div className="flex items-center justify-center gap-2 text-sm font-medium">
             <Link to="/" className="text-amber-400 hover:text-amber-300 transition-colors uppercase tracking-wide">
               Home
             </Link>
             <ChevronRight size={14} className="text-white/50" />
             <span className="text-white/70 uppercase tracking-wide">{breadcrumb}</span>
-          </div>
+          </div> */}
         </motion.div>
       </div>
     </section>

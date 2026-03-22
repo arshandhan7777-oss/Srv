@@ -33,15 +33,15 @@ export function About() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           >
-            <h1 className="text-5xl md:text-6xl font-display font-bold text-white mb-4 drop-shadow-lg">
+            <h1 className="text-5xl md:text-6xl font-display font-bold text-white mb-4 drop-shadow-lg luxurious-roman-regular">
               About Us
             </h1>
-            {/* Breadcrumb */}
+            {/* Breadcrumb 
             <div className="flex items-center justify-center gap-2 text-sm font-medium">
               <Link to="/" className="text-amber-400 hover:text-amber-300 transition-colors uppercase tracking-wide">Home</Link>
               <ChevronRight size={14} className="text-white/50" />
               <span className="text-white/70 uppercase tracking-wide">About</span>
-            </div>
+            </div>*/}
           </motion.div>
         </div>
       </section>
@@ -61,13 +61,13 @@ export function About() {
               <img
                 src="https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=2942&auto=format&fit=crop"
                 alt="Students studying"
-                className="w-full h-[55%] object-cover rounded-3xl shadow-lg border border-slate-100"
+                className="w-full h-[55%] object-cover rounded-tl-3xl rounded-tr-3xl rounded-bl-3xl rounded-br-xl shadow-lg border border-slate-100"
                 referrerPolicy="no-referrer"
               />
               <img
                 src="https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=2000&auto=format&fit=crop"
                 alt="Classroom"
-                className="w-full h-[40%] object-cover rounded-3xl shadow-lg border border-slate-100"
+                className="w-full h-[40%] object-cover rounded-tl-3xl rounded-tr-xl rounded-bl-3xl rounded-br-3xl shadow-lg border border-slate-100"
                 referrerPolicy="no-referrer"
               />
             </div>
@@ -75,10 +75,10 @@ export function About() {
               <img
                 src="https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=2940&auto=format&fit=crop"
                 alt="Group activity"
-                className="w-full h-[60%] object-cover rounded-3xl shadow-lg border border-slate-100"
+                className="w-full h-[60%] object-cover rounded-tl-3xl rounded-tr-3xl rounded-bl-xl rounded-br-3xl shadow-lg border border-slate-100"
                 referrerPolicy="no-referrer"
               />
-              <div className="w-full h-[35%] rounded-3xl bg-emerald-900 shadow-lg border border-emerald-800 p-6 flex flex-col justify-end">
+              <div className="w-full h-[35%] rounded-tl-xl rounded-tr-3xl rounded-bl-3xl rounded-br-3xl bg-emerald-900 shadow-lg border border-emerald-800 p-6 flex flex-col justify-end">
                 <span className="text-4xl font-display font-bold text-amber-500 mb-1">25+</span>
                 <span className="text-emerald-100 font-medium">Years of Excellence</span>
               </div>
@@ -91,7 +91,7 @@ export function About() {
             viewport={{ once: true }}
             className="space-y-10"
           >
-            <div className="bg-white p-8 rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-100 relative overflow-hidden group">
+            <div className="bg-white p-8 rounded-xl shadow-xl shadow-slate-200/40 border-2 border-slate-200 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-amber-50 rounded-bl-[100px] -z-0 transition-transform duration-500 group-hover:scale-110" />
               <div className="relative z-10">
                 <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-6 text-amber-600">
@@ -104,7 +104,7 @@ export function About() {
               </div>
             </div>
             
-            <div className="bg-white p-8 rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-100 relative overflow-hidden group">
+            <div className="bg-white p-8 rounded-xl shadow-xl shadow-slate-200/40 border-2 border-slate-200 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-bl-[100px] -z-0 transition-transform duration-500 group-hover:scale-110" />
               <div className="relative z-10">
                 <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center mb-6 text-emerald-600">
@@ -138,13 +138,13 @@ export function About() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.1 }}
-              className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-center"
+              className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-center hover:border-green-300"
             >
               <div className="w-14 h-14 mx-auto bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center mb-6 text-emerald-600 shadow-sm">
                 <val.icon size={26} />
               </div>
-              <h3 className="font-display font-bold text-xl text-slate-900 mb-2">{val.title}</h3>
-              <p className="text-sm text-slate-500 leading-relaxed">{val.desc}</p>
+              <h3 className="font-display font-bold text-xl text-slate-900 mb-2 ">{val.title}</h3>
+              <p className="text-sm text-slate-500 leading-relaxed title-serif">{val.desc}</p>
             </motion.div>
           ))}
         </div>
