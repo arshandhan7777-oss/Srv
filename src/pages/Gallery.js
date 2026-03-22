@@ -61,11 +61,11 @@ export function Gallery() {
           ))}
         </div>
         
-        <div className="mt-16 text-center">
+        {/* <div className="mt-16 text-center">
           <button className="px-8 py-4 bg-white border border-slate-200 text-slate-700 rounded-full font-semibold hover:bg-slate-50 transition-colors shadow-sm inline-flex items-center gap-2">
             Load More Images
           </button>
-        </div>
+        </div> */}
       </div>
       <StatsCtaBanner />
     </div>

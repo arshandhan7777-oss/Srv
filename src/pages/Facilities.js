@@ -123,7 +123,7 @@ export function Facilities() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="bg-white rounded-3xl p-10 shadow-xl border border-slate-100"
+            className="bg-white rounded-2xl p-10 shadow-xl border border-slate-100"
           >
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
@@ -150,7 +150,7 @@ export function Facilities() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="bg-emerald-900 rounded-3xl p-10 shadow-xl text-white"
+            className="bg-emerald-900 rounded-2xl p-10 shadow-xl text-white"
           >
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center shrink-0">
