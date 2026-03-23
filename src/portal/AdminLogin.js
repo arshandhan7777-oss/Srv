@@ -18,7 +18,7 @@ export function AdminLogin() {
     setError('');
 
   try {
-      const { data } = await axios.post('https://srv-backend-3b9s.onrender.com' + '/api/auth/admin-login', { srvNumber, password });
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/admin-login`, { srvNumber: srvNumber.trim(), password });
       
       // Save auth data
       localStorage.setItem('schoolToken', data.token);
@@ -28,7 +28,7 @@ export function AdminLogin() {
       navigate('/portal/admin');
 
     } catch (err) {
-      const errorMsg = err.response?.data?.details || err.response?.data?.message || 'Login failed. Please check your credentials.';
+      const errorMsg = err.response?.data?.message || 'Login failed. Please check your credentials.';
       setError(`Error: ${errorMsg}`);
     } finally {
       setLoading(false);

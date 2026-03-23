@@ -26,10 +26,10 @@ export function Login() {
     
     try {
       if (forgotTab === 'request') {
-        const { data } = await axios.post('https://srv-backend-3b9s.onrender.com/api/auth/forgot-password', { srvNumber: forgotSrv });
+        const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/forgot-password`, { srvNumber: forgotSrv.trim() });
         setForgotMsg({ text: data.message, type: 'success' });
       } else {
-        const { data } = await axios.get(`https://srv-backend-3b9s.onrender.com/api/auth/reset-status/${forgotSrv}`);
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/auth/reset-status/${forgotSrv.trim()}`);
         if (data.status === 'Reset') {
           setForgotMsg({ text: `Your password was reset to: ${data.newPassword}`, type: 'success' });
         } else {
@@ -49,7 +49,7 @@ export function Login() {
     setError('');
 
     try {
-      const { data } = await axios.post('https://srv-backend-3b9s.onrender.com' + '/api/auth/login', { srvNumber, password });
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, { srvNumber: srvNumber.trim(), password });
       
       if (data.role !== loginRole) {
         setError(`Your account role (${data.role}) does not match the selected login type (${loginRole}).`);
@@ -66,7 +66,7 @@ export function Login() {
       else if (data.role === 'parent') navigate('/portal/parent');
 
     } catch (err) {
-      const errorMsg = err.response?.data?.details || err.response?.data?.message || 'Login failed. Please check your credentials.';
+      const errorMsg = err.response?.data?.message || 'Login failed. Please check your credentials.';
       setError(`Error: ${errorMsg}`);
     } finally {
       setLoading(false);

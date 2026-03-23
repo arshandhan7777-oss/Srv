@@ -173,7 +173,7 @@ router.post('/attendance', protect, facultyOrAdmin, async (req, res) => {
 
     res.json({ message: 'Attendance accurately recorded for ' + new Date(parsedDate).toLocaleDateString(), attendanceDoc });
   } catch (error) {
-    res.status(500).json({ message: 'Error saving attendance sheet', error: error.message });
+    res.status(500).json({ message: 'Error saving attendance sheet' });
   }
 });
 
@@ -219,7 +219,7 @@ router.post('/behavior', protect, facultyOrAdmin, async (req, res) => {
 
     res.json({ message: 'Behavior logs saved for ' + new Date(parsedDate).toLocaleDateString(), behaviorDoc });
   } catch (error) {
-    res.status(500).json({ message: 'Error saving behavior logs', error: error.message, stack: error.stack, full: error });
+    res.status(500).json({ message: 'Error saving behavior logs' });
   }
 });
 
