@@ -150,10 +150,22 @@ router.post('/attendance', protect, facultyOrAdmin, async (req, res) => {
       attendanceDoc.records = records;
       await attendanceDoc.save();
     } else {
+      let gradeStr = req.user.assignedGrade;
+      let sectionStr = req.user.assignedSection;
+      
+      if ((!gradeStr || !sectionStr) && records.length > 0) {
+        const Student = (await import('../models/Student.js')).default;
+        const firstStudent = await Student.findById(records[0].studentId);
+        if (firstStudent) {
+            gradeStr = firstStudent.grade;
+            sectionStr = firstStudent.section;
+        }
+      }
+      
       attendanceDoc = await Attendance.create({
         facultyId: req.user.id,
-        grade: req.user.assignedGrade,
-        section: req.user.assignedSection,
+        grade: gradeStr || 'N/A',
+        section: sectionStr || 'N/A',
         date: new Date(parsedDate),
         records
       });
@@ -184,10 +196,22 @@ router.post('/behavior', protect, facultyOrAdmin, async (req, res) => {
       behaviorDoc.records = records;
       await behaviorDoc.save();
     } else {
+      let gradeStr = req.user.assignedGrade;
+      let sectionStr = req.user.assignedSection;
+      
+      if ((!gradeStr || !sectionStr) && records.length > 0) {
+        const Student = (await import('../models/Student.js')).default;
+        const firstStudent = await Student.findById(records[0].studentId);
+        if (firstStudent) {
+            gradeStr = firstStudent.grade;
+            sectionStr = firstStudent.section;
+        }
+      }
+      
       behaviorDoc = await Behavior.create({
         facultyId: req.user.id,
-        grade: req.user.assignedGrade,
-        section: req.user.assignedSection,
+        grade: gradeStr || 'N/A',
+        section: sectionStr || 'N/A',
         date: new Date(parsedDate),
         records
       });
@@ -195,7 +219,7 @@ router.post('/behavior', protect, facultyOrAdmin, async (req, res) => {
 
     res.json({ message: 'Behavior logs saved for ' + new Date(parsedDate).toLocaleDateString(), behaviorDoc });
   } catch (error) {
-    res.status(500).json({ message: 'Error saving behavior logs', error: error.message });
+    res.status(500).json({ message: 'Error saving behavior logs', error: error.message, stack: error.stack, full: error });
   }
 });
 
