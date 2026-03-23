@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
   // Faculty specific fields
   assignedGrade: { type: String }, // e.g. "X" (Class Incharge)
   assignedSection: { type: String }, // e.g. "A" (Class Incharge)
+  mobileNumber: { type: String }, // Faculty contact number
   maxStudents: { type: Number, default: 30 }, // Capacity limit for tracking their incharge students
   handledClasses: [{
     grade: { type: String },

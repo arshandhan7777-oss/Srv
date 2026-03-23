@@ -17,7 +17,7 @@ const generateRandomDigits = () => Math.floor(1000 + Math.random() * 9000).toStr
 // @desc    Register a new faculty member
 // @access  Private (Admin only)
 router.post('/faculty', protect, adminOnly, async (req, res) => {
-  const { name, assignedGrade, assignedSection, password } = req.body;
+  const { name, assignedGrade, assignedSection, password, mobileNumber } = req.body;
 
   try {
     // Generate a unique sequential SRV number for faculty (e.g., FAC26001)
@@ -45,7 +45,8 @@ router.post('/faculty', protect, adminOnly, async (req, res) => {
       password: hashedPassword,
       role: 'faculty',
       assignedGrade,
-      assignedSection
+      assignedSection,
+      mobileNumber
     });
 
     res.status(201).json({
@@ -55,7 +56,8 @@ router.post('/faculty', protect, adminOnly, async (req, res) => {
         name: faculty.name,
         srvNumber: faculty.srvNumber,
         assignedGrade: faculty.assignedGrade,
-        assignedSection: faculty.assignedSection
+        assignedSection: faculty.assignedSection,
+        mobileNumber: faculty.mobileNumber
       }
     });
   } catch (error) {

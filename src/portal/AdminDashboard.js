@@ -8,7 +8,7 @@ export function AdminDashboard() {
   const [stats, setStats] = useState({ totalStudents: 0, totalFaculty: 0 });
   
   // Faculty Form State
-  const [facultyForm, setFacultyForm] = useState({ name: '', assignedGrade: '', assignedSection: '' });
+  const [facultyForm, setFacultyForm] = useState({ name: '', assignedGrade: '', assignedSection: '', mobileNumber: '' });
   const [facultyMsg, setFacultyMsg] = useState({ text: '', type: '' });
 
   // Student Form State
@@ -42,6 +42,7 @@ export function AdminDashboard() {
   // Advanced Profile State
   const [allStudents, setAllStudents] = useState([]);
   const [selectedFacultyProfile, setSelectedFacultyProfile] = useState(null);
+  const [studentListFilter, setStudentListFilter] = useState({ grade: '', section: '' });
 
   const navigate = useNavigate();
 
@@ -180,7 +181,7 @@ export function AdminDashboard() {
         headers: { Authorization: `Bearer ${token}` }
       });
       setFacultyMsg({ text: `Success! Faculty SRV: ${res.data.faculty.srvNumber} - Password: faculty123`, type: 'success' });
-      setFacultyForm({ name: '', assignedGrade: '', assignedSection: '' });
+      setFacultyForm({ name: '', assignedGrade: '', assignedSection: '', mobileNumber: '' });
       setStats(prev => ({...prev, totalFaculty: prev.totalFaculty + 1}));
     } catch (err) {
       setFacultyMsg({ text: err.response?.data?.message || 'Failed to create faculty', type: 'error' });
@@ -282,10 +283,10 @@ export function AdminDashboard() {
                 onChange={e => setFacultyForm({...facultyForm, name: e.target.value})}
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" 
               />
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <input 
                   type="text" 
-                  placeholder="Assigned Grade (e.g. X)" 
+                  placeholder="Grade" 
                   required
                   value={facultyForm.assignedGrade}
                   onChange={e => setFacultyForm({...facultyForm, assignedGrade: e.target.value})}
@@ -293,10 +294,18 @@ export function AdminDashboard() {
                 />
                 <input 
                   type="text" 
-                  placeholder="Section (e.g. A)" 
+                  placeholder="Section" 
                   required
                   value={facultyForm.assignedSection}
                   onChange={e => setFacultyForm({...facultyForm, assignedSection: e.target.value})}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" 
+                />
+                <input 
+                  type="text" 
+                  placeholder="Mobile" 
+                  required
+                  value={facultyForm.mobileNumber}
+                  onChange={e => setFacultyForm({...facultyForm, mobileNumber: e.target.value})}
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" 
                 />
               </div>
@@ -525,6 +534,7 @@ export function AdminDashboard() {
                 <tr className="bg-slate-50 border-b border-slate-200 text-sm text-slate-500">
                   <th className="px-5 py-3 font-semibold">SRV No</th>
                   <th className="px-5 py-3 font-semibold">Name</th>
+                  <th className="px-5 py-3 font-semibold">Mobile</th>
                   <th className="px-5 py-3 font-semibold">Grade</th>
                   <th className="px-5 py-3 font-semibold">Section / Password</th>
                   <th className="px-5 py-3 font-semibold text-center w-[120px]">Actions</th>
@@ -556,6 +566,7 @@ export function AdminDashboard() {
                       </>
                     ) : (
                       <>
+                        <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">{faculty.mobileNumber || '-'}</td>
                         <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">{faculty.assignedGrade || '-'}</td>
                         <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">{faculty.assignedSection || '-'}</td>
                         <td className="px-5 py-4 flex items-center justify-center gap-3 border-b border-slate-50">
@@ -585,9 +596,15 @@ export function AdminDashboard() {
 
         {/* Manage Students Panel */}
         <div className="mt-8 bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
-          <div className="flex items-center gap-3 mb-6">
-            <Users className="text-purple-500" />
-            <h2 className="text-xl font-display font-bold text-slate-900">View All Students</h2>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-3">
+              <Users className="text-purple-500" />
+              <h2 className="text-xl font-display font-bold text-slate-900">View All Students</h2>
+            </div>
+            <div className="flex gap-3">
+              <input type="text" placeholder="Filter Class (e.g. 10)" value={studentListFilter.grade} onChange={e => setStudentListFilter({...studentListFilter, grade: e.target.value})} className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-purple-500 w-40" />
+              <input type="text" placeholder="Filter Section (e.g. A)" value={studentListFilter.section} onChange={e => setStudentListFilter({...studentListFilter, section: e.target.value})} className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-purple-500 w-40" />
+            </div>
           </div>
           
           <div className="overflow-x-auto rounded-xl border border-slate-200">
@@ -603,7 +620,11 @@ export function AdminDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm">
-                {allStudents.map(student => (
+                {allStudents.filter(s => {
+                  if (studentListFilter.grade && s.grade.toLowerCase() !== studentListFilter.grade.toLowerCase()) return false;
+                  if (studentListFilter.section && s.section.toLowerCase() !== studentListFilter.section.toLowerCase()) return false;
+                  return true;
+                }).map(student => (
                   <tr key={student._id} className="hover:bg-slate-50/50">
                     <td className="px-5 py-4 font-mono font-medium text-slate-600 border-b border-slate-50">{student.srvNumber}</td>
                     <td className="px-5 py-4 font-semibold text-slate-900 border-b border-slate-50">{student.name}</td>
