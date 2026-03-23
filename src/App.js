@@ -23,6 +23,7 @@ import { AdminLogin } from './portal/AdminLogin';
 import { AdminDashboard } from './portal/AdminDashboard';
 import { FacultyDashboard } from './portal/FacultyDashboard';
 import { ParentDashboard } from './portal/ParentDashboard';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 export default function App() {
   return (
@@ -44,11 +45,24 @@ export default function App() {
 
         {/* Portal Routes without Main Layout */}
         <Route path="/portal">
+          {/* Public login routes — no auth required */}
           <Route path="login" element={<Login />} />
           <Route path="admin-login" element={<AdminLogin />} />
-          <Route path="admin" element={<AdminDashboard />} />
-          <Route path="faculty" element={<FacultyDashboard />} />
-          <Route path="parent" element={<ParentDashboard />} />
+
+          {/* Admin — only users with role='admin' */}
+          <Route element={<ProtectedRoute allowedRole="admin" redirectTo="/portal/admin-login" />}>
+            <Route path="admin" element={<AdminDashboard />} />
+          </Route>
+
+          {/* Faculty — only users with role='faculty' */}
+          <Route element={<ProtectedRoute allowedRole="faculty" redirectTo="/portal/login" />}>
+            <Route path="faculty" element={<FacultyDashboard />} />
+          </Route>
+
+          {/* Parent — only users with role='parent' */}
+          <Route element={<ProtectedRoute allowedRole="parent" redirectTo="/portal/login" />}>
+            <Route path="parent" element={<ParentDashboard />} />
+          </Route>
         </Route>
       </Routes>
     </Router>

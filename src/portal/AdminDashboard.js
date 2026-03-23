@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Users, UserPlus, BookOpen, LogOut, CheckCircle2, Coffee, Trash2, Edit2, Save, X } from 'lucide-react';
 import srvLogo from '../assest/fav_logo/srv-t.png';
+import API_URL from '../config/api.js';
 
 export function AdminDashboard() {
   const [stats, setStats] = useState({ totalStudents: 0, totalFaculty: 0 });
@@ -47,15 +48,9 @@ export function AdminDashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('schoolUser'));
-    if (!user || user.role !== 'admin') {
-      navigate('/portal/login');
-      return;
-    }
-    
-    // Fetch stats
+    // Auth is handled by ProtectedRoute — just fetch data
     const token = localStorage.getItem('schoolToken');
-    axios.get('https://srv-backend-3b9s.onrender.com' + '/api/admin/stats', {
+    axios.get(`${API_URL}/api/admin/stats`, {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => setStats(res.data)).catch(console.error);
 
@@ -70,11 +65,11 @@ export function AdminDashboard() {
   }, [navigate]);
 
   const fetchSettingsAndAlerts = (token) => {
-    axios.get('https://srv-backend-3b9s.onrender.com/api/admin/settings/fee-toggle', { headers: { Authorization: `Bearer ${token}` } })
+    axios.get(`${API_URL}/api/admin/settings/fee-toggle`, { headers: { Authorization: `Bearer ${token}` } })
       .then(res => setIsOnlineFeeEnabled(res.data.isOnlineFeeEnabled)).catch(console.error);
-    axios.get('https://srv-backend-3b9s.onrender.com/api/admin/notifications', { headers: { Authorization: `Bearer ${token}` } })
+    axios.get(`${API_URL}/api/admin/notifications`, { headers: { Authorization: `Bearer ${token}` } })
       .then(res => setFeeAlerts(res.data)).catch(console.error);
-    axios.get('https://srv-backend-3b9s.onrender.com/api/admin/password-requests', { headers: { Authorization: `Bearer ${token}` } })
+    axios.get(`${API_URL}/api/admin/password-requests`, { headers: { Authorization: `Bearer ${token}` } })
       .then(res => setPwRequests(res.data)).catch(console.error);
   };
 
@@ -82,7 +77,7 @@ export function AdminDashboard() {
     try {
       const token = localStorage.getItem('schoolToken');
       const newStatus = !isOnlineFeeEnabled;
-      await axios.put('https://srv-backend-3b9s.onrender.com/api/admin/settings/fee-toggle', { isEnabled: newStatus }, {
+      await axios.put(`${API_URL}/api/admin/settings/fee-toggle`, { isEnabled: newStatus }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setIsOnlineFeeEnabled(newStatus);
@@ -92,19 +87,19 @@ export function AdminDashboard() {
   };
 
   const fetchWeeklyMenu = (token) => {
-    axios.get('https://srv-backend-3b9s.onrender.com/api/admin/food', {
+    axios.get(`${API_URL}/api/admin/food`, {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => setWeeklyMenu(res.data)).catch(console.error);
   };
 
   const fetchFaculties = (token) => {
-    axios.get('https://srv-backend-3b9s.onrender.com/api/admin/faculty', {
+    axios.get(`${API_URL}/api/admin/faculty`, {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => setFaculties(res.data)).catch(console.error);
   };
 
   const fetchStudents = (token) => {
-    axios.get('https://srv-backend-3b9s.onrender.com/api/admin/students', {
+    axios.get(`${API_URL}/api/admin/students`, {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => setAllStudents(res.data)).catch(console.error);
   };
@@ -125,7 +120,7 @@ export function AdminDashboard() {
     if (!window.confirm('Are you sure you want to delete this faculty member?')) return;
     try {
       const token = localStorage.getItem('schoolToken');
-      await axios.delete(`https://srv-backend-3b9s.onrender.com/api/admin/faculty/${id}`, {
+      await axios.delete(`${API_URL}/api/admin/faculty/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setManageFacultyMsg({ text: 'Faculty deleted successfully', type: 'success' });
@@ -140,7 +135,7 @@ export function AdminDashboard() {
   const handleUpdateFaculty = async (id) => {
     try {
       const token = localStorage.getItem('schoolToken');
-      await axios.put(`https://srv-backend-3b9s.onrender.com/api/admin/faculty/${id}`, editFacultyForm, {
+      await axios.put(`${API_URL}/api/admin/faculty/${id}`, editFacultyForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setManageFacultyMsg({ text: 'Faculty updated successfully', type: 'success' });
@@ -161,7 +156,7 @@ export function AdminDashboard() {
     if (!newAdminProvidedPw) return alert('Enter a new password');
     try {
       const token = localStorage.getItem('schoolToken');
-      await axios.post(`https://srv-backend-3b9s.onrender.com/api/admin/password-requests/${resettingPwFor._id}/approve`, 
+      await axios.post(`${API_URL}/api/admin/password-requests/${resettingPwFor._id}/approve`, 
         { newPassword: newAdminProvidedPw },
         { headers: { Authorization: `Bearer ${token}` }}
       );
@@ -177,7 +172,7 @@ export function AdminDashboard() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('schoolToken');
-      const res = await axios.post('https://srv-backend-3b9s.onrender.com' + '/api/admin/faculty', facultyForm, {
+      const res = await axios.post(`${API_URL}/api/admin/faculty`, facultyForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setFacultyMsg({ text: `Success! Faculty SRV: ${res.data.faculty.srvNumber} - Password: faculty123`, type: 'success' });
@@ -192,7 +187,7 @@ export function AdminDashboard() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('schoolToken');
-      const res = await axios.post('https://srv-backend-3b9s.onrender.com' + '/api/admin/student', studentForm, {
+      const res = await axios.post(`${API_URL}/api/admin/student`, studentForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setStudentMsg({ text: `Success! Student SRV: ${res.data.student.srvNumber} Login pass: ${studentForm.dateOfBirth}`, type: 'success' });
@@ -206,7 +201,7 @@ export function AdminDashboard() {
   const handleSaveFood = async (day) => {
     try {
       const token = localStorage.getItem('schoolToken');
-      await axios.post('https://srv-backend-3b9s.onrender.com' + '/api/admin/food', { day, ...editFoodForm }, {
+      await axios.post(`${API_URL}/api/admin/food`, { day, ...editFoodForm }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setFoodMsg({ text: `${day} menu updated successfully!`, type: 'success' });
@@ -709,13 +704,13 @@ function FacultyProfileModal({ faculty, allStudents, onClose, onUpdate }) {
       const token = localStorage.getItem('schoolToken');
       
       // Update limit and handled classes
-      await axios.put(`https://srv-backend-3b9s.onrender.com/api/admin/faculty/${faculty._id}`, { 
+      await axios.put(`${API_URL}/api/admin/faculty/${faculty._id}`, { 
         maxStudents, 
         handledClasses 
       }, { headers: { Authorization: `Bearer ${token}` } });
 
       // Build student assignment payload
-      await axios.post(`https://srv-backend-3b9s.onrender.com/api/admin/faculty/${faculty._id}/assign-students`, { 
+      await axios.post(`${API_URL}/api/admin/faculty/${faculty._id}/assign-students`, { 
         studentIds: assignedIds 
       }, { headers: { Authorization: `Bearer ${token}` } });
 
@@ -853,7 +848,7 @@ function StudentFeeModal({ student, onClose, onUpdate }) {
     setSaving(true);
     try {
       const token = localStorage.getItem('schoolToken');
-      await axios.put(`https://srv-backend-3b9s.onrender.com/api/admin/student/${student._id}/fees`, fees, {
+      await axios.put(`${API_URL}/api/admin/student/${student._id}/fees`, fees, {
         headers: { Authorization: `Bearer ${token}` }
       });
       onUpdate();

@@ -6,6 +6,7 @@ import srvLogo from '../assest/fav_logo/srv-t.png';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import API_URL from '../config/api.js';
 
 const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6'];
 
@@ -20,14 +21,9 @@ export function ParentDashboard() {
   const reportRef = useRef();
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('schoolUser') || '{}');
-    if (user.role !== 'parent') {
-      navigate('/portal/login');
-      return;
-    }
-
+    // Auth is handled by ProtectedRoute — just fetch data
     const token = localStorage.getItem('schoolToken');
-    axios.get('https://srv-backend-3b9s.onrender.com' + '/api/parent/dashboard', {
+    axios.get(`${API_URL}/api/parent/dashboard`, {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => {
       setData(res.data);
@@ -65,9 +61,9 @@ export function ParentDashboard() {
     try {
       const token = localStorage.getItem('schoolToken');
       const payVal = amountToPay === '' ? selectedTerm.balance : amountToPay;
-      await axios.post('https://srv-backend-3b9s.onrender.com/api/parent/pay-fee', { term: selectedTerm.id, amountToPay: payVal }, { headers: { Authorization: `Bearer ${token}` }});
+      await axios.post(`${API_URL}/api/parent/pay-fee`, { term: selectedTerm.id, amountToPay: payVal }, { headers: { Authorization: `Bearer ${token}` }});
       
-      const res = await axios.get('https://srv-backend-3b9s.onrender.com/api/parent/dashboard', { headers: { Authorization: `Bearer ${token}` }});
+      const res = await axios.get(`${API_URL}/api/parent/dashboard`, { headers: { Authorization: `Bearer ${token}` }});
       setData(res.data);
       setShowPayModal(false);
       setAmountToPay('');

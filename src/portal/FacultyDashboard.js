@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Users, LogOut, CheckSquare, BookOpen, AlertCircle } from 'lucide-react';
 import srvLogo from '../assest/fav_logo/srv-t.png';
+import API_URL from '../config/api.js';
 
 export function FacultyDashboard() {
   const [students, setStudents] = useState([]);
@@ -63,7 +64,7 @@ export function FacultyDashboard() {
         studentId, status: attRecords[studentId], remarks: ''
       }));
       const token = localStorage.getItem('schoolToken');
-      await axios.post('https://srv-backend-3b9s.onrender.com/api/faculty/attendance', {
+      await axios.post(`${API_URL}/api/faculty/attendance`, {
         date: attDate,
         records: recordsArray
       }, { headers: { Authorization: `Bearer ${token}` } });
@@ -83,7 +84,7 @@ export function FacultyDashboard() {
         remarks: bhvRecords[studentId].remarks
       }));
       const token = localStorage.getItem('schoolToken');
-      await axios.post('https://srv-backend-3b9s.onrender.com/api/faculty/behavior', {
+      await axios.post(`${API_URL}/api/faculty/behavior`, {
         date: bhvDate,
         records: recordsArray
       }, { headers: { Authorization: `Bearer ${token}` } });
@@ -98,13 +99,9 @@ export function FacultyDashboard() {
   const user = JSON.parse(localStorage.getItem('schoolUser') || '{}');
 
   useEffect(() => {
-    if (user.role !== 'faculty') {
-      navigate('/portal/login');
-      return;
-    }
-    
+    // Auth is handled by ProtectedRoute — just fetch data
     const token = localStorage.getItem('schoolToken');
-    axios.get('https://srv-backend-3b9s.onrender.com' + '/api/faculty/students', {
+    axios.get(`${API_URL}/api/faculty/students`, {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => setStudents(res.data)).catch(console.error);
   }, [navigate, user.role]);
@@ -119,7 +116,7 @@ export function FacultyDashboard() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('schoolToken');
-      await axios.post('https://srv-backend-3b9s.onrender.com' + '/api/faculty/marks', {
+      await axios.post(`${API_URL}/api/faculty/marks`, {
         studentId: selectedStudent._id,
         ...gradeForm
       }, {
@@ -136,7 +133,7 @@ export function FacultyDashboard() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('schoolToken');
-      await axios.post('https://srv-backend-3b9s.onrender.com' + '/api/faculty/homework', {
+      await axios.post(`${API_URL}/api/faculty/homework`, {
         grade: user.assignedGrade,
         section: user.assignedSection,
         ...hwForm
