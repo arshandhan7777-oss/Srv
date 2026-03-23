@@ -51,8 +51,6 @@ router.get('/dashboard', protect, parentOnly, async (req, res) => {
 
     // Get attendance specifically for this student
     const classAttendance = await Attendance.find({
-      grade: student.grade,
-      section: student.section,
       'records.studentId': student._id
     }).sort({ date: 1 });
 
@@ -67,8 +65,6 @@ router.get('/dashboard', protect, parentOnly, async (req, res) => {
 
     // Get behavior specifically for this student
     const classBehavior = await Behavior.find({
-      grade: student.grade,
-      section: student.section,
       'records.studentId': student._id
     }).sort({ date: 1 });
 
