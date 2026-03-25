@@ -14,8 +14,10 @@ export function AdminDashboard() {
   const [facultyMsg, setFacultyMsg] = useState({ text: '', type: '' });
 
   // Student Form State
-  const [studentForm, setStudentForm] = useState({ name: '', grade: '', section: '', group: '', dateOfBirth: '' });
+  const [studentForm, setStudentForm] = useState({ name: '', grade: '', section: '', group: '', dateOfBirth: '', admissionNumber: '' });
   const [studentMsg, setStudentMsg] = useState({ text: '', type: '' });
+  const [editingSrvId, setEditingSrvId] = useState(null);
+  const [editSrvValue, setEditSrvValue] = useState('');
 
   // Food Menu Form State
   const [weeklyMenu, setWeeklyMenu] = useState([]);
@@ -243,7 +245,7 @@ export function AdminDashboard() {
         icon: 'success',
         confirmButtonColor: '#059669'
       });
-      setStudentForm({ name: '', grade: '', section: '', group: '', dateOfBirth: '' });
+      setStudentForm({ name: '', grade: '', section: '', group: '', dateOfBirth: '', admissionNumber: '' });
       setStats(prev => ({...prev, totalStudents: prev.totalStudents + 1}));
       fetchStudents(token); // dynamically refresh the table
     } catch (err) {
@@ -383,6 +385,14 @@ export function AdminDashboard() {
                 onChange={e => setStudentForm({...studentForm, name: e.target.value})}
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500" 
               />
+              <input 
+                type="text" 
+                inputMode="numeric"
+                placeholder="Admission Number (e.g., 1695) — leave empty for auto" 
+                value={studentForm.admissionNumber}
+                onChange={e => { const v = e.target.value.replace(/\D/g, ''); setStudentForm({...studentForm, admissionNumber: v}); }}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono" 
+              />
               <div className="grid grid-cols-3 gap-4">
                 <input 
                   type="text" 
@@ -423,7 +433,7 @@ export function AdminDashboard() {
                 Admit Student & Generate Parent Login
               </button>
               <p className="text-xs text-slate-500 text-center mt-2 flex items-center justify-center gap-1">
-                <CheckCircle2 size={12} className="text-emerald-500" /> Auto-generates SRV Number and Parent Portal access
+                <CheckCircle2 size={12} className="text-emerald-500" /> SRV prefix auto-added. Leave admission # blank for auto-sequence.
               </p>
             </form>
           </div>
@@ -680,7 +690,37 @@ export function AdminDashboard() {
                   return true;
                 }).map(student => (
                   <tr key={student._id} className="hover:bg-slate-50/50">
-                    <td className="px-5 py-4 font-mono font-medium text-slate-600 border-b border-slate-50">{student.srvNumber}</td>
+                    <td className="px-5 py-4 font-mono font-medium text-slate-600 border-b border-slate-50">
+                      {editingSrvId === student._id ? (
+                        <div className="flex items-center gap-1">
+                          <span className="text-slate-400 text-xs">SRV</span>
+                          <input 
+                            type="text" 
+                            inputMode="numeric"
+                            value={editSrvValue} 
+                            onChange={e => setEditSrvValue(e.target.value.replace(/\D/g, ''))}
+                            className="w-20 px-2 py-1 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-xs font-mono"
+                            autoFocus
+                          />
+                          <button onClick={async () => {
+                            try {
+                              const token = localStorage.getItem('schoolToken');
+                              await axios.put(`${API_URL}/api/admin/student/${student._id}/srv`, { admissionNumber: editSrvValue }, { headers: { Authorization: `Bearer ${token}` }});
+                              Swal.fire({toast: true, position: 'top-end', icon: 'success', title: 'SRV updated!', showConfirmButton: false, timer: 2000});
+                              setEditingSrvId(null);
+                              fetchStudents(token);
+                            } catch (err) {
+                              Swal.fire('Error', err.response?.data?.message || 'Failed to update SRV', 'error');
+                            }
+                          }} className="p-1 bg-emerald-100 text-emerald-700 rounded hover:bg-emerald-200" title="Save"><Save size={12}/></button>
+                          <button onClick={() => setEditingSrvId(null)} className="p-1 bg-slate-100 text-slate-600 rounded hover:bg-slate-200" title="Cancel"><X size={12}/></button>
+                        </div>
+                      ) : (
+                        <span className="cursor-pointer hover:text-purple-600" onClick={() => { setEditingSrvId(student._id); setEditSrvValue(student.srvNumber.replace(/\D/g, '')); }} title="Click to edit SRV number">
+                          {student.srvNumber}
+                        </span>
+                      )}
+                    </td>
                     <td className="px-5 py-4 font-semibold text-slate-900 border-b border-slate-50">{student.name}</td>
                     <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">{student.grade}-{student.section}</td>
                     <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">

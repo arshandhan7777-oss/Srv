@@ -70,26 +70,43 @@ router.post('/faculty', protect, adminOnly, async (req, res) => {
 // @desc    Register a new student and generate their parent account
 // @access  Private (Admin only)
 router.post('/student', protect, adminOnly, async (req, res) => {
-  const { name, grade, section, group, dateOfBirth, contactNumber, address } = req.body;
+  const { name, grade, section, group, dateOfBirth, contactNumber, address, admissionNumber } = req.body;
 
   try {
-    // 1. Generate SRV Number for Student chronologically (e.g., SRV26001)
-    const year = new Date().getFullYear().toString().slice(-2);
-    const prefix = `SRV${year}`;
-    const lastStudent = await Student.findOne({ 
-      srvNumber: { $regex: `^${prefix}` } 
-    }).sort({ srvNumber: -1 });
+    let srvNumber;
 
-    let sequence = '001';
-    if (lastStudent && lastStudent.srvNumber) {
-      const lastSequence = parseInt(lastStudent.srvNumber.replace(prefix, ''), 10);
-      if (!isNaN(lastSequence)) {
-        sequence = (lastSequence + 1).toString().padStart(3, '0');
+    if (admissionNumber && admissionNumber.toString().trim() !== '') {
+      // Admin provided a custom admission number — validate numeric only
+      const numStr = admissionNumber.toString().trim();
+      if (!/^\d+$/.test(numStr)) {
+        return res.status(400).json({ message: 'Admission number must contain only digits (e.g., 1695)' });
       }
-    }
-    const srvNumber = `${prefix}${sequence}`;
+      srvNumber = `SRV${numStr}`;
 
-    // 2. Create the Student record (facultyId starts null, assigned manually via manage faculty)
+      // Check uniqueness
+      const existing = await Student.findOne({ srvNumber });
+      if (existing) {
+        return res.status(400).json({ message: `SRV number ${srvNumber} is already assigned to another student.` });
+      }
+    } else {
+      // Auto-generate sequential SRV number (e.g., SRV26001)
+      const year = new Date().getFullYear().toString().slice(-2);
+      const prefix = `SRV${year}`;
+      const lastStudent = await Student.findOne({ 
+        srvNumber: { $regex: `^${prefix}` } 
+      }).sort({ srvNumber: -1 });
+
+      let sequence = '001';
+      if (lastStudent && lastStudent.srvNumber) {
+        const lastSequence = parseInt(lastStudent.srvNumber.replace(prefix, ''), 10);
+        if (!isNaN(lastSequence)) {
+          sequence = (lastSequence + 1).toString().padStart(3, '0');
+        }
+      }
+      srvNumber = `${prefix}${sequence}`;
+    }
+
+    // 2. Create the Student record
     const student = await Student.create({
       name,
       srvNumber,
@@ -102,9 +119,8 @@ router.post('/student', protect, adminOnly, async (req, res) => {
       facultyId: null
     });
 
-    // 3. Automatically create the Parent login account using the SRV number
+    // 3. Automatically create the Parent login account
     const salt = await bcrypt.genSalt(10);
-    // Default password is their DOB (DDMMYYYY) string from the form
     const defaultPassword = dateOfBirth ? dateOfBirth : 'parent123';
     const hashedPassword = await bcrypt.hash(defaultPassword, salt);
 
@@ -127,6 +143,9 @@ router.post('/student', protect, adminOnly, async (req, res) => {
 
   } catch (error) {
     console.error(error);
+    if (error.code === 11000) {
+      return res.status(400).json({ message: 'This SRV number is already in use. Please choose a different admission number.' });
+    }
     res.status(500).json({ message: 'Server error adding student' });
   }
 });
@@ -183,11 +202,17 @@ router.post('/food', protect, adminOnly, async (req, res) => {
 });
 
 // @route   GET /api/admin/students
-// @desc    Get all students (for manual assignment viewing)
+// @desc    Get all students sorted by numeric SRV portion
 // @access  Private (Admin only)
 router.get('/students', protect, adminOnly, async (req, res) => {
   try {
-    const students = await Student.find().populate('facultyId', 'name srvNumber').sort({ grade: 1, section: 1, name: 1 });
+    const students = await Student.find().populate('facultyId', 'name srvNumber');
+    // Sort by numeric portion of srvNumber ascending
+    students.sort((a, b) => {
+      const numA = parseInt((a.srvNumber || '').replace(/\D/g, ''), 10) || 0;
+      const numB = parseInt((b.srvNumber || '').replace(/\D/g, ''), 10) || 0;
+      return numA - numB;
+    });
     res.json(students);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching students' });
@@ -314,6 +339,49 @@ router.put('/student/:id/fees', protect, adminOnly, async (req, res) => {
     res.json({ message: 'Fees updated successfully', student });
   } catch (error) {
     res.status(500).json({ message: 'Error updating fees' });
+  }
+});
+
+// @route   PUT /api/admin/student/:id/srv
+// @desc    Edit a student's SRV number (admin enters numeric part only)
+// @access  Private (Admin only)
+router.put('/student/:id/srv', protect, adminOnly, async (req, res) => {
+  const { admissionNumber } = req.body;
+  try {
+    const student = await Student.findById(req.params.id);
+    if (!student) return res.status(404).json({ message: 'Student not found' });
+
+    const numStr = (admissionNumber || '').toString().trim();
+    if (!/^\d+$/.test(numStr)) {
+      return res.status(400).json({ message: 'Admission number must contain only digits (e.g., 1695)' });
+    }
+    const newSrvNumber = `SRV${numStr}`;
+
+    // Skip if it's the same
+    if (newSrvNumber === student.srvNumber) {
+      return res.json({ message: 'No change needed', student });
+    }
+
+    // Uniqueness check
+    const existing = await Student.findOne({ srvNumber: newSrvNumber });
+    if (existing) {
+      return res.status(400).json({ message: `SRV number ${newSrvNumber} is already assigned to another student.` });
+    }
+
+    const oldSrvNumber = student.srvNumber;
+    student.srvNumber = newSrvNumber;
+    await student.save();
+
+    // Also update the parent User account's srvNumber so login still works
+    await User.updateOne({ srvNumber: oldSrvNumber, role: 'parent' }, { $set: { srvNumber: newSrvNumber } });
+
+    res.json({ message: `SRV number updated to ${newSrvNumber}`, student });
+  } catch (error) {
+    console.error('[Edit SRV Error]', error);
+    if (error.code === 11000) {
+      return res.status(400).json({ message: 'This SRV number is already in use.' });
+    }
+    res.status(500).json({ message: 'Error updating SRV number' });
   }
 });
 
