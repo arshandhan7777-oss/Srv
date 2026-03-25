@@ -28,7 +28,8 @@ const app = express();
 const allowedOrigins = [
   process.env.CORS_ORIGIN || 'http://localhost:3000',
   'http://localhost:3001',                // admin panel (local dev)
-  'https://srv-school.vercel.app'         // production frontend
+  'https://srv-admin-roan.vercel.app/'  ,
+  'https://srv-lyart.vercel.app/'       // production frontend
 ].filter(Boolean);
 
 app.use(cors({
