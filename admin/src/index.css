@@ -24,6 +24,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
 html, body, #root {
   min-height: 100vh;
   display: flex;
