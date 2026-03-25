@@ -14,7 +14,7 @@ export function Contact() {
   };
 
   return (
-    <div className="flex flex-col bg-slate-50 min-h-screen">
+    <div className="flex flex-col bg-slate-50 min-h-screen relative overflow-x-hidden">
       <PageHero title="Contact Us" breadcrumb="Contact" />
       {/* Background elements */}
       <div className="absolute top-0 right-0 -mr-64 -mt-64 w-[800px] h-[800px] rounded-full bg-emerald-100/40 blur-[120px] pointer-events-none" />
