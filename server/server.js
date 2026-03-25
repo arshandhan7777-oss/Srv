@@ -32,17 +32,7 @@ const allowedOrigins = [
   'https://srv-admin-gamma.vercel.app'    // production admin
 ].filter(Boolean);
 
-// Explicitly handle preflight OPTIONS requests for all routes
-app.options('*', cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
-}));
+// Global CORS middleware handles preflight automatically
 
 app.use(cors({
   origin: function (origin, callback) {
