@@ -4,6 +4,7 @@ import { User, LogIn, AlertCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import srvLogo from '../assest/fav_logo/srv-t.png';
 import axios from 'axios';
+import API_URL from '../config/api';
 
 export function Login() {
   const [srvNumber, setSrvNumber] = useState('');
@@ -26,10 +27,10 @@ export function Login() {
     
     try {
       if (forgotTab === 'request') {
-        const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/forgot-password`, { srvNumber: forgotSrv.trim() });
+        const { data } = await axios.post(`${API_URL}/api/auth/forgot-password`, { srvNumber: forgotSrv.trim() });
         setForgotMsg({ text: data.message, type: 'success' });
       } else {
-        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/auth/reset-status/${forgotSrv.trim()}`);
+        const { data } = await axios.get(`${API_URL}/api/auth/reset-status/${forgotSrv.trim()}`);
         if (data.status === 'Reset') {
           setForgotMsg({ text: `Your password was reset to: ${data.newPassword}`, type: 'success' });
         } else {
@@ -49,7 +50,7 @@ export function Login() {
     setError('');
 
     try {
-      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, { srvNumber: srvNumber.trim(), password });
+      const { data } = await axios.post(`${API_URL}/api/auth/login`, { srvNumber: srvNumber.trim(), password });
       
       if (data.role !== loginRole) {
         setError(`Your account role (${data.role}) does not match the selected login type (${loginRole}).`);

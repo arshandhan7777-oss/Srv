@@ -4,6 +4,7 @@ import { ShieldCheck, LogIn, AlertCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import srvLogo from '../assest/fav_logo/srv-t.png';
 import axios from 'axios';
+import API_URL from '../config/api';
 
 export function AdminLogin() {
   const [srvNumber, setSrvNumber] = useState('');
@@ -18,7 +19,7 @@ export function AdminLogin() {
     setError('');
 
   try {
-      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/admin-login`, { srvNumber: srvNumber.trim(), password });
+      const { data } = await axios.post(`${API_URL}/api/auth/admin-login`, { srvNumber: srvNumber.trim(), password });
       
       // Save auth data
       localStorage.setItem('schoolToken', data.token);
