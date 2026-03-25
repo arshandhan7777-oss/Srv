@@ -4,6 +4,8 @@ import axios from 'axios';
 import { Users, UserPlus, BookOpen, LogOut, CheckCircle2, Coffee, Trash2, Edit2, Save, X } from 'lucide-react';
 import srvLogo from '../assest/fav_logo/srv-t.png';
 import API_URL from '../config/api.js';
+import Swal from 'sweetalert2';
+import Swal from 'sweetalert2';
 
 export function AdminDashboard() {
   const [stats, setStats] = useState({ totalStudents: 0, totalFaculty: 0 });
@@ -83,7 +85,7 @@ export function AdminDashboard() {
       });
       setIsOnlineFeeEnabled(newStatus);
     } catch (err) {
-      alert('Failed to update fee setting');
+      Swal.fire('Error', 'Failed to update fee setting', 'error');
     }
   };
 
@@ -118,7 +120,16 @@ export function AdminDashboard() {
   };
 
   const handleDeleteFaculty = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this faculty member?')) return;
+    const result = await Swal.fire({
+      title: 'Delete Faculty?',
+      text: 'Are you sure you want to permanently delete this faculty member?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#0f172a',
+      confirmButtonText: 'Yes, delete!'
+    });
+    if (!result.isConfirmed) return;
     try {
       const token = localStorage.getItem('schoolToken');
       await axios.delete(`${API_URL}/api/admin/faculty/${id}`, {
@@ -135,7 +146,16 @@ export function AdminDashboard() {
   };
 
   const handleDeleteStudent = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this student? Their parent login account will also be permanently deleted.')) return;
+    const result = await Swal.fire({
+      title: 'Delete Student?',
+      text: 'Are you sure? Their parent account will also be permanently deleted.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#0f172a',
+      confirmButtonText: 'Yes, delete!'
+    });
+    if (!result.isConfirmed) return;
     try {
       const token = localStorage.getItem('schoolToken');
       await axios.delete(`${API_URL}/api/admin/student/${id}`, {
@@ -172,7 +192,10 @@ export function AdminDashboard() {
   };
 
   const handleApprovePwReset = async () => {
-    if (!newAdminProvidedPw) return alert('Enter a new password');
+    if (!newAdminProvidedPw) {
+      Swal.fire('Required', 'Enter a new password', 'warning');
+      return;
+    }
     try {
       const token = localStorage.getItem('schoolToken');
       await axios.post(`${API_URL}/api/admin/password-requests/${resettingPwFor._id}/approve`, 
@@ -719,7 +742,7 @@ function FacultyProfileModal({ faculty, allStudents, onClose, onUpdate }) {
     setAssignedIds(prev => {
       if (prev.includes(id)) return prev.filter(i => i !== id);
       if (prev.length >= maxStudents) {
-        alert(`Cannot assign more than ${maxStudents} monitored students to this faculty. Increase limit if needed.`);
+        Swal.fire('Limit Reached', `Cannot assign more than ${maxStudents} monitored students to this faculty. Increase limit if needed.`, 'warning');
         return prev;
       }
       return [...prev, id];

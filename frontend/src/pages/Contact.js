@@ -1,16 +1,21 @@
 import { motion } from 'motion/react';
 import { MapPin, Phone, Mail, Clock, Send, CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
+import Swal from 'sweetalert2';
 import { PageHero } from '../components/PageHero';
 import { StatsCtaBanner } from '../components/StatsCtaBanner';
 
 export function Contact() {
-  const [submitted, setSubmitted] = useState(false);
-
   const handleSubmit = (e) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
+    Swal.fire({
+      title: 'Message Sent!',
+      text: 'Thank you for reaching out. We will get back to you shortly.',
+      icon: 'success',
+      confirmButtonColor: '#059669',
+      confirmButtonText: 'Awesome!'
+    });
+    e.target.reset();
   };
 
   return (
@@ -71,19 +76,6 @@ export function Contact() {
           >
             <h2 className="text-3xl font-display font-bold text-slate-900 mb-8">Send us a Message</h2>
             
-            {submitted ? (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex flex-col items-center justify-center py-16 text-center"
-              >
-                <div className="w-20 h-20 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mb-6">
-                  <CheckCircle2 size={40} />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-2">Message Sent!</h3>
-                <p className="text-slate-600">Thank you for reaching out. We will get back to you shortly.</p>
-              </motion.div>
-            ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -107,7 +99,6 @@ export function Contact() {
                   Send Message <Send size={18} />
                 </button>
               </form>
-            )}
           </motion.div>
         </div>
       </div>
