@@ -121,8 +121,12 @@ if (process.env.MONGODB_URI) {
 }
 
 // Always start the Express server, even if DB fails initially
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`CORS allowed origins: ${allowedOrigins.join(', ')}`);
-    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+      console.log(`CORS allowed origins: ${allowedOrigins.join(', ')}`);
+      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  });
+}
+
+export default app;
