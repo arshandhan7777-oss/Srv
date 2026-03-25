@@ -32,7 +32,7 @@ const activities = [
 
 export function CoCurricular() {
   return (
-    <div className="flex flex-col bg-slate-50 min-h-screen">
+    <div className="flex flex-col bg-slate-50 min-h-screen overflow-x-hidden relative">
       <PageHero title="Co-Curricular" breadcrumb="Co-Curricular" />
       
       {/* Dynamic Background */}
