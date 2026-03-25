@@ -28,15 +28,19 @@ const app = express();
 const allowedOrigins = [
   process.env.CORS_ORIGIN || 'http://localhost:3000',
   'http://localhost:3001',                // admin panel (local dev)
+  'http://localhost:3002',                // frontend (local dev)
   'https://srv-lyart.vercel.app',         // production frontend
   'https://srv-admin-gamma.vercel.app'    // production admin
 ].filter(Boolean);
 
 // Explicitly handle preflight OPTIONS requests for all routes
-app.options('*', cors({
+app.use(cors({
   origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, server-to-server)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
