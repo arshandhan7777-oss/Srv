@@ -20,6 +20,9 @@ import parentRoutes from './routes/parent.js';
 
 const app = express();
 
+// Trust Vercel's reverse proxy for correct IP tracking by rate limiters
+app.set('trust proxy', 1);
+
 // ──────────────────────────────────────────────
 // 1. SECURITY MIDDLEWARE
 // ──────────────────────────────────────────────
@@ -72,6 +75,35 @@ const globalLimiter = rateLimit({
 app.use(globalLimiter);
 
 // ──────────────────────────────────────────────
+// 4. SERVERLESS DATABASE CONNECTION MIDDLEWARE
+// ──────────────────────────────────────────────
+// In Serverless environments (Vercel), background promises get frozen.
+// We MUST explicitly await the connection on incoming requests.
+let isConnected = false;
+
+app.use(async (req, res, next) => {
+  if (!process.env.MONGODB_URI) {
+    console.warn('MONGODB_URI missing. Skipping DB context.');
+    return next();
+  }
+
+  if (isConnected || mongoose.connection.readyState >= 1) {
+    isConnected = true;
+    return next();
+  }
+
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
+    isConnected = true;
+    console.log('Successfully connected to MongoDB in Serverless context.');
+    next();
+  } catch (err) {
+    console.error('Serverless MongoDB connection error:', err.message);
+    next(err); // Pass error to global error handler
+  }
+});
+
+// ──────────────────────────────────────────────
 // 2. ROUTES
 // ──────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
@@ -80,7 +112,7 @@ app.use('/api/faculty', facultyRoutes);
 app.use('/api/parent', parentRoutes);
 
 app.get('/', (req, res) => {
-    res.send('SRV School Management API is running');
+    res.send('SRV School Management API is running (Serverless Mode)');
 });
 
 // ──────────────────────────────────────────────
@@ -103,24 +135,11 @@ app.use((err, req, res, next) => {
 });
 
 // ──────────────────────────────────────────────
-// 4. DATABASE & SERVER STARTUP
+// 5. SERVER STARTUP (Local Dev)
 // ──────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
 
-if (process.env.MONGODB_URI) {
-  mongoose.connect(process.env.MONGODB_URI)
-    .then(() => {
-      console.log('Connected to MongoDB successfully');
-    })
-    .catch((err) => {
-      console.error('MongoDB connection error. Please check your network/IP whitelist in MongoDB Atlas:');
-      console.error(err.message);
-    });
-} else {
-  console.warn('MONGODB_URI is not defined in the environment. Skipping database connection.');
-}
-
-// Always start the Express server, even if DB fails initially
+// Always start the Express server locally
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
