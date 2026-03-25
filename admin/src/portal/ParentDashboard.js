@@ -7,6 +7,7 @@ import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, R
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import API_URL from '../config/api.js';
+import Swal from 'sweetalert2';
 
 const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6'];
 
@@ -68,7 +69,7 @@ export function ParentDashboard() {
       setShowPayModal(false);
       setAmountToPay('');
     } catch (err) {
-      alert(err.response?.data?.message || 'Payment failed.');
+      Swal.fire('Payment Failed', err.response?.data?.message || 'Payment failed.', 'error');
     } finally {
       setProcessing(false);
     }

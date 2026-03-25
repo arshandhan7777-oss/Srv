@@ -206,7 +206,7 @@ export function AdminDashboard() {
       setNewAdminProvidedPw('');
       fetchSettingsAndAlerts(token); // refresh list
     } catch (err) {
-      alert(err.response?.data?.message || 'Error resetting password');
+      Swal.fire('Error', err.response?.data?.message || 'Error resetting password', 'error');
     }
   };
 
@@ -777,11 +777,11 @@ function FacultyProfileModal({ faculty, allStudents, onClose, onUpdate }) {
         studentIds: assignedIds 
       }, { headers: { Authorization: `Bearer ${token}` } });
 
-      alert("Profile and student tracking assignments updated successfully!");
+      Swal.fire({toast: true, position: 'top-end', icon: 'success', title: 'Profile and student tracking assignments updated!', showConfirmButton: false, timer: 3000, timerProgressBar: true});
       onUpdate();
       onClose();
     } catch (err) {
-      alert("Failed to save profile. Please check connection.");
+      Swal.fire('Error', 'Failed to save profile. Please check connection.', 'error');
     } finally {
       setSaving(false);
     }
@@ -917,7 +917,7 @@ function StudentFeeModal({ student, onClose, onUpdate }) {
       onUpdate();
       onClose();
     } catch (err) {
-      alert('Failed to save fee details.');
+      Swal.fire('Error', 'Failed to save fee details.', 'error');
     } finally {
       setSaving(false);
     }
