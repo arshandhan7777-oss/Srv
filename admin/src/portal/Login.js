@@ -75,7 +75,7 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Background Decor */}
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-100/40 rounded-full blur-[100px] -z-0" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-amber-100/40 rounded-full blur-[100px] -z-0" />
@@ -112,9 +112,9 @@ export function Login() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10"
+        className="mt-8 w-full sm:mx-auto sm:max-w-md relative z-10"
       >
-        <div className="bg-white py-10 px-4 shadow-2xl sm:rounded-3xl border border-slate-100 sm:px-10">
+        <div className="bg-white py-10 px-6 sm:px-10 shadow-2xl rounded-3xl border border-slate-100">
           
           <div className="flex p-1 mb-8 bg-slate-100 rounded-xl">
             <button

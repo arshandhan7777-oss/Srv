@@ -37,7 +37,7 @@ export function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-900 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Background Decor */}
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-600/20 rounded-full blur-[100px] -z-0" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-slate-800/40 rounded-full blur-[100px] -z-0" />
@@ -74,9 +74,9 @@ export function AdminLogin() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10"
+        className="mt-8 w-full sm:mx-auto sm:max-w-md relative z-10"
       >
-        <div className="bg-slate-800 py-10 px-4 shadow-2xl sm:rounded-3xl border border-slate-700 sm:px-10">
+        <div className="bg-slate-800 py-10 px-6 sm:px-10 shadow-2xl rounded-3xl border border-slate-700">
           <form className="space-y-6" onSubmit={handleLogin}>
             {error && (
               <div className="bg-red-500/10 text-red-400 border border-red-500/20 rounded-xl p-4 flex gap-3 items-start text-sm">
