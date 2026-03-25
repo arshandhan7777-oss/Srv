@@ -5,7 +5,6 @@ import { Users, UserPlus, BookOpen, LogOut, CheckCircle2, Coffee, Trash2, Edit2,
 import srvLogo from '../assest/fav_logo/srv-t.png';
 import API_URL from '../config/api.js';
 import Swal from 'sweetalert2';
-import Swal from 'sweetalert2';
 
 export function AdminDashboard() {
   const [stats, setStats] = useState({ totalStudents: 0, totalFaculty: 0 });
