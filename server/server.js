@@ -28,12 +28,12 @@ const app = express();
 const allowedOrigins = [
   process.env.CORS_ORIGIN || 'http://localhost:3000',
   'http://localhost:3001',                // local admin
+  'http://localhost:3002',                // local dev extra
   'https://srv-lyart.vercel.app',         // production frontend
   'https://srv-admin-gamma.vercel.app'    // production admin
 ].filter(Boolean);
 
 // Global CORS middleware handles preflight automatically
-
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (mobile apps, curl, server-to-server)
@@ -41,6 +41,12 @@ app.use(cors({
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
+}));
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
