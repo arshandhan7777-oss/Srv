@@ -24,18 +24,6 @@ const app = express();
 // 1. SECURITY MIDDLEWARE
 // ──────────────────────────────────────────────
 
-// Set secure HTTP headers (XSS filter, HSTS, noSniff, etc.)
-app.use(helmet());
-
-// Limit JSON body size to prevent large payload attacks
-app.use(express.json({ limit: '10kb' }));
-
-// Prevent NoSQL injection — strips out $ and . from user input
-app.use(mongoSanitize());
-
-// Prevent HTTP Parameter Pollution
-app.use(hpp());
-
 // CORS — restrict to trusted origins only
 const allowedOrigins = [
   process.env.CORS_ORIGIN || 'http://localhost:3000',
@@ -55,6 +43,18 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Set secure HTTP headers (XSS filter, HSTS, noSniff, etc.)
+app.use(helmet());
+
+// Limit JSON body size to prevent large payload attacks
+app.use(express.json({ limit: '10kb' }));
+
+// Prevent NoSQL injection (Incompatible with Express 5 as it tries to re-assign req.query)
+// app.use(mongoSanitize());
+
+// Prevent HTTP Parameter Pollution (Currently incompatible with Express 5)
+// app.use(hpp());
 
 // Global rate limiter — 100 requests per 15 minutes per IP
 const globalLimiter = rateLimit({

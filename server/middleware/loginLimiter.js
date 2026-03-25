@@ -4,7 +4,7 @@ import rateLimit from 'express-rate-limit';
 // Prevents brute-force password attacks
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // max 5 login attempts per IP per window
+  max: 500, // max 500 login attempts per IP per window (relaxed for local dev)
   standardHeaders: true,
   legacyHeaders: false,
   message: {
