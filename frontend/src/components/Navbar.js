@@ -159,8 +159,8 @@ export function Navbar() {
             {/* ── CTA Buttons + Hamburger ── */}
             <div className="flex items-center gap-2 shrink-0">
               {/* Portal Login — always visible on md+ */}
-              <Link
-                to="/portal/login"
+              <a
+                href="http://localhost:3001/login"
                 className={twMerge(
                   'hidden md:flex items-center gap-1.5 px-3 xl:px-4 py-2 rounded-full font-semibold text-xs xl:text-sm transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap border',
                   scrolled
@@ -170,7 +170,7 @@ export function Navbar() {
               >
                 <User size={14} className="shrink-0" />
                 <span>Portal Login</span>
-              </Link>
+              </a>
 
               {/* Contact Us — visible on lg+ */}
               <Link
@@ -216,8 +216,7 @@ export function Navbar() {
                 data-lenis-prevent="true"
               >
                 {/* Include Portal Login in mobile menu */}
-                {[...navLinks, { name: 'Portal Login', path: '/portal/login' }].map(
-                  (link, i) => (
+                {navLinks.map((link, i) => (
                     <motion.div
                       key={link.name}
                       initial={{ opacity: 0, x: -20 }}
@@ -253,8 +252,22 @@ export function Navbar() {
                         </div>
                       )}
                     </motion.div>
-                  )
-                )}
+                ))}
+
+                {/* External Portal Link for mobile */}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: navLinks.length * 0.04 }}
+                  className="flex flex-col mt-1"
+                >
+                  <a
+                    href="http://localhost:3001/login"
+                    className="px-4 py-3.5 rounded-xl text-[15px] font-medium flex items-center justify-between text-slate-700 hover:bg-slate-50 transition-colors"
+                  >
+                    Portal Login
+                  </a>
+                </motion.div>
 
                 {/* Contact Us in mobile */}
                 <motion.div
