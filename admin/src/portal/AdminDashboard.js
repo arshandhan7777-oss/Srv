@@ -30,6 +30,7 @@ export function AdminDashboard() {
 
   // Manage Students State
   const [selectedStudentForFees, setSelectedStudentForFees] = useState(null);
+  const [manageStudentMsg, setManageStudentMsg] = useState({ text: '', type: '' });
 
   // Fees and Settings State
   const [isOnlineFeeEnabled, setIsOnlineFeeEnabled] = useState(false);
@@ -128,7 +129,25 @@ export function AdminDashboard() {
       setStats(prev => ({...prev, totalFaculty: prev.totalFaculty - 1}));
       setTimeout(() => setManageFacultyMsg({text:'', type:''}), 3000);
     } catch (err) {
-      setManageFacultyMsg({ text: 'Failed to delete faculty', type: 'error' });
+      console.error('[Delete Faculty Error]', err.response?.data || err.message || err);
+      setManageFacultyMsg({ text: err.response?.data?.message || 'Failed to delete faculty', type: 'error' });
+    }
+  };
+
+  const handleDeleteStudent = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this student? Their parent login account will also be permanently deleted.')) return;
+    try {
+      const token = localStorage.getItem('schoolToken');
+      await axios.delete(`${API_URL}/api/admin/student/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setManageStudentMsg({ text: 'Student and parent account deleted successfully', type: 'success' });
+      fetchStudents(token);
+      setStats(prev => ({...prev, totalStudents: prev.totalStudents - 1}));
+      setTimeout(() => setManageStudentMsg({text:'', type:''}), 4000);
+    } catch (err) {
+      console.error('[Delete Student Error]', err.response?.data || err.message || err);
+      setManageStudentMsg({ text: err.response?.data?.message || 'Failed to delete student', type: 'error' });
     }
   };
 
@@ -602,6 +621,12 @@ export function AdminDashboard() {
             </div>
           </div>
           
+          {manageStudentMsg.text && (
+            <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 text-sm font-semibold border ${manageStudentMsg.type === 'success' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-red-50 text-red-600 border-red-200'}`}>
+              <CheckCircle2 size={18} /> {manageStudentMsg.text}
+            </div>
+          )}
+
           <div className="overflow-x-auto rounded-xl border border-slate-200">
             <table className="w-full text-left border-collapse min-w-[800px]">
               <thead>
@@ -632,9 +657,12 @@ export function AdminDashboard() {
                         {student.fees?.overall || 'Unpaid'}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-center border-b border-slate-50">
+                    <td className="px-5 py-4 flex items-center justify-center gap-3 border-b border-slate-50">
                       <button onClick={() => setSelectedStudentForFees(student)} className="text-purple-600 hover:text-purple-800 font-semibold text-xs hover:underline flex items-center justify-center gap-1 w-full" title="Manage Fees">
                         Manage Fees
+                      </button>
+                      <button onClick={() => handleDeleteStudent(student._id)} className="text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 shrink-0" title="Delete Student & Parent Account">
+                        <Trash2 size={16} />
                       </button>
                     </td>
                   </tr>

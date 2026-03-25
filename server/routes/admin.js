@@ -274,10 +274,10 @@ router.delete('/faculty/:id', protect, adminOnly, async (req, res) => {
       return res.status(404).json({ message: 'Faculty not found' });
     }
 
-    await faculty.deleteOne();
+    await User.findByIdAndDelete(req.params.id);
 
-    // Unassign their students
-    await Student.updateMany({ facultyId: req.params.id }, { facultyId: null });
+    // Unassign their students safely
+    await Student.updateMany({ facultyId: req.params.id }, { $set: { facultyId: null } });
 
     res.json({ message: 'Faculty deleted successfully' });
   } catch (error) {
@@ -314,6 +314,26 @@ router.put('/student/:id/fees', protect, adminOnly, async (req, res) => {
     res.json({ message: 'Fees updated successfully', student });
   } catch (error) {
     res.status(500).json({ message: 'Error updating fees' });
+  }
+});
+
+// @route   DELETE /api/admin/student/:id
+// @desc    Delete a student and their associated parent account
+// @access  Private (Admin only)
+router.delete('/student/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const student = await Student.findByIdAndDelete(req.params.id);
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    // Cascade delete: remove the parent's login account associated with this student
+    await User.findOneAndDelete({ role: 'parent', studentId: req.params.id });
+
+    res.json({ message: 'Student and associated parent account deleted successfully' });
+  } catch (error) {
+    console.error('[Delete Student Route Error]', error);
+    res.status(500).json({ message: 'Error deleting student' });
   }
 });
 
