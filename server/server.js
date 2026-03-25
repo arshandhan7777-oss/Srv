@@ -27,6 +27,7 @@ const app = express();
 // CORS — restrict to trusted origins only
 const allowedOrigins = [
   process.env.CORS_ORIGIN || 'http://localhost:3000',
+  'http://localhost:3001',                // local admin
   'https://srv-lyart.vercel.app',         // production frontend
   'https://srv-admin-gamma.vercel.app'    // production admin
 ].filter(Boolean);
