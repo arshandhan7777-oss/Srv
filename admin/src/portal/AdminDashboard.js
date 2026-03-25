@@ -217,11 +217,17 @@ export function AdminDashboard() {
       const res = await axios.post(`${API_URL}/api/admin/faculty`, facultyForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setFacultyMsg({ text: `Success! Faculty SRV: ${res.data.faculty.srvNumber} - Password: faculty123`, type: 'success' });
+      Swal.fire({
+        title: 'Faculty Created!',
+        html: `<b>SRV Number:</b> ${res.data.faculty.srvNumber}<br/><b>Password:</b> faculty123`,
+        icon: 'success',
+        confirmButtonColor: '#059669'
+      });
       setFacultyForm({ name: '', assignedGrade: '', assignedSection: '', mobileNumber: '' });
       setStats(prev => ({...prev, totalFaculty: prev.totalFaculty + 1}));
+      fetchFaculties(token); // dynamically refresh the table
     } catch (err) {
-      setFacultyMsg({ text: err.response?.data?.message || 'Failed to create faculty', type: 'error' });
+      Swal.fire('Error', err.response?.data?.message || 'Failed to create faculty', 'error');
     }
   };
 
@@ -232,11 +238,17 @@ export function AdminDashboard() {
       const res = await axios.post(`${API_URL}/api/admin/student`, studentForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setStudentMsg({ text: `Success! Student SRV: ${res.data.student.srvNumber} Login pass: ${studentForm.dateOfBirth}`, type: 'success' });
+      Swal.fire({
+        title: 'Student Admitted!',
+        html: `<b>SRV Number:</b> ${res.data.student.srvNumber}<br/><b>Password:</b> ${studentForm.dateOfBirth}`,
+        icon: 'success',
+        confirmButtonColor: '#059669'
+      });
       setStudentForm({ name: '', grade: '', section: '', group: '', dateOfBirth: '' });
       setStats(prev => ({...prev, totalStudents: prev.totalStudents + 1}));
+      fetchStudents(token); // dynamically refresh the table
     } catch (err) {
-      setStudentMsg({ text: err.response?.data?.message || 'Failed to admit student', type: 'error' });
+      Swal.fire('Error', err.response?.data?.message || 'Failed to admit student', 'error');
     }
   };
 
