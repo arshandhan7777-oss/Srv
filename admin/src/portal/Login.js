@@ -62,8 +62,8 @@ export function Login() {
       localStorage.setItem('schoolUser', JSON.stringify(data));
 
       // Redirect based on role
-      if (data.role === 'faculty') navigate('/portal/faculty');
-      else if (data.role === 'parent') navigate('/portal/parent');
+      if (data.role === 'faculty') navigate('/faculty/dashboard');
+      else if (data.role === 'parent') navigate('/parent/dashboard');
 
     } catch (err) {
       const errorMsg = err.response?.data?.message || 'Login failed. Please check your credentials.';

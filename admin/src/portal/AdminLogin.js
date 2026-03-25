@@ -25,7 +25,7 @@ export function AdminLogin() {
       localStorage.setItem('schoolUser', JSON.stringify(data));
 
       // Always redirect to admin dashboard
-      navigate('/dashboard');
+      navigate('/admin/dashboard');
 
     } catch (err) {
       const errorMsg = err.response?.data?.message || 'Login failed. Please check your credentials.';

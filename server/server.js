@@ -27,10 +27,21 @@ const app = express();
 // CORS — restrict to trusted origins only
 const allowedOrigins = [
   process.env.CORS_ORIGIN || 'http://localhost:3000',
-  'http://localhost:3001',                // admin panel (local dev)
-  'https://srv-admin-roan.vercel.app/'  ,
-  'https://srv-lyart.vercel.app/'       // production frontend
+  'https://srv-lyart.vercel.app',         // production frontend
+  'https://srv-admin-gamma.vercel.app'    // production admin
 ].filter(Boolean);
+
+// Explicitly handle preflight OPTIONS requests for all routes
+app.options('*', cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
+}));
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -42,8 +53,8 @@ app.use(cors({
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 }));
 
 // Set secure HTTP headers (XSS filter, HSTS, noSniff, etc.)

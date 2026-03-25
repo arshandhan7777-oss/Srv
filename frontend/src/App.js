@@ -1,9 +1,9 @@
 /**
- * Frontend Application — Parent/Faculty Portal + Public Website
- * Admin routes have been moved to the separate admin module.
+ * Frontend Application — Public Website
+ * Parent, faculty, and admin routes have been moved to the separate admin module.
  */
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { ScrollToTop } from './components/ScrollToTop';
 import { Home } from './pages/Home';
@@ -16,12 +16,6 @@ import { News } from './pages/News';
 import { Contact } from './pages/Contact';
 import { Academics } from './pages/Academics';
 import { Facilities } from './pages/Facilities';
-
-// Portal Imports (Parent & Faculty only)
-import { Login } from './portal/Login';
-import { FacultyDashboard } from './portal/FacultyDashboard';
-import { ParentDashboard } from './portal/ParentDashboard';
-import { ProtectedRoute } from './components/ProtectedRoute';
 
 export default function App() {
   return (
@@ -40,21 +34,9 @@ export default function App() {
           <Route path="news" element={<News />} />
           <Route path="contact" element={<Contact />} />
         </Route>
-
-        {/* Portal Routes — no admin access here */}
-        <Route path="/portal">
-          <Route path="login" element={<Login />} />
-
-          {/* Faculty — only users with role='faculty' */}
-          <Route element={<ProtectedRoute allowedRole="faculty" redirectTo="/portal/login" />}>
-            <Route path="faculty" element={<FacultyDashboard />} />
-          </Route>
-
-          {/* Parent — only users with role='parent' */}
-          <Route element={<ProtectedRoute allowedRole="parent" redirectTo="/portal/login" />}>
-            <Route path="parent" element={<ParentDashboard />} />
-          </Route>
-        </Route>
+        
+        {/* If anyone tries to access the old portal paths on the frontend, redirect them to the admin app */}
+        <Route path="/portal/*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );

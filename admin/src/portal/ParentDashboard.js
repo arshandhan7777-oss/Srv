@@ -37,7 +37,7 @@ export function ParentDashboard() {
   const handleLogout = () => {
     localStorage.removeItem('schoolToken');
     localStorage.removeItem('schoolUser');
-    navigate('/portal/login');
+    navigate('/login');
   };
 
   const downloadReportCard = async () => {

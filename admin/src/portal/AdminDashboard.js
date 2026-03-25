@@ -113,7 +113,7 @@ export function AdminDashboard() {
   const handleLogout = () => {
     localStorage.removeItem('schoolToken');
     localStorage.removeItem('schoolUser');
-    navigate('/login');
+    navigate('/admin-login');
   };
 
   const handleDeleteFaculty = async (id) => {

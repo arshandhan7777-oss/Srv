@@ -109,7 +109,7 @@ export function FacultyDashboard() {
   const handleLogout = () => {
     localStorage.removeItem('schoolToken');
     localStorage.removeItem('schoolUser');
-    navigate('/portal/login');
+    navigate('/login');
   };
 
   const submitGrades = async (e) => {
