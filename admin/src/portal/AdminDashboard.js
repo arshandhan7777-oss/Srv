@@ -18,6 +18,10 @@ export function AdminDashboard() {
   const [studentMsg, setStudentMsg] = useState({ text: '', type: '' });
   const [editingSrvId, setEditingSrvId] = useState(null);
   const [editSrvValue, setEditSrvValue] = useState('');
+  const [editingStudentId, setEditingStudentId] = useState(null);
+  const [editStudentForm, setEditStudentForm] = useState({ name: '', grade: '', section: '', group: '' });
+  const [promoteFrom, setPromoteFrom] = useState('');
+  const [promoteTo, setPromoteTo] = useState('');
 
   // Food Menu Form State
   const [weeklyMenu, setWeeklyMenu] = useState([]);
@@ -169,6 +173,49 @@ export function AdminDashboard() {
     } catch (err) {
       console.error('[Delete Student Error]', err.response?.data || err.message || err);
       setManageStudentMsg({ text: err.response?.data?.message || 'Failed to delete student', type: 'error' });
+    }
+  };
+
+  const handleUpdateStudent = async (id) => {
+    try {
+      const token = localStorage.getItem('schoolToken');
+      await axios.put(`${API_URL}/api/admin/student/${id}`, editStudentForm, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      Swal.fire({toast: true, position: 'top-end', icon: 'success', title: 'Student updated!', showConfirmButton: false, timer: 2000});
+      setEditingStudentId(null);
+      fetchStudents(token);
+    } catch (err) {
+      Swal.fire('Error', err.response?.data?.message || 'Failed to update student', 'error');
+    }
+  };
+
+  const handlePromoteStudents = async () => {
+    if (!promoteFrom || !promoteTo) {
+      Swal.fire('Missing Fields', 'Please select both "From Grade" and "To Grade".', 'warning');
+      return;
+    }
+    const confirm = await Swal.fire({
+      title: 'Promote Students?',
+      html: `This will move <b>ALL</b> students from Grade <b>${promoteFrom}</b> to Grade <b>${promoteTo}</b>.<br/>This action cannot be undone.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#059669',
+      cancelButtonColor: '#0f172a',
+      confirmButtonText: 'Yes, promote them!'
+    });
+    if (!confirm.isConfirmed) return;
+    try {
+      const token = localStorage.getItem('schoolToken');
+      const res = await axios.post(`${API_URL}/api/admin/students/promote`, { fromGrade: promoteFrom, toGrade: promoteTo }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      Swal.fire('Promoted!', res.data.message, 'success');
+      setPromoteFrom('');
+      setPromoteTo('');
+      fetchStudents(token);
+    } catch (err) {
+      Swal.fire('Error', err.response?.data?.message || 'Promotion failed', 'error');
     }
   };
 
@@ -721,24 +768,55 @@ export function AdminDashboard() {
                         </span>
                       )}
                     </td>
-                    <td className="px-5 py-4 font-semibold text-slate-900 border-b border-slate-50">{student.name}</td>
-                    <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">{student.grade}-{student.section}</td>
-                    <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">
-                      {student.facultyId ? student.facultyId.name : <span className="text-slate-400 italic">Unassigned</span>}
-                    </td>
-                    <td className="px-5 py-4 text-center border-b border-slate-50">
-                      <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${student.fees?.overall === 'Paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
-                        {student.fees?.overall || 'Unpaid'}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4 flex items-center justify-center gap-3 border-b border-slate-50">
-                      <button onClick={() => setSelectedStudentForFees(student)} className="text-purple-600 hover:text-purple-800 font-semibold text-xs hover:underline flex items-center justify-center gap-1 w-full" title="Manage Fees">
-                        Manage Fees
-                      </button>
-                      <button onClick={() => handleDeleteStudent(student._id)} className="text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 shrink-0" title="Delete Student & Parent Account">
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
+                    {editingStudentId === student._id ? (
+                      <>
+                        <td className="px-3 py-3 border-b border-slate-50">
+                          <input type="text" value={editStudentForm.name} onChange={e => setEditStudentForm({...editStudentForm, name: e.target.value})} className="w-full px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-xs" placeholder="Name" />
+                        </td>
+                        <td className="px-3 py-3 border-b border-slate-50">
+                          <div className="flex gap-1">
+                            <input type="text" value={editStudentForm.grade} onChange={e => setEditStudentForm({...editStudentForm, grade: e.target.value})} className="w-12 px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-xs" placeholder="Gr" />
+                            <input type="text" value={editStudentForm.section} onChange={e => setEditStudentForm({...editStudentForm, section: e.target.value})} className="w-12 px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-xs" placeholder="Sec" />
+                          </div>
+                        </td>
+                        <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">
+                          {student.facultyId ? student.facultyId.name : <span className="text-slate-400 italic">Unassigned</span>}
+                        </td>
+                        <td className="px-5 py-4 text-center border-b border-slate-50">
+                          <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${student.fees?.overall === 'Paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                            {student.fees?.overall || 'Unpaid'}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3 flex items-center justify-center gap-2 border-b border-slate-50">
+                          <button onClick={() => handleUpdateStudent(student._id)} className="p-2 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200" title="Save"><Save size={14}/></button>
+                          <button onClick={() => setEditingStudentId(null)} className="p-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200" title="Cancel"><X size={14}/></button>
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="px-5 py-4 font-semibold text-slate-900 border-b border-slate-50">{student.name}</td>
+                        <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">{student.grade}-{student.section}</td>
+                        <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">
+                          {student.facultyId ? student.facultyId.name : <span className="text-slate-400 italic">Unassigned</span>}
+                        </td>
+                        <td className="px-5 py-4 text-center border-b border-slate-50">
+                          <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${student.fees?.overall === 'Paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                            {student.fees?.overall || 'Unpaid'}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 flex items-center justify-center gap-2 border-b border-slate-50">
+                          <button onClick={() => { setEditingStudentId(student._id); setEditStudentForm({ name: student.name, grade: student.grade, section: student.section, group: student.group || '' }); }} className="text-blue-600 hover:text-blue-800 font-semibold text-xs hover:underline flex items-center gap-1" title="Edit Student">
+                            <Edit2 size={12}/> Edit
+                          </button>
+                          <button onClick={() => setSelectedStudentForFees(student)} className="text-purple-600 hover:text-purple-800 font-semibold text-xs hover:underline" title="Manage Fees">
+                            Fees
+                          </button>
+                          <button onClick={() => handleDeleteStudent(student._id)} className="text-red-500 hover:text-red-700 p-1 rounded-lg hover:bg-red-50 shrink-0" title="Delete">
+                            <Trash2 size={14}/>
+                          </button>
+                        </td>
+                      </>
+                    )}
                   </tr>
                 ))}
                 {allStudents.length === 0 && (
@@ -748,6 +826,34 @@ export function AdminDashboard() {
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Promote Students Panel */}
+          <div className="mt-6 p-6 bg-gradient-to-r from-emerald-50 to-amber-50 border border-emerald-200 rounded-2xl">
+            <h3 className="font-display font-bold text-slate-900 mb-1 flex items-center gap-2">
+              🎓 Promote Students (Academic Year)
+            </h3>
+            <p className="text-xs text-slate-500 mb-4">Move all students from one grade to the next. This is typically done after April each year.</p>
+            <div className="flex flex-col sm:flex-row items-center gap-3">
+              <div className="flex-1 w-full">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">From Grade</label>
+                <select value={promoteFrom} onChange={e => setPromoteFrom(e.target.value)} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-semibold">
+                  <option value="">Select Current Grade</option>
+                  {['LKG','UKG','1','2','3','4','5','6','7','8','9','10','11','12'].map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+              </div>
+              <span className="text-2xl text-emerald-600 font-bold hidden sm:block mt-4">→</span>
+              <div className="flex-1 w-full">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">To Grade</label>
+                <select value={promoteTo} onChange={e => setPromoteTo(e.target.value)} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-semibold">
+                  <option value="">Select New Grade</option>
+                  {['LKG','UKG','1','2','3','4','5','6','7','8','9','10','11','12','PASSED OUT'].map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+              </div>
+              <button onClick={handlePromoteStudents} className="w-full sm:w-auto px-8 py-3 mt-4 sm:mt-5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-500 transition-colors shadow-lg shadow-emerald-600/20 shrink-0">
+                Promote All
+              </button>
+            </div>
           </div>
         </div>
 

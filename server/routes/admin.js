@@ -342,6 +342,62 @@ router.put('/student/:id/fees', protect, adminOnly, async (req, res) => {
   }
 });
 
+// @route   PUT /api/admin/student/:id
+// @desc    Edit student details (name, grade, section, group)
+// @access  Private (Admin only)
+router.put('/student/:id', protect, adminOnly, async (req, res) => {
+  const { name, grade, section, group } = req.body;
+  try {
+    const student = await Student.findById(req.params.id);
+    if (!student) return res.status(404).json({ message: 'Student not found' });
+
+    if (name !== undefined) student.name = name;
+    if (grade !== undefined) student.grade = grade;
+    if (section !== undefined) student.section = section;
+    if (group !== undefined) student.group = group;
+
+    await student.save();
+
+    // Also update parent user name if student name changed
+    if (name !== undefined) {
+      await User.updateOne(
+        { role: 'parent', studentId: student._id },
+        { $set: { name: `Parent of ${name}` } }
+      );
+    }
+
+    res.json({ message: 'Student updated successfully', student });
+  } catch (error) {
+    console.error('[Edit Student Error]', error);
+    res.status(500).json({ message: 'Error updating student' });
+  }
+});
+
+// @route   POST /api/admin/students/promote
+// @desc    Bulk promote students from one grade to the next
+// @access  Private (Admin only)
+router.post('/students/promote', protect, adminOnly, async (req, res) => {
+  const { fromGrade, toGrade } = req.body;
+  try {
+    if (!fromGrade || !toGrade) {
+      return res.status(400).json({ message: 'Both fromGrade and toGrade are required.' });
+    }
+
+    const result = await Student.updateMany(
+      { grade: fromGrade },
+      { $set: { grade: toGrade } }
+    );
+
+    res.json({
+      message: `Successfully promoted ${result.modifiedCount} student(s) from Grade ${fromGrade} to Grade ${toGrade}.`,
+      promoted: result.modifiedCount
+    });
+  } catch (error) {
+    console.error('[Promote Error]', error);
+    res.status(500).json({ message: 'Error promoting students' });
+  }
+});
+
 // @route   PUT /api/admin/student/:id/srv
 // @desc    Edit a student's SRV number (admin enters numeric part only)
 // @access  Private (Admin only)
