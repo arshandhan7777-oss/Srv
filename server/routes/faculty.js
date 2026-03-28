@@ -146,8 +146,8 @@ router.get('/homework', protect, facultyOrAdmin, async (req, res) => {
     fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
 
     const query = req.user.role === 'admin' 
-        ? { archived: false, createdAt: { $gte: fourteenDaysAgo } } 
-        : { facultyId: req.user.id, archived: false, createdAt: { $gte: fourteenDaysAgo } };
+        ? { archived: { $ne: true }, createdAt: { $gte: fourteenDaysAgo } } 
+        : { facultyId: req.user.id, archived: { $ne: true }, createdAt: { $gte: fourteenDaysAgo } };
         
     const homeworkList = await Homework.find(query).sort({ dueDate: 1 });
     res.json(homeworkList);

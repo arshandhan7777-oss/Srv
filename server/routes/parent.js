@@ -48,7 +48,7 @@ router.get('/dashboard', protect, parentOnly, async (req, res) => {
     const homework = await Homework.find({ 
       grade: student.grade, 
       section: student.section,
-      archived: false,
+      archived: { $ne: true },
       dueDate: { $gte: todayStart, $lte: todayEnd }
     }).sort({ subject: 1, dueDate: 1 });
 
@@ -137,7 +137,7 @@ router.get('/homework/weekly', protect, parentOnly, async (req, res) => {
     const homework = await Homework.find({ 
       grade: student.grade, 
       section: student.section,
-      archived: false,
+      archived: { $ne: true },
       createdAt: { $gte: fourteenDaysAgo }
     }).sort({ dueDate: 1 });
       
