@@ -312,7 +312,7 @@ export function FacultyDashboard() {
             )}
 
             {/* Homework Dashboard Weekly Calendar */}
-            <HomeworkCalendar homeworkList={assignedHomework} onRefresh={fetchHomework} />
+            <HomeworkCalendar homeworkList={assignedHomework} onRefresh={fetchHomework} isFaculty={true} />
           </div>
 
           {/* Sidebar Actions */}

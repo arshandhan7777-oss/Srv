@@ -144,6 +144,39 @@ router.get('/homework', protect, facultyOrAdmin, async (req, res) => {
   }
 });
 
+// @route   PUT /api/faculty/homework/:id
+// @desc    Update/Edit existing homework (including deadline)
+// @access  Private (Faculty/Admin)
+router.put('/homework/:id', protect, facultyOrAdmin, async (req, res) => {
+  const { subject, title, description, dueDate } = req.body;
+  try {
+    const query = req.user.role === 'admin' ? { _id: req.params.id } : { _id: req.params.id, facultyId: req.user.id };
+    const hw = await Homework.findOneAndUpdate(
+      query,
+      { subject, title, description, dueDate },
+      { new: true, runValidators: true }
+    );
+    if (!hw) return res.status(404).json({ message: 'Homework not found or unauthorized' });
+    res.json({ message: 'Homework updated successfully', homework: hw });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating homework' });
+  }
+});
+
+// @route   DELETE /api/faculty/homework/:id
+// @desc    Delete a homework assignment
+// @access  Private (Faculty/Admin)
+router.delete('/homework/:id', protect, facultyOrAdmin, async (req, res) => {
+  try {
+    const query = req.user.role === 'admin' ? { _id: req.params.id } : { _id: req.params.id, facultyId: req.user.id };
+    const hw = await Homework.findOneAndDelete(query);
+    if (!hw) return res.status(404).json({ message: 'Homework not found or unauthorized' });
+    res.json({ message: 'Homework deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting homework' });
+  }
+});
+
 // @route   POST /api/faculty/attendance
 // @desc    Submit daily or weekly attendance for the class
 // @access  Private (Faculty/Admin)
