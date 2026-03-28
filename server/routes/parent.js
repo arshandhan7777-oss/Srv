@@ -33,6 +33,8 @@ router.get('/dashboard', protect, parentOnly, async (req, res) => {
     const student = await Student.findById(parentUser.studentId).populate('facultyId', 'name');
     if (!student) return res.status(404).json({ message: 'Student record not found' });
 
+    console.log('[Dashboard] Parent:', parentUser._id, 'Student:', student._id, 'Grade:', student.grade, 'Section:', student.section);
+
     // Run auto-archive transparently
     await archiveOldHomework();
 
@@ -46,11 +48,13 @@ router.get('/dashboard', protect, parentOnly, async (req, res) => {
     todayEnd.setHours(23, 59, 59, 999);
 
     const homework = await Homework.find({ 
-      grade: student.grade, 
-      section: student.section,
+      grade: String(student.grade), 
+      section: String(student.section),
       archived: { $ne: true },
       dueDate: { $gte: todayStart, $lte: todayEnd }
     }).sort({ subject: 1, dueDate: 1 });
+
+    console.log('[Dashboard] Today\'s homework found:', homework.length);
 
     // Get today's food menu
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -122,9 +126,13 @@ router.get('/notifications', protect, parentOnly, async (req, res) => {
 router.get('/homework/weekly', protect, parentOnly, async (req, res) => {
   try {
     const parentUser = await User.findById(req.user.id);
+    console.log('Parent user:', parentUser?._id, 'studentId:', parentUser?.studentId);
+    
     if (!parentUser.studentId) return res.status(404).json({ message: 'No student linked' });
 
     const student = await Student.findById(parentUser.studentId);
+    console.log('Student found:', student?._id, 'grade:', student?.grade, 'section:', student?.section);
+    
     if (!student) return res.status(404).json({ message: 'Student not found' });
 
     // Run auto-archive transparently
@@ -136,15 +144,20 @@ router.get('/homework/weekly', protect, parentOnly, async (req, res) => {
     const sixtyDaysFromNow = new Date(today);
     sixtyDaysFromNow.setDate(sixtyDaysFromNow.getDate() + 60);
 
+    console.log('Query - Grade:', student.grade, 'Section:', student.section, 'Today:', today, 'Sixty days:', sixtyDaysFromNow);
+
     const homework = await Homework.find({ 
-      grade: student.grade, 
-      section: student.section,
+      grade: String(student.grade), 
+      section: String(student.section),
       archived: { $ne: true },
       dueDate: { $gte: today, $lte: sixtyDaysFromNow }
     }).sort({ dueDate: 1 });
+
+    console.log('Homework found:', homework.length, homework.map(h => ({ subject: h.subject, dueDate: h.dueDate, grade: h.grade, section: h.section })));
       
     res.json(homework);
   } catch (error) {
+    console.error('Error in /homework/weekly:', error.message, error);
     res.status(500).json({ message: 'Server error fetching homework' });
   }
 });
@@ -164,8 +177,8 @@ router.get('/homework/history/:subject', protect, parentOnly, async (req, res) =
     
     // Build query — fetch both active and archived by default
     const query = { 
-      grade: student.grade, 
-      section: student.section,
+      grade: String(student.grade), 
+      section: String(student.section),
       subject
     };
     
@@ -175,12 +188,13 @@ router.get('/homework/history/:subject', protect, parentOnly, async (req, res) =
     } else if (req.query.archived === 'false') {
       query.archived = false;
     }
-    // If no query param, fetch all (both active and archived)
 
     const homework = await Homework.find(query).sort({ createdAt: -1 });
+    console.log('[History] Subject:', subject, 'Grade:', student.grade, 'Section:', student.section, 'Results:', homework.length);
       
     res.json(homework);
   } catch (error) {
+    console.error('[History] Error:', error.message);
     res.status(500).json({ message: 'Server error fetching homework history' });
   }
 });
@@ -263,6 +277,48 @@ router.post('/pay-fee', protect, parentOnly, async (req, res) => {
   } catch (error) {
     console.error('Payment error:', error);
     res.status(500).json({ message: 'Server error processing payment' });
+  }
+});
+
+// @route   GET /api/parent/debug/homework
+// @desc    Debug endpoint to check student linking and homework matching
+// @access  Private (Parent only)
+router.get('/debug/homework', protect, parentOnly, async (req, res) => {
+  try {
+    const parentUser = await User.findById(req.user.id);
+    const student = parentUser.studentId ? await Student.findById(parentUser.studentId) : null;
+    
+    const allHomework = student ? await Homework.find({ 
+      grade: String(student.grade), 
+      section: String(student.section)
+    }) : [];
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const sixtyDaysFromNow = new Date(today);
+    sixtyDaysFromNow.setDate(sixtyDaysFromNow.getDate() + 60);
+
+    const futureHomework = student ? await Homework.find({ 
+      grade: String(student.grade),
+      section: String(student.section),
+      archived: { $ne: true },
+      dueDate: { $gte: today, $lte: sixtyDaysFromNow }
+    }) : [];
+
+    res.json({
+      parentId: parentUser._id,
+      parentEmail: parentUser.email,
+      studentLinked: !!student,
+      student: student ? { _id: student._id, name: student.name, grade: student.grade, section: student.section } : null,
+      allHomeworkCount: allHomework.length,
+      allHomework: allHomework.map(h => ({ _id: h._id, subject: h.subject, title: h.title, grade: h.grade, section: h.section, dueDate: h.dueDate, archived: h.archived })),
+      futureHomeworkCount: futureHomework.length,
+      futureHomework: futureHomework.map(h => ({ _id: h._id, subject: h.subject, title: h.title, dueDate: h.dueDate })),
+      queryParams: { today: today.toISOString(), sixtyDaysFromNow: sixtyDaysFromNow.toISOString() }
+    });
+  } catch (error) {
+    console.error('[Debug] Error:', error);
+    res.status(500).json({ message: 'Error', error: error.message });
   }
 });
 

@@ -383,8 +383,8 @@ export function FacultyDashboard() {
                 <form onSubmit={submitGrades} className="space-y-6">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-1">Term</label>
-                      <select value={gradeForm.term} onChange={e => setGradeForm({...gradeForm, term: e.target.value})} className="w-full px-4 py-2 border rounded-xl">
+                      <label htmlFor="gradeForm-term" className="block text-xs font-bold text-slate-500 mb-1">Term</label>
+                      <select id="gradeForm-term" name="term" value={gradeForm.term} onChange={e => setGradeForm({...gradeForm, term: e.target.value})} className="w-full px-4 py-2 border rounded-xl">
                         <option>Term 1</option>
                         <option>Mid-Terms</option>
                         <option>Term 2</option>
@@ -392,8 +392,8 @@ export function FacultyDashboard() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-1">Behaviour</label>
-                      <select value={gradeForm.behaviour} onChange={e => setGradeForm({...gradeForm, behaviour: e.target.value})} className="w-full px-4 py-2 border rounded-xl">
+                      <label htmlFor="gradeForm-behaviour" className="block text-xs font-bold text-slate-500 mb-1">Behaviour</label>
+                      <select id="gradeForm-behaviour" name="behaviour" value={gradeForm.behaviour} onChange={e => setGradeForm({...gradeForm, behaviour: e.target.value})} className="w-full px-4 py-2 border rounded-xl">
                         <option>Excellent</option>
                         <option>Good</option>
                         <option>Needs Improvement</option>
@@ -408,8 +408,8 @@ export function FacultyDashboard() {
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       {Object.keys(gradeForm.nliteSkills).map(skillName => (
                         <div key={skillName}>
-                          <label className="block text-xs font-bold text-slate-500 mb-1 capitalize">{skillName.replace(/([A-Z])/g, ' $1')}</label>
-                          <input type="number" min="0" max="5" required
+                          <label htmlFor={`nliteSkill-${skillName}`} className="block text-xs font-bold text-slate-500 mb-1 capitalize">{skillName.replace(/([A-Z])/g, ' $1')}</label>
+                          <input id={`nliteSkill-${skillName}`} name={`nliteSkill-${skillName}`} type="number" min="0" max="5" required
                             value={gradeForm.nliteSkills[skillName]} 
                             onChange={e => setGradeForm({...gradeForm, nliteSkills: {...gradeForm.nliteSkills, [skillName]: Number(e.target.value)}})}
                             className="w-full px-3 py-2 border rounded-xl bg-amber-50"
@@ -425,8 +425,8 @@ export function FacultyDashboard() {
                     <div className="grid grid-cols-3 gap-4">
                       {Object.keys(gradeForm.marks).map(subject => (
                         <div key={subject}>
-                          <label className="block text-xs font-bold text-slate-500 mb-1 capitalize">{subject}</label>
-                          <input type="number" min="0" max="100" required
+                          <label htmlFor={`marks-${subject}`} className="block text-xs font-bold text-slate-500 mb-1 capitalize">{subject}</label>
+                          <input id={`marks-${subject}`} name={`marks-${subject}`} type="number" min="0" max="100" required
                             value={gradeForm.marks[subject]} 
                             onChange={e => setGradeForm({...gradeForm, marks: {...gradeForm.marks, [subject]: Number(e.target.value)}})}
                             className="w-full px-3 py-2 border rounded-xl bg-slate-50"
@@ -732,16 +732,16 @@ export function FacultyDashboard() {
                       });
                     }} className="space-y-4">
                       <div>
-                        <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Subject</label>
-                        <input required type="text" value={editingHw.subject} onChange={e => setEditingHw({...editingHw, subject: e.target.value})} className="w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-semibold" />
+                        <label htmlFor="editHw-subject" className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Subject</label>
+                        <input id="editHw-subject" name="subject" required type="text" value={editingHw.subject} onChange={e => setEditingHw({...editingHw, subject: e.target.value})} className="w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-semibold" />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Topic</label>
-                        <input required type="text" value={editingHw.title} onChange={e => setEditingHw({...editingHw, title: e.target.value})} className="w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-semibold" />
+                        <label htmlFor="editHw-title" className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Topic</label>
+                        <input id="editHw-title" name="title" required type="text" value={editingHw.title} onChange={e => setEditingHw({...editingHw, title: e.target.value})} className="w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-semibold" />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Description</label>
-                        <textarea required rows="3" value={editingHw.description} onChange={e => setEditingHw({...editingHw, description: e.target.value})} className="w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm"></textarea>
+                        <label htmlFor="editHw-description" className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Description</label>
+                        <textarea id="editHw-description" name="description" required rows="3" value={editingHw.description} onChange={e => setEditingHw({...editingHw, description: e.target.value})} className="w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm"></textarea>
                       </div>
                       <button disabled={isSubmitting} type="submit" className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20 disabled:opacity-50 flex justify-center items-center gap-2 mt-2">
                         {isSubmitting ? 'Saving Changes...' : <><Check size={18}/> Save Changes</>}
@@ -768,8 +768,10 @@ export function FacultyDashboard() {
                       });
                     }} className="space-y-4">
                       <div>
-                        <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">New Due Date</label>
+                        <label htmlFor="extendHw-dueDate" className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">New Due Date</label>
                         <input 
+                          id="extendHw-dueDate"
+                          name="dueDate"
                           required 
                           type="date" 
                           value={new Date(extendingHw.dueDate).toISOString().split('T')[0]} 
@@ -801,19 +803,31 @@ export function FacultyDashboard() {
                 </div>
               )}
               <form onSubmit={submitHomework} className="space-y-3">
-                <select required value={hwForm.subject} onChange={e => setHwForm({...hwForm, subject: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500">
-                  <option value="" disabled>Select Subject</option>
-                  <option value="English">English</option>
-                  <option value="Tamil">Tamil</option>
-                  <option value="Hindi">Hindi</option>
-                  <option value="Mathematics">Mathematics</option>
-                  <option value="Science">Science</option>
-                  <option value="Social Science">Social Science</option>
-                  <option value="Computer Science">Computer Science</option>
-                </select>
-                <input type="text" placeholder="Topic" required value={hwForm.title} onChange={e => setHwForm({...hwForm, title: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
-                <textarea placeholder="Description..." rows="3" required value={hwForm.description} onChange={e => setHwForm({...hwForm, description: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
-                <input type="date" required value={hwForm.dueDate} onChange={e => setHwForm({...hwForm, dueDate: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+                <div>
+                  <label htmlFor="hwForm-subject" className="block text-sm font-semibold text-slate-700 mb-1.5">Subject</label>
+                  <select id="hwForm-subject" name="hwForm-subject" required value={hwForm.subject} onChange={e => setHwForm({...hwForm, subject: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="" disabled>Select Subject</option>
+                    <option value="English">English</option>
+                    <option value="Tamil">Tamil</option>
+                    <option value="Hindi">Hindi</option>
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Science">Science</option>
+                    <option value="Social Science">Social Science</option>
+                    <option value="Computer Science">Computer Science</option>
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="hwForm-title" className="block text-sm font-semibold text-slate-700 mb-1.5">Topic</label>
+                  <input id="hwForm-title" name="hwForm-title" type="text" placeholder="Topic" required value={hwForm.title} onChange={e => setHwForm({...hwForm, title: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+                </div>
+                <div>
+                  <label htmlFor="hwForm-description" className="block text-sm font-semibold text-slate-700 mb-1.5">Description</label>
+                  <textarea id="hwForm-description" name="hwForm-description" placeholder="Description..." rows="3" required value={hwForm.description} onChange={e => setHwForm({...hwForm, description: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+                </div>
+                <div>
+                  <label htmlFor="hwForm-dueDate" className="block text-sm font-semibold text-slate-700 mb-1.5">Due Date</label>
+                  <input id="hwForm-dueDate" name="hwForm-dueDate" type="date" required value={hwForm.dueDate} onChange={e => setHwForm({...hwForm, dueDate: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+                </div>
                 <button type="submit" className="w-full py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors text-sm">
                   Publish & Notify Parents
                 </button>

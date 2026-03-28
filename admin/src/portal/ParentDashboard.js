@@ -304,7 +304,7 @@ export function ParentDashboard() {
               </div>
               
               {marksData.length > 0 ? (
-                <div className="h-72 w-full">
+                <div className="h-72 w-full" style={{ minHeight: '288px' }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={marksData} margin={{ top: 5, right: 30, left: -20, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
@@ -409,7 +409,7 @@ export function ParentDashboard() {
               </div>
               
               {nliteData.length > 0 ? (
-                <div className="h-64 w-full">
+                <div className="h-64 w-full" style={{ minHeight: '256px' }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <RadarChart cx="50%" cy="50%" outerRadius="70%" data={nliteData}>
                       <PolarGrid stroke="#e2e8f0" />
@@ -437,7 +437,7 @@ export function ParentDashboard() {
               
               {attendanceData.length > 0 ? (
                 <>
-                  <div className="h-48 relative w-full flex justify-center">
+                  <div className="h-48 relative w-full flex justify-center" style={{ minHeight: '192px' }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
@@ -496,7 +496,7 @@ export function ParentDashboard() {
               <span className="text-sm font-bold text-slate-500 mb-1 uppercase tracking-widest">/ 10 Avg Score</span>
             </div>
 
-            <div className="h-64 mt-4 relative">
+            <div className="h-64 mt-4 relative" style={{ minHeight: '256px' }}>
               {behaviorChartData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={behaviorChartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
@@ -943,8 +943,10 @@ export function ParentDashboard() {
               </div>
               
               <div className="mb-6">
-                <label className="block text-sm font-bold text-slate-600 mb-2">Amount to Pay Now (₹)</label>
+                <label htmlFor="amountToPay" className="block text-sm font-bold text-slate-600 mb-2">Amount to Pay Now (₹)</label>
                 <input 
+                  id="amountToPay"
+                  name="amountToPay"
                   type="number" 
                   value={amountToPay} 
                   onChange={(e) => setAmountToPay(e.target.value)} 
