@@ -10,6 +10,7 @@ import Setting from '../models/Setting.js';
 import User from '../models/User.js';
 import { protect } from '../middleware/auth.js';
 import { archiveOldHomework } from '../utils/archiveHomework.js';
+import { buildHomeworkClassFilter } from '../utils/homeworkMatching.js';
 
 const router = express.Router();
 
@@ -20,6 +21,26 @@ const parentOnly = (req, res, next) => {
   } else {
     res.status(403).json({ message: 'Request forbidden: Parent access required' });
   }
+};
+
+const findHomeworkForStudent = async ({ student, extraQuery = {}, sort = { dueDate: 1 } }) => {
+  const facultyId = student.facultyId?._id || student.facultyId;
+  const classQuery = {
+    ...buildHomeworkClassFilter({ grade: student.grade, section: student.section }),
+    ...extraQuery
+  };
+
+  let homework = await Homework.find(classQuery).sort(sort);
+
+  // Backward-compatible fallback for homework saved with stale class values.
+  if (homework.length === 0 && facultyId) {
+    homework = await Homework.find({
+      facultyId,
+      ...extraQuery
+    }).sort(sort);
+  }
+
+  return homework;
 };
 
 // @route   GET /api/parent/dashboard
@@ -47,12 +68,14 @@ router.get('/dashboard', protect, parentOnly, async (req, res) => {
     const todayEnd = new Date();
     todayEnd.setHours(23, 59, 59, 999);
 
-    const homework = await Homework.find({ 
-      grade: String(student.grade), 
-      section: String(student.section),
+    const homework = await findHomeworkForStudent({
+      student,
+      extraQuery: {
       archived: { $ne: true },
       dueDate: { $gte: todayStart, $lte: todayEnd }
-    }).sort({ subject: 1, dueDate: 1 });
+      },
+      sort: { subject: 1, dueDate: 1 }
+    });
 
     console.log('[Dashboard] Today\'s homework found:', homework.length);
 
@@ -146,12 +169,14 @@ router.get('/homework/weekly', protect, parentOnly, async (req, res) => {
 
     console.log('Query - Grade:', student.grade, 'Section:', student.section, 'Today:', today, 'Sixty days:', sixtyDaysFromNow);
 
-    const homework = await Homework.find({ 
-      grade: String(student.grade), 
-      section: String(student.section),
+    const homework = await findHomeworkForStudent({
+      student,
+      extraQuery: {
       archived: { $ne: true },
       dueDate: { $gte: today, $lte: sixtyDaysFromNow }
-    }).sort({ dueDate: 1 });
+      },
+      sort: { dueDate: 1 }
+    });
 
     console.log('Homework found:', homework.length, homework.map(h => ({ subject: h.subject, dueDate: h.dueDate, grade: h.grade, section: h.section })));
       
@@ -176,9 +201,7 @@ router.get('/homework/history/:subject', protect, parentOnly, async (req, res) =
     const subject = decodeURIComponent(req.params.subject);
     
     // Build query — fetch both active and archived by default
-    const query = { 
-      grade: String(student.grade), 
-      section: String(student.section),
+    const query = {
       subject
     };
     
@@ -189,7 +212,11 @@ router.get('/homework/history/:subject', protect, parentOnly, async (req, res) =
       query.archived = false;
     }
 
-    const homework = await Homework.find(query).sort({ createdAt: -1 });
+    const homework = await findHomeworkForStudent({
+      student,
+      extraQuery: query,
+      sort: { createdAt: -1 }
+    });
     console.log('[History] Subject:', subject, 'Grade:', student.grade, 'Section:', student.section, 'Results:', homework.length);
       
     res.json(homework);
@@ -288,9 +315,9 @@ router.get('/debug/homework', protect, parentOnly, async (req, res) => {
     const parentUser = await User.findById(req.user.id);
     const student = parentUser.studentId ? await Student.findById(parentUser.studentId) : null;
     
-    const allHomework = student ? await Homework.find({ 
-      grade: String(student.grade), 
-      section: String(student.section)
+    const allHomework = student ? await findHomeworkForStudent({
+      student,
+      sort: { createdAt: -1 }
     }) : [];
 
     const today = new Date();
@@ -298,11 +325,13 @@ router.get('/debug/homework', protect, parentOnly, async (req, res) => {
     const sixtyDaysFromNow = new Date(today);
     sixtyDaysFromNow.setDate(sixtyDaysFromNow.getDate() + 60);
 
-    const futureHomework = student ? await Homework.find({ 
-      grade: String(student.grade),
-      section: String(student.section),
-      archived: { $ne: true },
-      dueDate: { $gte: today, $lte: sixtyDaysFromNow }
+    const futureHomework = student ? await findHomeworkForStudent({
+      student,
+      extraQuery: {
+        archived: { $ne: true },
+        dueDate: { $gte: today, $lte: sixtyDaysFromNow }
+      },
+      sort: { dueDate: 1 }
     }) : [];
 
     res.json({

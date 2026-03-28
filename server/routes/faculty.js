@@ -5,8 +5,10 @@ import Homework from '../models/Homework.js';
 import Notification from '../models/Notification.js';
 import Attendance from '../models/Attendance.js';
 import Behavior from '../models/Behavior.js';
+import User from '../models/User.js';
 import { protect, facultyOrAdmin } from '../middleware/auth.js';
 import { archiveOldHomework } from '../utils/archiveHomework.js';
+import { buildHomeworkClassFilter, resolveHomeworkAudience } from '../utils/homeworkMatching.js';
 
 const router = express.Router();
 
@@ -101,10 +103,25 @@ router.post('/homework', protect, facultyOrAdmin, async (req, res) => {
   const { grade, section, subject, title, description, dueDate } = req.body;
 
   try {
-    const homework = await Homework.create({
-      facultyId: req.user.id,
+    const faculty = req.user.role === 'faculty'
+      ? await User.findById(req.user.id).select('assignedGrade assignedSection')
+      : null;
+
+    const audience = resolveHomeworkAudience({
       grade,
       section,
+      assignedGrade: faculty?.assignedGrade,
+      assignedSection: faculty?.assignedSection
+    });
+
+    if (!audience) {
+      return res.status(400).json({ message: 'Faculty class assignment is missing. Please contact admin and try again.' });
+    }
+
+    const homework = await Homework.create({
+      facultyId: req.user.id,
+      grade: audience.grade,
+      section: audience.section,
       subject,
       title,
       description,
@@ -114,7 +131,7 @@ router.post('/homework', protect, facultyOrAdmin, async (req, res) => {
     });
 
     // Notify all parents of students in this grade and section
-    const students = await Student.find({ grade, section });
+    const students = await Student.find(buildHomeworkClassFilter(audience));
     const studentIds = students.map(s => s._id);
     const parents = await import('../models/User.js').then(m => m.default.find({ studentId: { $in: studentIds } }));
     
