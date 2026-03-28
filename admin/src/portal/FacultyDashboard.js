@@ -4,10 +4,12 @@ import axios from 'axios';
 import { Users, LogOut, CheckSquare, BookOpen, AlertCircle } from 'lucide-react';
 import srvLogo from '../assest/fav_logo/srv-t.png';
 import API_URL from '../config/api.js';
+import HomeworkCalendar from '../components/HomeworkCalendar.js';
 
 export function FacultyDashboard() {
   const [students, setStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [assignedHomework, setAssignedHomework] = useState([]);
   
   // Grading Form State
   const [gradeForm, setGradeForm] = useState({
@@ -104,7 +106,21 @@ export function FacultyDashboard() {
     axios.get(`${API_URL}/api/faculty/students`, {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => setStudents(res.data)).catch(console.error);
+
+    fetchHomework();
   }, [navigate, user.role]);
+
+  const fetchHomework = async () => {
+    try {
+      const token = localStorage.getItem('schoolToken');
+      const res = await axios.get(`${API_URL}/api/faculty/homework`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAssignedHomework(res.data);
+    } catch (err) {
+      console.error('Error fetching homework', err);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('schoolToken');
@@ -142,6 +158,7 @@ export function FacultyDashboard() {
       });
       setHwMsg({ text: 'Homework published successfully!', type: 'success' });
       setHwForm({ subject: '', title: '', description: '', dueDate: '' });
+      fetchHomework(); // Update the UI immediately
       setTimeout(() => setHwMsg({ text: '', type: '' }), 3000);
     } catch (err) {
       setHwMsg({ text: 'Failed to publish homework', type: 'error' });
@@ -293,6 +310,9 @@ export function FacultyDashboard() {
                 </form>
               </div>
             )}
+
+            {/* Homework Dashboard Weekly Calendar */}
+            <HomeworkCalendar homeworkList={assignedHomework} onRefresh={fetchHomework} />
           </div>
 
           {/* Sidebar Actions */}

@@ -9,6 +9,7 @@ const homeworkSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
   dueDate: { type: Date, required: true },
+  createdAt: { type: Date, default: Date.now, expires: '14d' }
 }, { timestamps: true });
 
 export default mongoose.model('Homework', homeworkSchema);

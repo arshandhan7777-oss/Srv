@@ -131,6 +131,19 @@ router.post('/homework', protect, facultyOrAdmin, async (req, res) => {
   }
 });
 
+// @route   GET /api/faculty/homework
+// @desc    Get all homework assigned by faculty
+// @access  Private (Faculty/Admin)
+router.get('/homework', protect, facultyOrAdmin, async (req, res) => {
+  try {
+    const query = req.user.role === 'admin' ? {} : { facultyId: req.user.id };
+    const homeworkList = await Homework.find(query).sort({ dueDate: 1 });
+    res.json(homeworkList);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching homework' });
+  }
+});
+
 // @route   POST /api/faculty/attendance
 // @desc    Submit daily or weekly attendance for the class
 // @access  Private (Faculty/Admin)

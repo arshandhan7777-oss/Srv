@@ -104,6 +104,27 @@ router.get('/notifications', protect, parentOnly, async (req, res) => {
   }
 });
 
+// @route   GET /api/parent/homework/weekly
+// @desc    Get all homework for the student's grade/section
+// @access  Private (Parent only)
+router.get('/homework/weekly', protect, parentOnly, async (req, res) => {
+  try {
+    const parentUser = await User.findById(req.user.id);
+    if (!parentUser.studentId) return res.status(404).json({ message: 'No student linked' });
+
+    const student = await Student.findById(parentUser.studentId);
+    if (!student) return res.status(404).json({ message: 'Student not found' });
+
+    // Fetch all homework (that hasn't expired), sorted by due date
+    const homework = await Homework.find({ grade: student.grade, section: student.section })
+      .sort({ dueDate: 1 });
+      
+    res.json(homework);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error fetching homework' });
+  }
+});
+
 // @route   PUT /api/parent/notifications/:id/read
 // @desc    Mark a notification as read
 // @access  Private (Parent only)

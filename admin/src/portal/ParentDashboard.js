@@ -8,11 +8,13 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import API_URL from '../config/api.js';
 import Swal from 'sweetalert2';
+import HomeworkCalendar from '../components/HomeworkCalendar.js';
 
 const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6'];
 
 export function ParentDashboard() {
   const [data, setData] = useState({ student: null, records: [], homework: [], food: null, settings: {} });
+  const [weeklyHomework, setWeeklyHomework] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPayModal, setShowPayModal] = useState(false);
   const [selectedTerm, setSelectedTerm] = useState({ id: '', name: '', amount: '', balance: '' });
@@ -33,7 +35,21 @@ export function ParentDashboard() {
       console.error(err);
       setLoading(false); // Even if it fails, stop loading to show fallback UI
     });
+
+    fetchWeeklyHomework();
   }, [navigate]);
+
+  const fetchWeeklyHomework = async () => {
+    try {
+      const token = localStorage.getItem('schoolToken');
+      const res = await axios.get(`${API_URL}/api/parent/homework/weekly`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setWeeklyHomework(res.data);
+    } catch (err) {
+      console.error('Error fetching weekly homework', err);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('schoolToken');
@@ -416,35 +432,8 @@ export function ParentDashboard() {
           )}
         </div>
 
-        {/* Homework & Assignments Section */}
-        <div className="mt-8 bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
-          <div className="flex items-center gap-3 mb-6">
-            <BookOpen className="text-pink-500" />
-            <h3 className="text-xl font-display font-bold text-slate-900">Homework & Assignments</h3>
-          </div>
-          
-          {data.homework && data.homework.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {data.homework.map((hw) => (
-                <div key={hw._id} className="p-5 bg-pink-50 border border-pink-100 rounded-2xl flex flex-col">
-                  <span className="text-[10px] font-bold text-pink-500 uppercase tracking-widest bg-pink-100 px-2 py-1 rounded w-max mb-3">
-                    {hw.subject}
-                  </span>
-                  <h4 className="font-display font-bold text-slate-900 text-lg mb-2 leading-tight">{hw.title}</h4>
-                  <p className="text-sm text-slate-600 mb-4 flex-1">{hw.description}</p>
-                  <div className="flex items-center justify-between text-xs font-bold pt-3 border-t border-pink-200/60 text-slate-500">
-                    <div className="flex items-center gap-1.5"><CalIcon size={12} className="text-pink-400" /> Due:</div>
-                    <span className="text-pink-700 bg-pink-200/40 px-2 py-0.5 rounded">{new Date(hw.dueDate).toLocaleDateString()}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="p-6 border-2 border-dashed border-slate-100 rounded-2xl text-slate-400 font-semibold text-center mt-4">
-              No active homework or assignments currently published by the faculty.
-            </div>
-          )}
-        </div>
+        {/* Weekly Homework Dashboard */}
+        <HomeworkCalendar homeworkList={weeklyHomework} onRefresh={fetchWeeklyHomework} />
 
         {/* Pay Fees Section */}
         <div className="mt-8 bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
