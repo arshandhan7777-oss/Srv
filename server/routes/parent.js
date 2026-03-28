@@ -117,7 +117,7 @@ router.get('/notifications', protect, parentOnly, async (req, res) => {
 });
 
 // @route   GET /api/parent/homework/weekly
-// @desc    Get active (non-archived) homework for the student's grade/section (last 14 days)
+// @desc    Get active (non-archived) homework for the student's grade/section (due within 60 days)
 // @access  Private (Parent only)
 router.get('/homework/weekly', protect, parentOnly, async (req, res) => {
   try {
@@ -130,15 +130,17 @@ router.get('/homework/weekly', protect, parentOnly, async (req, res) => {
     // Run auto-archive transparently
     await archiveOldHomework();
 
-    // Fetch only active (non-archived) homework
-    const fourteenDaysAgo = new Date();
-    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+    // Fetch only active (non-archived) homework with dueDate within next 60 days
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const sixtyDaysFromNow = new Date(today);
+    sixtyDaysFromNow.setDate(sixtyDaysFromNow.getDate() + 60);
 
     const homework = await Homework.find({ 
       grade: student.grade, 
       section: student.section,
       archived: { $ne: true },
-      createdAt: { $gte: fourteenDaysAgo }
+      dueDate: { $gte: today, $lte: sixtyDaysFromNow }
     }).sort({ dueDate: 1 });
       
     res.json(homework);

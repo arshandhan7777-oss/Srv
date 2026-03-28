@@ -58,9 +58,10 @@ export function ParentDashboard() {
       const res = await axios.get(`${API_URL}/api/parent/homework/weekly`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      console.log('Successfully fetched weekly homework:', res.data);
       setWeeklyHomework(res.data);
     } catch (err) {
-      console.error('Error fetching weekly homework', err);
+      console.error('Error fetching weekly homework:', err.message, err.response?.data);
     }
   };
 

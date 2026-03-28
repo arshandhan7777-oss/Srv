@@ -18,5 +18,7 @@ const homeworkSchema = new mongoose.Schema({
 homeworkSchema.index({ grade: 1, section: 1, archived: 1, createdAt: -1 });
 // Index for subject-wise history queries
 homeworkSchema.index({ grade: 1, section: 1, subject: 1, createdAt: -1 });
+// Index for parent homework/weekly query filtering by dueDate
+homeworkSchema.index({ grade: 1, section: 1, archived: 1, dueDate: 1 });
 
 export default mongoose.model('Homework', homeworkSchema);
