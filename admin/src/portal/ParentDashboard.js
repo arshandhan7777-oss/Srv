@@ -231,29 +231,78 @@ export function ParentDashboard() {
               )}
             </div>
 
-            {/* Homework Section */}
+            {/* Today's Homework Section — grouped by subject */}
             <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
-              <div className="flex items-center gap-3 mb-6">
-                <FileText className="text-blue-500" />
-                <h3 className="text-xl font-display font-bold text-slate-900">Recent Homework & Tasks</h3>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <FileText className="text-blue-500" />
+                  <h3 className="text-xl font-display font-bold text-slate-900">Today's Homework & Tasks</h3>
+                </div>
+                <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">
+                  {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                </span>
               </div>
               
-              <div className="grid md:grid-cols-2 gap-4">
-                {data.homework?.length > 0 ? data.homework.map(hw => (
-                  <div key={hw._id} className="p-5 border border-slate-100 rounded-2xl bg-slate-50 hover:bg-white transition-colors">
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">{hw.subject}</span>
-                      <span className="text-xs font-bold text-red-500">Due: {new Date(hw.dueDate).toLocaleDateString()}</span>
-                    </div>
-                    <h4 className="font-semibold text-slate-900 text-lg mb-1">{hw.title}</h4>
-                    <p className="text-sm text-slate-600">{hw.description}</p>
+              {data.homework?.length > 0 ? (() => {
+                // Group today's homework by subject
+                const grouped = {};
+                data.homework.forEach(hw => {
+                  if (!grouped[hw.subject]) grouped[hw.subject] = [];
+                  grouped[hw.subject].push(hw);
+                });
+                const subjectColorMap = {
+                  'English': { bg: 'bg-blue-50', border: 'border-blue-100', header: 'bg-blue-100 text-blue-700', dot: 'bg-blue-500' },
+                  'Tamil': { bg: 'bg-purple-50', border: 'border-purple-100', header: 'bg-purple-100 text-purple-700', dot: 'bg-purple-500' },
+                  'Hindi': { bg: 'bg-orange-50', border: 'border-orange-100', header: 'bg-orange-100 text-orange-700', dot: 'bg-orange-500' },
+                  'Mathematics': { bg: 'bg-emerald-50', border: 'border-emerald-100', header: 'bg-emerald-100 text-emerald-700', dot: 'bg-emerald-500' },
+                  'Science': { bg: 'bg-cyan-50', border: 'border-cyan-100', header: 'bg-cyan-100 text-cyan-700', dot: 'bg-cyan-500' },
+                  'Social Science': { bg: 'bg-amber-50', border: 'border-amber-100', header: 'bg-amber-100 text-amber-700', dot: 'bg-amber-500' },
+                  'Computer Science': { bg: 'bg-indigo-50', border: 'border-indigo-100', header: 'bg-indigo-100 text-indigo-700', dot: 'bg-indigo-500' },
+                };
+                const getColor = (sub) => subjectColorMap[sub] || { bg: 'bg-slate-50', border: 'border-slate-100', header: 'bg-slate-100 text-slate-700', dot: 'bg-slate-500' };
+
+                return (
+                  <div className="space-y-5">
+                    {Object.entries(grouped).map(([subject, hwList]) => {
+                      const color = getColor(subject);
+                      return (
+                        <div key={subject} className={`${color.bg} border ${color.border} rounded-2xl overflow-hidden`}>
+                          {/* Subject Header */}
+                          <div className="flex items-center justify-between px-5 py-3 border-b border-inherit">
+                            <div className="flex items-center gap-2.5">
+                              <span className={`w-2.5 h-2.5 rounded-full ${color.dot}`}></span>
+                              <span className={`text-sm font-bold ${color.header.split(' ')[1]}`}>{subject}</span>
+                            </div>
+                            <span className={`${color.header} text-[10px] font-bold px-2.5 py-0.5 rounded-full`}>
+                              {hwList.length} Task{hwList.length > 1 ? 's' : ''}
+                            </span>
+                          </div>
+                          {/* Homework entries */}
+                          <div className="divide-y divide-white/80">
+                            {hwList.map(hw => (
+                              <div key={hw._id} className="px-5 py-4 hover:bg-white/50 transition-colors">
+                                <div className="flex justify-between items-start mb-1.5">
+                                  <h4 className="font-display font-bold text-slate-900 text-base">{hw.title}</h4>
+                                  <span className="text-[11px] font-bold text-red-500 shrink-0 ml-3 mt-0.5">
+                                    Due: {new Date(hw.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-slate-600 leading-relaxed">{hw.description}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                )) : (
-                  <div className="col-span-2 p-5 border-2 border-dashed border-slate-100 rounded-2xl text-slate-400 font-semibold text-center">
-                    No recent homework assignments.
-                  </div>
-                )}
-              </div>
+                );
+              })() : (
+                <div className="p-8 border-2 border-dashed border-slate-100 rounded-2xl text-center">
+                  <BookOpen size={36} className="mx-auto text-slate-300 mb-3" />
+                  <p className="text-slate-400 font-semibold text-lg">No homework assigned for today.</p>
+                  <p className="text-slate-300 text-sm mt-1">Check the Homework Dashboard below for the full weekly view.</p>
+                </div>
+              )}
             </div>
 
           </div>

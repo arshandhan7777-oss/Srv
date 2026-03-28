@@ -9,7 +9,14 @@ const homeworkSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
   dueDate: { type: Date, required: true },
-  createdAt: { type: Date, default: Date.now, expires: '14d' }
+  assignedDate: { type: Date, default: Date.now },
+  archived: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now }
 }, { timestamps: true });
+
+// Compound index for optimizing active/archived searches per class
+homeworkSchema.index({ grade: 1, section: 1, archived: 1, createdAt: -1 });
+// Index for subject-wise history queries
+homeworkSchema.index({ grade: 1, section: 1, subject: 1, createdAt: -1 });
 
 export default mongoose.model('Homework', homeworkSchema);

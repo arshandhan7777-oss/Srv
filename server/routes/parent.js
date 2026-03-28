@@ -9,6 +9,7 @@ import Behavior from '../models/Behavior.js';
 import Setting from '../models/Setting.js';
 import User from '../models/User.js';
 import { protect } from '../middleware/auth.js';
+import { archiveOldHomework } from '../utils/archiveHomework.js';
 
 const router = express.Router();
 
@@ -32,13 +33,24 @@ router.get('/dashboard', protect, parentOnly, async (req, res) => {
     const student = await Student.findById(parentUser.studentId).populate('facultyId', 'name');
     if (!student) return res.status(404).json({ message: 'Student record not found' });
 
+    // Run auto-archive transparently
+    await archiveOldHomework();
+
     // Get all academic records to build trend graphs
     const records = await AcademicRecord.find({ studentId: student._id }).sort({ createdAt: 1 });
     
-    // Get recent homework
-    const homework = await Homework.find({ grade: student.grade, section: student.section })
-        .sort({ dueDate: -1 })
-        .limit(5);
+    // Get TODAY's homework only (for "Recent Homework & Tasks" section)
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    const homework = await Homework.find({ 
+      grade: student.grade, 
+      section: student.section,
+      archived: false,
+      dueDate: { $gte: todayStart, $lte: todayEnd }
+    }).sort({ subject: 1, dueDate: 1 });
 
     // Get today's food menu
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -105,7 +117,7 @@ router.get('/notifications', protect, parentOnly, async (req, res) => {
 });
 
 // @route   GET /api/parent/homework/weekly
-// @desc    Get all homework for the student's grade/section
+// @desc    Get active (non-archived) homework for the student's grade/section (last 14 days)
 // @access  Private (Parent only)
 router.get('/homework/weekly', protect, parentOnly, async (req, res) => {
   try {
@@ -115,13 +127,59 @@ router.get('/homework/weekly', protect, parentOnly, async (req, res) => {
     const student = await Student.findById(parentUser.studentId);
     if (!student) return res.status(404).json({ message: 'Student not found' });
 
-    // Fetch all homework (that hasn't expired), sorted by due date
-    const homework = await Homework.find({ grade: student.grade, section: student.section })
-      .sort({ dueDate: 1 });
+    // Run auto-archive transparently
+    await archiveOldHomework();
+
+    // Fetch only active (non-archived) homework
+    const fourteenDaysAgo = new Date();
+    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+
+    const homework = await Homework.find({ 
+      grade: student.grade, 
+      section: student.section,
+      archived: false,
+      createdAt: { $gte: fourteenDaysAgo }
+    }).sort({ dueDate: 1 });
       
     res.json(homework);
   } catch (error) {
     res.status(500).json({ message: 'Server error fetching homework' });
+  }
+});
+
+// @route   GET /api/parent/homework/history/:subject
+// @desc    Get ALL homework (active + archived) for a specific subject — full history
+// @access  Private (Parent only)
+router.get('/homework/history/:subject', protect, parentOnly, async (req, res) => {
+  try {
+    const parentUser = await User.findById(req.user.id);
+    if (!parentUser.studentId) return res.status(404).json({ message: 'No student linked' });
+
+    const student = await Student.findById(parentUser.studentId);
+    if (!student) return res.status(404).json({ message: 'Student not found' });
+
+    const subject = decodeURIComponent(req.params.subject);
+    
+    // Build query — fetch both active and archived by default
+    const query = { 
+      grade: student.grade, 
+      section: student.section,
+      subject
+    };
+    
+    // Optional: filter by archived status via query param
+    if (req.query.archived === 'true') {
+      query.archived = true;
+    } else if (req.query.archived === 'false') {
+      query.archived = false;
+    }
+    // If no query param, fetch all (both active and archived)
+
+    const homework = await Homework.find(query).sort({ createdAt: -1 });
+      
+    res.json(homework);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error fetching homework history' });
   }
 });
 

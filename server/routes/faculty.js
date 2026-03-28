@@ -6,6 +6,7 @@ import Notification from '../models/Notification.js';
 import Attendance from '../models/Attendance.js';
 import Behavior from '../models/Behavior.js';
 import { protect, facultyOrAdmin } from '../middleware/auth.js';
+import { archiveOldHomework } from '../utils/archiveHomework.js';
 
 const router = express.Router();
 
@@ -107,7 +108,9 @@ router.post('/homework', protect, facultyOrAdmin, async (req, res) => {
       subject,
       title,
       description,
-      dueDate
+      dueDate,
+      assignedDate: new Date(),
+      archived: false
     });
 
     // Notify all parents of students in this grade and section
@@ -132,15 +135,48 @@ router.post('/homework', protect, facultyOrAdmin, async (req, res) => {
 });
 
 // @route   GET /api/faculty/homework
-// @desc    Get all homework assigned by faculty
+// @desc    Get active (non-archived) homework assigned by faculty (last 14 days)
 // @access  Private (Faculty/Admin)
 router.get('/homework', protect, facultyOrAdmin, async (req, res) => {
   try {
-    const query = req.user.role === 'admin' ? {} : { facultyId: req.user.id };
+    // Run auto-archive transparently
+    await archiveOldHomework();
+
+    const fourteenDaysAgo = new Date();
+    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+
+    const query = req.user.role === 'admin' 
+        ? { archived: false, createdAt: { $gte: fourteenDaysAgo } } 
+        : { facultyId: req.user.id, archived: false, createdAt: { $gte: fourteenDaysAgo } };
+        
     const homeworkList = await Homework.find(query).sort({ dueDate: 1 });
     res.json(homeworkList);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching homework' });
+  }
+});
+
+// @route   GET /api/faculty/homework/history/:subject
+// @desc    Get all historical homework (active + archived) for a specific subject
+// @access  Private (Faculty/Admin)
+router.get('/homework/history/:subject', protect, facultyOrAdmin, async (req, res) => {
+  try {
+    const subject = decodeURIComponent(req.params.subject);
+    const query = req.user.role === 'admin' 
+        ? { subject } 
+        : { facultyId: req.user.id, subject };
+    
+    // Optional: filter by archived status via query param
+    if (req.query.archived === 'true') {
+      query.archived = true;
+    } else if (req.query.archived === 'false') {
+      query.archived = false;
+    }
+        
+    const homeworkList = await Homework.find(query).sort({ createdAt: -1 });
+    res.json(homeworkList);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching homework history' });
   }
 });
 
@@ -164,16 +200,20 @@ router.put('/homework/:id', protect, facultyOrAdmin, async (req, res) => {
 });
 
 // @route   DELETE /api/faculty/homework/:id
-// @desc    Delete a homework assignment
+// @desc    Soft-delete (archive) a homework assignment — no permanent deletion
 // @access  Private (Faculty/Admin)
 router.delete('/homework/:id', protect, facultyOrAdmin, async (req, res) => {
   try {
     const query = req.user.role === 'admin' ? { _id: req.params.id } : { _id: req.params.id, facultyId: req.user.id };
-    const hw = await Homework.findOneAndDelete(query);
+    const hw = await Homework.findOneAndUpdate(
+      query,
+      { $set: { archived: true } },
+      { new: true }
+    );
     if (!hw) return res.status(404).json({ message: 'Homework not found or unauthorized' });
-    res.json({ message: 'Homework deleted successfully' });
+    res.json({ message: 'Homework archived successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting homework' });
+    res.status(500).json({ message: 'Error archiving homework' });
   }
 });
 
