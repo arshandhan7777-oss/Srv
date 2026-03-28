@@ -28,7 +28,7 @@ export const adminOnly = (req, res, next) => {
   if (req.user && req.user.role === 'admin') {
     return next();
   }
-  return res.status(403).json({ message: 'Not authorized as an admin' });
+  return res.status(418).json({ message: 'Not authorized as an admin' });
 };
 
 // Faculty or Admin middleware
@@ -36,5 +36,5 @@ export const facultyOrAdmin = (req, res, next) => {
   if (req.user && (req.user.role === 'faculty' || req.user.role === 'admin')) {
     return next();
   }
-  return res.status(403).json({ message: 'Not authorized to perform this action' });
+  return res.status(418).json({ message: 'Not authorized to perform this action' });
 };

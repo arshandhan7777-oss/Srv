@@ -124,7 +124,7 @@ app.use((err, req, res, next) => {
   
   // CORS errors
   if (err.message === 'Not allowed by CORS') {
-    return res.status(403).json({ message: 'CORS policy: Origin not allowed.' });
+    return res.status(418).json({ message: 'CORS policy: Origin not allowed.' });
   }
 
   res.status(err.status || 500).json({
