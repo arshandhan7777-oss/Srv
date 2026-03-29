@@ -436,7 +436,7 @@ router.get('/announcements', protect, async (req, res) => {
 });
 
 // @route   GET /api/faculty/announcements/inbox
-// @desc    Get all announcements targeted to this faculty (from admin)
+// @desc    Get all announcements targeted to this faculty (from admin) excluding dismissed
 // @access  Private (Faculty only)
 router.get('/announcements/inbox/all', protect, async (req, res) => {
   if (req.user.role !== 'faculty') {
@@ -444,8 +444,9 @@ router.get('/announcements/inbox/all', protect, async (req, res) => {
   }
 
   try {
-    // Get global announcements + announcements where this faculty is in recipients
+    // Get global announcements + announcements where this faculty is in recipients, excluding dismissed
     const announcements = await Announcement.find({
+      dismissedBy: { $ne: req.user.id },
       $or: [
         { type: 'GLOBAL', createdByRole: 'admin' },
         { 
@@ -461,6 +462,34 @@ router.get('/announcements/inbox/all', protect, async (req, res) => {
     res.json(announcements);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching announcements' });
+  }
+});
+
+// @route   POST /api/faculty/announcements/:id/dismiss
+// @desc    Dismiss an announcement for this faculty
+// @access  Private (Faculty only)
+router.post('/announcements/:id/dismiss', protect, async (req, res) => {
+  if (req.user.role !== 'faculty') {
+    return res.status(403).json({ message: 'Only faculty can dismiss announcements' });
+  }
+
+  try {
+    const announcement = await Announcement.findById(req.params.id);
+    if (!announcement) return res.status(404).json({ message: 'Announcement not found' });
+
+    // Check if already dismissed by this user
+    if (announcement.dismissedBy.includes(req.user.id)) {
+      return res.json({ message: 'Announcement already dismissed' });
+    }
+
+    // Add user to dismissedBy array
+    announcement.dismissedBy.push(req.user.id);
+    await announcement.save();
+
+    res.json({ message: 'Announcement dismissed' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error dismissing announcement' });
   }
 });
 

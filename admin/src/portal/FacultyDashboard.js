@@ -230,6 +230,23 @@ export function FacultyDashboard() {
     }).catch(console.error);
   };
 
+  const dismissInboxAnnouncement = async (announcementId) => {
+    try {
+      const token = localStorage.getItem('schoolToken');
+      await axios.post(
+        `${API_URL}/api/faculty/announcements/${announcementId}/dismiss`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      // Remove from local state
+      const updated = inboxAnnouncements.filter(ann => ann._id !== announcementId);
+      setInboxAnnouncements(updated);
+      setUnreadCount(updated.length);
+    } catch (err) {
+      console.error('Error dismissing announcement:', err);
+    }
+  };
+
   const submitAnnouncement = async (e) => {
     e.preventDefault();
     if (!announcementForm.title.trim() || !announcementForm.message.trim()) {
@@ -407,7 +424,16 @@ export function FacultyDashboard() {
                       <div key={ann._id} className={`p-4 hover:bg-slate-50 transition-colors ${ann.priority === 'HIGH' ? 'border-l-4 border-l-red-500' : 'border-l-4 border-l-slate-200'}`}>
                         <div className="flex items-start justify-between gap-2 mb-1">
                           <h4 className="font-bold text-slate-900 text-sm line-clamp-2">{ann.title}</h4>
-                          {ann.priority === 'HIGH' && <span className="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">URGENT</span>}
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {ann.priority === 'HIGH' && <span className="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">URGENT</span>}
+                            <button 
+                              onClick={() => dismissInboxAnnouncement(ann._id)}
+                              className="text-slate-400 hover:text-slate-600 p-0.5 rounded transition-colors"
+                              title="Dismiss"
+                            >
+                              <X size={16} />
+                            </button>
+                          </div>
                         </div>
                         <p className="text-xs text-slate-600 line-clamp-2 mb-2">{ann.message}</p>
                         <div className="flex items-center justify-between text-[11px]">

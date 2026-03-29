@@ -358,7 +358,7 @@ router.get('/debug/homework', protect, parentOnly, async (req, res) => {
 });
 
 // @route   GET /api/parent/announcements
-// @desc    Get all announcements for this parent (global + class-specific)
+// @desc    Get all announcements for this parent (global + class-specific) excluding dismissed
 // @access  Private (Parent only)
 router.get('/announcements', protect, parentOnly, async (req, res) => {
   try {
@@ -368,9 +368,10 @@ router.get('/announcements', protect, parentOnly, async (req, res) => {
     const student = await Student.findById(parentUser.studentId);
     if (!student) return res.status(404).json({ message: 'Student record not found' });
 
-    // Get global announcements + class-specific announcements
+    // Get global announcements + class-specific announcements, excluding those dismissed by this user
     const announcements = await Announcement.find({
       isPublished: true,
+      dismissedBy: { $ne: req.user.id },
       $or: [
         { type: 'GLOBAL' },
         {
@@ -385,6 +386,30 @@ router.get('/announcements', protect, parentOnly, async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error fetching announcements' });
+  }
+});
+
+// @route   POST /api/parent/announcements/:id/dismiss
+// @desc    Dismiss an announcement for this parent
+// @access  Private (Parent only)
+router.post('/announcements/:id/dismiss', protect, parentOnly, async (req, res) => {
+  try {
+    const announcement = await Announcement.findById(req.params.id);
+    if (!announcement) return res.status(404).json({ message: 'Announcement not found' });
+
+    // Check if already dismissed by this user
+    if (announcement.dismissedBy.includes(req.user.id)) {
+      return res.json({ message: 'Announcement already dismissed' });
+    }
+
+    // Add user to dismissedBy array
+    announcement.dismissedBy.push(req.user.id);
+    await announcement.save();
+
+    res.json({ message: 'Announcement dismissed' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error dismissing announcement' });
   }
 });
 

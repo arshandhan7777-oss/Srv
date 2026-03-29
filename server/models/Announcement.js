@@ -11,6 +11,7 @@ const announcementSchema = new mongoose.Schema({
   recipients: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Specific users who should see this
   isPublished: { type: Boolean, default: true },
   priority: { type: String, enum: ['LOW', 'MEDIUM', 'HIGH'], default: 'MEDIUM' },
+  dismissedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Users who have dismissed this announcement
 }, { timestamps: true });
 
 export default mongoose.model('Announcement', announcementSchema);
