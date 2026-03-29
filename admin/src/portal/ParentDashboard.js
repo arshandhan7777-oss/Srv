@@ -10,6 +10,7 @@ import API_URL from '../config/api.js';
 import Swal from 'sweetalert2';
 import { ParentPollsSection } from '../components/ParentPollsSection.js';
 import { ParentFeedbackSection } from '../components/ParentFeedbackSection.js';
+import { ParentEventsSection } from '../components/ParentEventsSection.js';
 
 const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6'];
 
@@ -946,6 +947,7 @@ export function ParentDashboard() {
           )}
         </div>
 
+        <ParentEventsSection />
         <ParentPollsSection />
         <ParentFeedbackSection />
 

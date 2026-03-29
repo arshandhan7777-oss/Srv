@@ -10,9 +10,13 @@ import PasswordReset from '../models/PasswordReset.js';
 import Poll from '../models/Poll.js';
 import PollResponse from '../models/PollResponse.js';
 import Feedback from '../models/Feedback.js';
+import Event from '../models/Event.js';
+import EventRegistration from '../models/EventRegistration.js';
 import { protect, adminOnly } from '../middleware/auth.js';
 import { hydratePolls } from '../utils/pollService.js';
 import { normalizeClassValue, validateAndNormalizeQuestions } from '../utils/pollUtils.js';
+import { hydrateEvents } from '../utils/eventService.js';
+import { normalizeEventPayload } from '../utils/eventUtils.js';
 
 const router = express.Router();
 
@@ -800,6 +804,114 @@ router.put('/feedback/:id', protect, adminOnly, async (req, res) => {
     res.json({ message: 'Feedback updated successfully.', feedback });
   } catch (error) {
     res.status(500).json({ message: 'Error updating feedback' });
+  }
+});
+
+// @route   POST /api/admin/events
+// @desc    Create an upcoming event
+// @access  Private (Admin only)
+router.post('/events', protect, adminOnly, async (req, res) => {
+  const { targetType, targetGrade, targetSection } = req.body;
+
+  try {
+    const normalizedEvent = normalizeEventPayload(req.body);
+    const normalizedTargetType = String(targetType || '').trim().toUpperCase() === 'GLOBAL' ? 'GLOBAL' : 'CLASS';
+
+    const eventData = {
+      ...normalizedEvent,
+      targetType: normalizedTargetType,
+      createdBy: req.user.id,
+      createdByRole: 'admin',
+      status: 'ACTIVE',
+      isPublished: true
+    };
+
+    if (normalizedTargetType === 'CLASS') {
+      if (!targetGrade || !targetSection) {
+        return res.status(400).json({ message: 'Grade and section are required for class events.' });
+      }
+      eventData.targetGrade = normalizeClassValue(targetGrade);
+      eventData.targetSection = normalizeClassValue(targetSection);
+    }
+
+    const event = await Event.create(eventData);
+    const [hydratedEvent] = await hydrateEvents([event]);
+
+    res.status(201).json({ message: 'Event created successfully.', event: hydratedEvent });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Error creating event' });
+  }
+});
+
+// @route   GET /api/admin/events
+// @desc    Get all upcoming events with registrations
+// @access  Private (Admin only)
+router.get('/events', protect, adminOnly, async (req, res) => {
+  try {
+    const events = await Event.find().sort({ eventDate: 1, createdAt: -1 });
+    res.json(await hydrateEvents(events));
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching events' });
+  }
+});
+
+// @route   PUT /api/admin/events/:id
+// @desc    Update or close an upcoming event
+// @access  Private (Admin only)
+router.put('/events/:id', protect, adminOnly, async (req, res) => {
+  const { status, targetType, targetGrade, targetSection } = req.body;
+
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).json({ message: 'Event not found' });
+
+    const normalizedPayload = normalizeEventPayload({
+      title: req.body.title ?? event.title,
+      description: req.body.description ?? event.description,
+      venue: req.body.venue ?? event.venue,
+      eventDate: req.body.eventDate ?? event.eventDate
+    });
+
+    Object.assign(event, normalizedPayload);
+    if (status !== undefined) event.status = status;
+
+    const normalizedTargetType = targetType ? String(targetType).trim().toUpperCase() : event.targetType;
+    if (normalizedTargetType === 'GLOBAL') {
+      event.targetType = 'GLOBAL';
+      event.targetGrade = undefined;
+      event.targetSection = undefined;
+    } else {
+      const grade = normalizeClassValue(targetGrade ?? event.targetGrade);
+      const section = normalizeClassValue(targetSection ?? event.targetSection);
+      if (!grade || !section) {
+        return res.status(400).json({ message: 'Grade and section are required for class events.' });
+      }
+      event.targetType = 'CLASS';
+      event.targetGrade = grade;
+      event.targetSection = section;
+    }
+
+    await event.save();
+    const [hydratedEvent] = await hydrateEvents([event]);
+
+    res.json({ message: 'Event updated successfully.', event: hydratedEvent });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Error updating event' });
+  }
+});
+
+// @route   DELETE /api/admin/events/:id
+// @desc    Delete an event and its registrations
+// @access  Private (Admin only)
+router.delete('/events/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const event = await Event.findByIdAndDelete(req.params.id);
+    if (!event) return res.status(404).json({ message: 'Event not found' });
+
+    await EventRegistration.deleteMany({ eventId: req.params.id });
+    res.json({ message: 'Event deleted successfully.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting event' });
   }
 });
 

@@ -6,6 +6,7 @@ import srvLogo from '../assest/fav_logo/srv-t.png';
 import API_URL from '../config/api.js';
 import { OpinionPollSection } from '../components/OpinionPollSection.js';
 import { FeedbackInboxSection } from '../components/FeedbackInboxSection.js';
+import { UpcomingEventsSection } from '../components/UpcomingEventsSection.js';
 
 export function FacultyDashboard() {
   const [students, setStudents] = useState([]);
@@ -1140,6 +1141,7 @@ export function FacultyDashboard() {
 
       </div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+        <UpcomingEventsSection role="faculty" />
         <OpinionPollSection role="faculty" />
         <FeedbackInboxSection role="faculty" />
       </div>

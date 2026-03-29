@@ -10,11 +10,15 @@ import User from '../models/User.js';
 import Poll from '../models/Poll.js';
 import PollResponse from '../models/PollResponse.js';
 import Feedback from '../models/Feedback.js';
+import Event from '../models/Event.js';
+import EventRegistration from '../models/EventRegistration.js';
 import { protect, facultyOrAdmin } from '../middleware/auth.js';
 import { archiveOldHomework } from '../utils/archiveHomework.js';
 import { buildHomeworkClassFilter, resolveHomeworkAudience } from '../utils/homeworkMatching.js';
 import { hydratePolls } from '../utils/pollService.js';
 import { buildClassAudienceFilter, normalizeClassValue, validateAndNormalizeQuestions } from '../utils/pollUtils.js';
+import { hydrateEvents } from '../utils/eventService.js';
+import { normalizeEventPayload } from '../utils/eventUtils.js';
 
 const router = express.Router();
 
@@ -678,6 +682,121 @@ router.put('/feedback/:id', protect, async (req, res) => {
     res.json({ message: 'Feedback updated successfully.', feedback });
   } catch (error) {
     res.status(500).json({ message: 'Error updating feedback' });
+  }
+});
+
+// @route   POST /api/faculty/events
+// @desc    Create an upcoming event for the faculty's class
+// @access  Private (Faculty only)
+router.post('/events', protect, async (req, res) => {
+  if (req.user.role !== 'faculty') {
+    return res.status(403).json({ message: 'Only faculty can create events' });
+  }
+
+  try {
+    const classContext = await getFacultyClassContext(req.user.id);
+    if (!classContext) {
+      return res.status(400).json({ message: 'Faculty class assignment is missing. Please contact admin.' });
+    }
+
+    const normalizedEvent = normalizeEventPayload(req.body);
+    const event = await Event.create({
+      ...normalizedEvent,
+      targetType: 'CLASS',
+      targetGrade: classContext.assignedGrade,
+      targetSection: classContext.assignedSection,
+      createdBy: req.user.id,
+      createdByRole: 'faculty',
+      status: 'ACTIVE',
+      isPublished: true
+    });
+
+    const [hydratedEvent] = await hydrateEvents([event]);
+    res.status(201).json({ message: 'Event created successfully.', event: hydratedEvent });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Error creating event' });
+  }
+});
+
+// @route   GET /api/faculty/events
+// @desc    Get faculty-created events plus admin events for the class
+// @access  Private (Faculty only)
+router.get('/events', protect, async (req, res) => {
+  if (req.user.role !== 'faculty') {
+    return res.status(403).json({ message: 'Only faculty can view events' });
+  }
+
+  try {
+    const classContext = await getFacultyClassContext(req.user.id);
+    const classFilter = classContext ? buildClassAudienceFilter({
+      grade: classContext.assignedGrade,
+      section: classContext.assignedSection
+    }) : null;
+
+    const query = classFilter ? {
+      $or: [
+        { createdBy: req.user.id },
+        { createdByRole: 'admin', targetType: 'GLOBAL' },
+        { createdByRole: 'admin', targetType: 'CLASS', ...classFilter }
+      ]
+    } : { createdBy: req.user.id };
+
+    const events = await Event.find(query).sort({ eventDate: 1, createdAt: -1 });
+    res.json(await hydrateEvents(events));
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching events' });
+  }
+});
+
+// @route   PUT /api/faculty/events/:id
+// @desc    Update or close a faculty-created event
+// @access  Private (Faculty only)
+router.put('/events/:id', protect, async (req, res) => {
+  if (req.user.role !== 'faculty') {
+    return res.status(403).json({ message: 'Only faculty can update events' });
+  }
+
+  const { status } = req.body;
+
+  try {
+    const event = await Event.findOne({ _id: req.params.id, createdBy: req.user.id });
+    if (!event) return res.status(404).json({ message: 'Event not found' });
+
+    const normalizedPayload = normalizeEventPayload({
+      title: req.body.title ?? event.title,
+      description: req.body.description ?? event.description,
+      venue: req.body.venue ?? event.venue,
+      eventDate: req.body.eventDate ?? event.eventDate
+    });
+
+    Object.assign(event, normalizedPayload);
+    if (status !== undefined) event.status = status;
+
+    await event.save();
+    const [hydratedEvent] = await hydrateEvents([event]);
+
+    res.json({ message: 'Event updated successfully.', event: hydratedEvent });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Error updating event' });
+  }
+});
+
+// @route   DELETE /api/faculty/events/:id
+// @desc    Delete a faculty-created event and its registrations
+// @access  Private (Faculty only)
+router.delete('/events/:id', protect, async (req, res) => {
+  if (req.user.role !== 'faculty') {
+    return res.status(403).json({ message: 'Only faculty can delete events' });
+  }
+
+  try {
+    const event = await Event.findOneAndDelete({ _id: req.params.id, createdBy: req.user.id });
+    if (!event) return res.status(404).json({ message: 'Event not found' });
+
+    await EventRegistration.deleteMany({ eventId: req.params.id });
+    res.json({ message: 'Event deleted successfully.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting event' });
   }
 });
 

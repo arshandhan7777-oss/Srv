@@ -7,6 +7,7 @@ import API_URL from '../config/api.js';
 import Swal from 'sweetalert2';
 import { OpinionPollSection } from '../components/OpinionPollSection.js';
 import { FeedbackInboxSection } from '../components/FeedbackInboxSection.js';
+import { UpcomingEventsSection } from '../components/UpcomingEventsSection.js';
 
 export function AdminDashboard() {
   const [stats, setStats] = useState({ totalStudents: 0, totalFaculty: 0 });
@@ -1085,6 +1086,7 @@ export function AdminDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 pb-10">
+        <UpcomingEventsSection role="admin" />
         <OpinionPollSection role="admin" />
         <FeedbackInboxSection role="admin" />
       </div>

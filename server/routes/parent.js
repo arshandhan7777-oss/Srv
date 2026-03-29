@@ -12,11 +12,15 @@ import User from '../models/User.js';
 import Poll from '../models/Poll.js';
 import PollResponse from '../models/PollResponse.js';
 import Feedback from '../models/Feedback.js';
+import Event from '../models/Event.js';
+import EventRegistration from '../models/EventRegistration.js';
 import { protect } from '../middleware/auth.js';
 import { archiveOldHomework } from '../utils/archiveHomework.js';
 import { buildHomeworkClassFilter } from '../utils/homeworkMatching.js';
 import { hydratePolls } from '../utils/pollService.js';
 import { buildClassAudienceFilter, validatePollAnswers } from '../utils/pollUtils.js';
+import { hydrateEvents } from '../utils/eventService.js';
+import { validateParticipantNames } from '../utils/eventUtils.js';
 
 const router = express.Router();
 
@@ -566,6 +570,96 @@ router.get('/feedback', protect, parentOnly, async (req, res) => {
     res.json(feedback);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching feedback' });
+  }
+});
+
+// @route   GET /api/parent/events
+// @desc    Get upcoming events for the linked student
+// @access  Private (Parent only)
+router.get('/events', protect, parentOnly, async (req, res) => {
+  try {
+    const parentUser = await User.findById(req.user.id);
+    if (!parentUser.studentId) return res.status(404).json({ message: 'No student linked to this account' });
+
+    const student = await Student.findById(parentUser.studentId);
+    if (!student) return res.status(404).json({ message: 'Student record not found' });
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const classFilter = buildClassAudienceFilter({ grade: student.grade, section: student.section });
+
+    const events = await Event.find({
+      isPublished: true,
+      status: 'ACTIVE',
+      eventDate: { $gte: today },
+      $or: [
+        { targetType: 'GLOBAL' },
+        { targetType: 'CLASS', ...classFilter }
+      ]
+    }).sort({ eventDate: 1, createdAt: -1 });
+
+    res.json(await hydrateEvents(events, { respondentId: req.user.id }));
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching events' });
+  }
+});
+
+// @route   POST /api/parent/events/:id/register
+// @desc    Acknowledge an event and optionally submit participant names
+// @access  Private (Parent only)
+router.post('/events/:id/register', protect, parentOnly, async (req, res) => {
+  const { participantNames, note } = req.body;
+
+  try {
+    const parentUser = await User.findById(req.user.id);
+    if (!parentUser.studentId) return res.status(404).json({ message: 'No student linked to this account' });
+
+    const student = await Student.findById(parentUser.studentId);
+    if (!student) return res.status(404).json({ message: 'Student record not found' });
+
+    const classFilter = buildClassAudienceFilter({ grade: student.grade, section: student.section });
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const event = await Event.findOne({
+      _id: req.params.id,
+      isPublished: true,
+      status: 'ACTIVE',
+      eventDate: { $gte: today },
+      $or: [
+        { targetType: 'GLOBAL' },
+        { targetType: 'CLASS', ...classFilter }
+      ]
+    });
+
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found or no longer active.' });
+    }
+
+    const normalizedNames = validateParticipantNames(participantNames);
+
+    const registration = await EventRegistration.findOneAndUpdate(
+      { eventId: event._id, parentId: req.user.id },
+      {
+        $set: {
+          studentId: student._id,
+          facultyId: student.facultyId || undefined,
+          participantNames: normalizedNames,
+          note: String(note || '').trim(),
+          acknowledgedAt: new Date()
+        }
+      },
+      {
+        new: true,
+        upsert: true,
+        runValidators: true,
+        setDefaultsOnInsert: true
+      }
+    );
+
+    res.json({ message: 'Event acknowledgement saved successfully.', registration });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Error saving event acknowledgement' });
   }
 });
 
