@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Users, UserPlus, BookOpen, LogOut, CheckCircle2, Coffee, Trash2, Edit2, Save, X, Megaphone, GraduationCap, CalendarDays, ClipboardList, MessageSquareMore, BellRing, ArrowUpCircle, UtensilsCrossed, LayoutDashboard, ShieldAlert, ChevronLeft } from 'lucide-react';
-import srvLogo from '../assest/fav_logo/srv-t.png';
 import API_URL from '../config/api.js';
 import Swal from 'sweetalert2';
 import { OpinionPollSection } from '../components/OpinionPollSection.js';
 import { FeedbackInboxSection } from '../components/FeedbackInboxSection.js';
 import { UpcomingEventsSection } from '../components/UpcomingEventsSection.js';
+import { Logo } from '../components/Logo.js';
 
 export function AdminDashboard({ section = 'home' }) {
   const hasValidFamilyDetails = (profile) => Boolean(
@@ -514,11 +514,7 @@ export function AdminDashboard({ section = 'home' }) {
       <div className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
-            <div className="flex h-14 w-14 items-center justify-center rounded-[1.25rem] bg-slate-900 p-2 shadow-lg shadow-slate-300/60">
-              <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-[0.9rem] bg-white p-1.5">
-                <img src={srvLogo} alt="SRV" className="h-full w-full object-contain scale-[1.12]" />
-              </div>
-            </div>
+            <Logo />
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">SRV School</p>
               <h1 className="text-lg font-display font-bold text-slate-900">Admin Dashboard</h1>
@@ -718,11 +714,7 @@ export function AdminDashboard({ section = 'home' }) {
       {/* Top Navbar */}
       <div className="bg-emerald-900 text-white px-8 py-4 flex justify-between items-center shadow-md">
         <div className="flex items-center gap-3">
-          <div className="w-16 h-16 bg-emerald-900 rounded-[20px] p-[4px] shadow-lg shrink-0">
-            <div className="w-full h-full bg-white rounded-[16px] flex items-center justify-center overflow-hidden p-1.5">
-              <img src={srvLogo} alt="SRV" className="w-full h-full object-contain scale-[1.15]" />
-            </div>
-          </div>
+          <Logo className="shrink-0" />
           <h1 className="font-display font-bold text-xl">{pageMeta[activeSection]?.title || 'Admin Portal'}</h1>
         </div>
         <div className="flex items-center gap-3">

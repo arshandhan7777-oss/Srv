@@ -58,6 +58,7 @@ export default function App() {
           <Route path="/parent/dashboard" element={<ParentDashboard />} />
           <Route path="/parent/skills" element={<ParentDashboard section="skills" />} />
           <Route path="/parent/homework" element={<ParentDashboard section="homework" />} />
+          <Route path="/parent/homework/:subject" element={<ParentDashboard section="homework" />} />
           <Route path="/parent/events" element={<ParentDashboard section="events" />} />
           <Route path="/parent/polls" element={<ParentDashboard section="polls" />} />
           <Route path="/parent/feedback" element={<ParentDashboard section="feedback" />} />

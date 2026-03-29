@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { LogOut, Bell, Download, FileText, Calendar as CalIcon, TrendingUp, Sparkles, CheckCircle2, Coffee, CreditCard, AlertCircle, Clock, CheckCheck, BookOpen, ChevronLeft, ChevronRight, History, ArrowRight, Archive, X, BookMarked, AlertCircleIcon, Home, Zap, MessageSquareMore } from 'lucide-react';
-import srvLogo from '../assest/fav_logo/srv-t.png';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -11,6 +10,7 @@ import Swal from 'sweetalert2';
 import { ParentPollsSection } from '../components/ParentPollsSection.js';
 import { ParentFeedbackSection } from '../components/ParentFeedbackSection.js';
 import { ParentEventsSection } from '../components/ParentEventsSection.js';
+import { Logo } from '../components/Logo.js';
 
 const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6'];
 
@@ -77,8 +77,10 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
   const [historyLoading, setHistoryLoading] = useState(false);
   
   const navigate = useNavigate();
+  const { subject: subjectParam } = useParams();
   const reportRef = useRef();
   const activeSection = section || 'dashboard';
+  const selectedHomeworkSubject = activeSection === 'homework' && subjectParam ? decodeURIComponent(subjectParam) : '';
 
   const pageMeta = {
     dashboard: {
@@ -113,6 +115,18 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
 
   const navigateToSection = (targetSection) => {
     navigate(targetSection === 'dashboard' ? '/parent/dashboard' : `/parent/${targetSection}`);
+  };
+
+  const handleOpenHomework = (subject) => {
+    if (!subject) return;
+    navigate(`/parent/homework/${encodeURIComponent(subject)}`);
+  };
+
+  const handleHomeworkCardKeyDown = (event, subject) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleOpenHomework(subject);
+    }
   };
 
   // ========== Fetch Data on Mount ==========
@@ -288,6 +302,19 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
     }
   };
 
+  useEffect(() => {
+    if (activeSection !== 'homework') return;
+
+    if (!selectedHomeworkSubject) {
+      setHistorySubject(null);
+      setHistoryData([]);
+      setHistoryLoading(false);
+      return;
+    }
+
+    openSubjectHistory(selectedHomeworkSubject);
+  }, [activeSection, selectedHomeworkSubject]);
+
   // ========== Dynamic Data Formatting ==========
   const latestRecord = data.records?.[0];
   
@@ -458,11 +485,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
         <div className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-[1.25rem] bg-slate-900 p-2 shadow-lg shadow-slate-300/60">
-                <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-[0.9rem] bg-white p-1.5">
-                  <img src={srvLogo} alt="SRV" className="h-full w-full object-contain scale-[1.12]" />
-                </div>
-              </div>
+              <Logo />
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">SRV School</p>
                 <h1 className="text-lg font-display font-bold text-slate-900">Parent Dashboard</h1>
@@ -654,11 +677,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
       <div className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-[1.25rem] bg-slate-900 p-2 shadow-lg shadow-slate-300/60">
-              <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-[0.9rem] bg-white p-1.5">
-                <img src={srvLogo} alt="SRV" className="h-full w-full object-contain scale-[1.12]" />
-              </div>
-            </div>
+            <Logo />
           <div>
             <h1 className="font-display font-bold text-lg leading-tight">{pageMeta[activeSection]?.title || 'Parent Portal'}</h1>
             <p className="text-xs text-slate-500">SRV Matriculation School</p>
@@ -1006,6 +1025,54 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
                 </div>
               </div>
 
+              {selectedHomeworkSubject && (
+                <div className="mb-6 rounded-3xl border border-blue-100 bg-blue-50/70 p-6">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Homework Detail</p>
+                      <h3 className="mt-2 text-2xl font-display font-bold text-slate-900">{selectedHomeworkSubject}</h3>
+                      <p className="mt-2 text-sm text-slate-500">Recent homework history and subject tasks for this section.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/parent/homework')}
+                      className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-100 active:scale-95"
+                    >
+                      <ChevronLeft size={16} />
+                      All Homework
+                    </button>
+                  </div>
+
+                  <div className="mt-5">
+                    {historyLoading ? (
+                      <div className="rounded-2xl border border-dashed border-blue-200 bg-white px-4 py-8 text-center text-sm font-semibold text-slate-500">
+                        Loading subject details...
+                      </div>
+                    ) : historyData.length > 0 ? (
+                      <div className="space-y-3">
+                        {historyData.map(item => (
+                          <div key={item._id} className="rounded-2xl border border-white bg-white px-4 py-4 shadow-sm">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                              <div>
+                                <h4 className="text-base font-display font-bold text-slate-900">{item.title}</h4>
+                                <p className="mt-1 text-sm leading-6 text-slate-600">{item.description}</p>
+                              </div>
+                              <div className="shrink-0 rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700">
+                                Due {new Date(item.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="rounded-2xl border border-dashed border-blue-200 bg-white px-4 py-8 text-center text-sm font-semibold text-slate-500">
+                        No homework history available for this subject yet.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {data.homework?.length > 0 ? (() => {
                 const grouped = {};
                 data.homework.forEach(hw => {
@@ -1028,11 +1095,15 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
                     {Object.entries(grouped).map(([subject, hwList]) => {
                       const color = getColor(subject);
                       return (
-                        <div key={subject} className={`${color.bg} border ${color.border} rounded-2xl overflow-hidden`}>
-                          <button 
-                            onClick={() => openSubjectHistory(subject)}
-                            className="w-full flex items-center justify-between px-5 py-3 border-b border-inherit hover:bg-white/60 transition-colors group cursor-pointer"
-                          >
+                        <div
+                          key={subject}
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => handleOpenHomework(subject)}
+                          onKeyDown={(event) => handleHomeworkCardKeyDown(event, subject)}
+                          className={`${color.bg} border ${color.border} group cursor-pointer overflow-hidden rounded-2xl transition hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]`}
+                        >
+                          <div className="flex w-full items-center justify-between border-b border-inherit px-5 py-3 transition-colors group-hover:bg-white/60">
                             <div className="flex items-center gap-2.5">
                               <span className={`w-2.5 h-2.5 rounded-full ${color.dot}`}></span>
                               <span className={`text-sm font-bold ${color.header.split(' ')[1]}`}>{subject}</span>
@@ -1041,18 +1112,14 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
                               <span className={`${color.header} text-[10px] font-bold px-2.5 py-0.5 rounded-full`}>
                                 {hwList.length} Task{hwList.length > 1 ? 's' : ''}
                               </span>
-                              <span className="text-[9px] text-slate-400 font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap ml-1 flex items-center gap-1">
-                                History <ArrowRight size={12} />
+                              <span className="ml-1 flex items-center gap-1 whitespace-nowrap text-[9px] font-bold text-slate-400 opacity-0 transition-opacity group-hover:opacity-100">
+                                Open <ArrowRight size={12} />
                               </span>
                             </div>
-                          </button>
+                          </div>
                           <div className="divide-y divide-white/80">
                             {hwList.map(hw => (
-                              <button 
-                                key={hw._id}
-                                onClick={() => openSubjectHistory(subject)}
-                                className="w-full px-5 py-4 hover:bg-white/50 transition-colors text-left cursor-pointer group"
-                              >
+                              <div key={hw._id} className="px-5 py-4 text-left transition-colors group-hover:bg-white/40">
                                 <div className="flex justify-between items-start mb-1.5">
                                   <h4 className="font-display font-bold text-slate-900 text-base group-hover:text-blue-700 transition-colors">{hw.title}</h4>
                                   <span className="text-[11px] font-bold text-red-500 shrink-0 ml-3 mt-0.5">
@@ -1060,7 +1127,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
                                   </span>
                                 </div>
                                 <p className="text-sm text-slate-600 leading-relaxed">{hw.description}</p>
-                              </button>
+                              </div>
                             ))}
                           </div>
                         </div>
@@ -1142,12 +1209,20 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
                             </div>
                             <div className="flex-1 flex flex-col gap-1.5 overflow-y-auto text-[10px]">
                               {subjectKeys.length > 0 ? subjectKeys.map(subject => (
-                                <div key={subject} className="bg-slate-800/50 rounded p-2 text-slate-200">
+                                <button
+                                  key={subject}
+                                  type="button"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    handleOpenHomework(subject);
+                                  }}
+                                  className="rounded bg-slate-800/50 p-2 text-left text-slate-200 transition hover:bg-slate-700/80 hover:shadow-md active:scale-95"
+                                >
                                   <div className="font-bold text-emerald-300 mb-0.5">{subject}</div>
                                   {grouped[subject].map(hw => (
                                     <div key={hw._id} className="text-[9px] text-slate-300 line-clamp-1">{hw.title}</div>
                                   ))}
-                                </div>
+                                </button>
                               )) : (
                                 <div className="flex flex-col items-center justify-center h-full text-slate-500 text-center">
                                   <span className="text-[9px]">No Tasks</span>
