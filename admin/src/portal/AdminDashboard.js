@@ -342,7 +342,7 @@ export function AdminDashboard() {
       await axios.put(`${API_URL}/api/admin/faculty/${id}/srv`, { facultyNumber: editFacultySrvValue }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      Swal.fire({toast: true, position: 'top-end', icon: 'success', title: 'FAC updated!', showConfirmButton: false, timer: 2000});
+      Swal.fire({toast: true, position: 'top-end', icon: 'success', title: 'FAC updated. Login ID changed, password unchanged.', showConfirmButton: false, timer: 2500});
       setEditingFacultySrvId(null);
       setEditFacultySrvValue('');
       fetchFaculties(token);
@@ -1061,7 +1061,7 @@ export function AdminDashboard() {
                             try {
                               const token = localStorage.getItem('schoolToken');
                               await axios.put(`${API_URL}/api/admin/student/${student._id}/srv`, { admissionNumber: editSrvValue }, { headers: { Authorization: `Bearer ${token}` }});
-                              Swal.fire({toast: true, position: 'top-end', icon: 'success', title: 'SRV updated!', showConfirmButton: false, timer: 2000});
+                              Swal.fire({toast: true, position: 'top-end', icon: 'success', title: 'SRV updated. Parent login ID changed, password unchanged.', showConfirmButton: false, timer: 2500});
                               setEditingSrvId(null);
                               fetchStudents(token);
                             } catch (err) {

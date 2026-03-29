@@ -456,7 +456,7 @@ router.put('/student/:id/srv', protect, adminOnly, async (req, res) => {
     // Also update the parent User account's srvNumber so login still works
     await User.updateOne({ srvNumber: oldSrvNumber, role: 'parent' }, { $set: { srvNumber: newSrvNumber } });
 
-    res.json({ message: `SRV number updated to ${newSrvNumber}`, student });
+    res.json({ message: `SRV number updated to ${newSrvNumber}. Parent login ID changed, password unchanged.`, student });
   } catch (error) {
     console.error('[Edit SRV Error]', error);
     if (error.code === 11000) {
@@ -685,7 +685,7 @@ router.put('/faculty/:id/srv', protect, adminOnly, async (req, res) => {
     faculty.srvNumber = newFacultyNumber;
     await faculty.save();
 
-    res.json({ message: `FAC number updated to ${newFacultyNumber}`, faculty });
+    res.json({ message: `FAC number updated to ${newFacultyNumber}. Faculty login ID changed, password unchanged.`, faculty });
   } catch (error) {
     console.error('[Edit FAC Error]', error);
     if (error.code === 11000) {
