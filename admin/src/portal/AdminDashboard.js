@@ -753,6 +753,7 @@ export function AdminDashboard() {
                     {selectedAnnouncementFaculties.length > 0 ? `${selectedAnnouncementFaculties.length} faculty member${selectedAnnouncementFaculties.length > 1 ? 's' : ''} selected` : 'Select at least one faculty member'}
                   </p>
                 </div>
+              )}
 
               <button type="submit" className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors">
                 📢 Publish Announcement
