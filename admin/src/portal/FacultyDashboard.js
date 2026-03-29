@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Users, LogOut, CheckSquare, BookOpen, AlertCircle, ChevronLeft, ChevronRight, Calendar as CalIcon, Clock, Edit2, Trash2, CalendarClock, X, Check, History, ArrowRight, Archive, ChevronDown, Megaphone } from 'lucide-react';
+import { Users, LogOut, CheckSquare, BookOpen, AlertCircle, ChevronLeft, ChevronRight, Calendar as CalIcon, Clock, Edit2, Trash2, CalendarClock, X, Check, History, ArrowRight, Archive, ChevronDown, Megaphone, Bell } from 'lucide-react';
 import srvLogo from '../assest/fav_logo/srv-t.png';
 import API_URL from '../config/api.js';
 import { OpinionPollSection } from '../components/OpinionPollSection.js';
@@ -55,6 +55,9 @@ export function FacultyDashboard() {
   const [announcements, setAnnouncements] = useState([]);
   const [announcementMsg, setAnnouncementMsg] = useState({ text: '', type: '' });
   const [selectedAnnouncementStudents, setSelectedAnnouncementStudents] = useState([]);
+  const [inboxAnnouncements, setInboxAnnouncements] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   
   const openAttendanceModal = () => {
     const initialRecords = {};
@@ -197,6 +200,7 @@ export function FacultyDashboard() {
 
     fetchHomework();
     fetchAnnouncements(token);
+    fetchInboxAnnouncements(token);
   }, [navigate, user.role]);
 
   const fetchHomework = async () => {
@@ -215,6 +219,15 @@ export function FacultyDashboard() {
     axios.get(`${API_URL}/api/faculty/announcements`, {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => setAnnouncements(res.data)).catch(console.error);
+  };
+
+  const fetchInboxAnnouncements = (token) => {
+    axios.get(`${API_URL}/api/faculty/announcements/inbox/all`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(res => {
+      setInboxAnnouncements(res.data);
+      setUnreadCount(res.data.length);
+    }).catch(console.error);
   };
 
   const submitAnnouncement = async (e) => {
@@ -369,9 +382,53 @@ export function FacultyDashboard() {
             <p className="text-xs text-slate-400">Class {user.assignedGrade}-{user.assignedSection} • {user.name}</p>
           </div>
         </div>
-        <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-semibold transition-colors">
-          <LogOut size={16} /> Logout
-        </button>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <button
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="relative w-10 h-10 flex items-center justify-center text-slate-300 hover:text-white transition-colors"
+            >
+              <Bell size={20} />
+              {unreadCount > 0 && (
+                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+              )}
+            </button>
+
+            {showNotifications && (
+              <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 max-h-96 overflow-y-auto">
+                <div className="sticky top-0 bg-slate-900 text-white p-4 border-b border-slate-800 rounded-t-2xl">
+                  <h3 className="font-display font-bold">Faculty Announcements</h3>
+                  <p className="text-xs text-slate-400">{inboxAnnouncements.length} total</p>
+                </div>
+
+                {inboxAnnouncements.length > 0 ? (
+                  <div className="divide-y divide-slate-100">
+                    {inboxAnnouncements.map(ann => (
+                      <div key={ann._id} className={`p-4 hover:bg-slate-50 transition-colors ${ann.priority === 'HIGH' ? 'border-l-4 border-l-red-500' : 'border-l-4 border-l-slate-200'}`}>
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <h4 className="font-bold text-slate-900 text-sm line-clamp-2">{ann.title}</h4>
+                          {ann.priority === 'HIGH' && <span className="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">URGENT</span>}
+                        </div>
+                        <p className="text-xs text-slate-600 line-clamp-2 mb-2">{ann.message}</p>
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="text-slate-500">{ann.createdBy?.name || 'Admin'}</span>
+                          <span className="text-slate-400">{new Date(ann.createdAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-8 text-center text-slate-400">
+                    <p className="text-sm font-semibold">No faculty announcements yet</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-semibold transition-colors">
+            <LogOut size={16} /> Logout
+          </button>
+        </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
