@@ -21,6 +21,7 @@ import { hydrateEvents } from '../utils/eventService.js';
 import { normalizeEventPayload } from '../utils/eventUtils.js';
 import { archivePastEvents } from '../utils/archiveEvents.js';
 import { applyStudentFamilyDetails, validateStudentFamilyDetails } from '../utils/studentFamilyDetails.js';
+import { buildParentDisplayName, enrichParentLinkedRecord, enrichParentLinkedRecords } from '../utils/parentProfile.js';
 
 const router = express.Router();
 
@@ -90,6 +91,10 @@ router.put('/student/:id', protect, facultyOrAdmin, async (req, res) => {
     applyStudentFamilyDetails(student, familyValidation.familyDetails);
 
     await student.save();
+    await User.updateOne(
+      { role: 'parent', studentId: student._id },
+      { $set: { name: buildParentDisplayName(student, `Parent of ${student.name}`) } }
+    );
 
     res.json({ message: 'Student profile updated successfully', student });
   } catch (error) {
@@ -688,11 +693,11 @@ router.get('/feedback', protect, async (req, res) => {
 
   try {
     const feedback = await Feedback.find({ facultyId: req.user.id })
-      .populate('parentId', 'name srvNumber')
-      .populate('studentId', 'name srvNumber')
+      .populate('parentId', 'name srvNumber studentId')
+      .populate('studentId', 'name srvNumber motherName fatherName guardianName')
       .sort({ createdAt: -1 });
 
-    res.json(feedback);
+    res.json(enrichParentLinkedRecords(feedback));
   } catch (error) {
     res.status(500).json({ message: 'Error fetching feedback' });
   }
@@ -717,10 +722,10 @@ router.put('/feedback/:id', protect, async (req, res) => {
     feedback.updatedBy = req.user.id;
 
     await feedback.save();
-    await feedback.populate('parentId', 'name srvNumber');
-    await feedback.populate('studentId', 'name srvNumber');
+    await feedback.populate('parentId', 'name srvNumber studentId');
+    await feedback.populate('studentId', 'name srvNumber motherName fatherName guardianName');
 
-    res.json({ message: 'Feedback updated successfully.', feedback });
+    res.json({ message: 'Feedback updated successfully.', feedback: enrichParentLinkedRecord(feedback) });
   } catch (error) {
     res.status(500).json({ message: 'Error updating feedback' });
   }

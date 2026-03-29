@@ -22,6 +22,7 @@ import { buildClassAudienceFilter, validatePollAnswers } from '../utils/pollUtil
 import { hydrateEvents } from '../utils/eventService.js';
 import { validateParticipantNames } from '../utils/eventUtils.js';
 import { archivePastEvents } from '../utils/archiveEvents.js';
+import { buildParentDisplayName } from '../utils/parentProfile.js';
 
 const router = express.Router();
 
@@ -301,10 +302,11 @@ router.post('/pay-fee', protect, parentOnly, async (req, res) => {
 
     // Notify all admins
     const admins = await User.find({ role: 'admin' });
+    const parentDisplayName = buildParentDisplayName(student, parentUser.name);
     const notifications = admins.map(admin => ({
       userId: admin._id,
       type: 'FEE_ALERT',
-      message: `${parentUser.name} paid ${amount} for ${student.name} (${student.srvNumber}) - ${term}`
+      message: `${parentDisplayName} paid ${amount} for ${student.name} (${student.srvNumber}) - ${term}`
     }));
     
     if (notifications.length > 0) {

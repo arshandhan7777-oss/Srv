@@ -19,6 +19,7 @@ import { hydrateEvents } from '../utils/eventService.js';
 import { normalizeEventPayload } from '../utils/eventUtils.js';
 import { archivePastEvents } from '../utils/archiveEvents.js';
 import { applyStudentFamilyDetails, validateStudentFamilyDetails } from '../utils/studentFamilyDetails.js';
+import { buildParentDisplayName, enrichParentLinkedRecord, enrichParentLinkedRecords } from '../utils/parentProfile.js';
 
 const router = express.Router();
 
@@ -143,7 +144,7 @@ router.post('/student', protect, adminOnly, async (req, res) => {
     const hashedPassword = await bcrypt.hash(defaultPassword, salt);
 
     const parentUser = await User.create({
-      name: `Parent of ${name}`,
+      name: buildParentDisplayName(student, `Parent of ${name}`),
       srvNumber: student.srvNumber,
       password: hashedPassword,
       role: 'parent',
@@ -387,13 +388,10 @@ router.put('/student/:id', protect, adminOnly, async (req, res) => {
 
     await student.save();
 
-    // Also update parent user name if student name changed
-    if (name !== undefined) {
-      await User.updateOne(
-        { role: 'parent', studentId: student._id },
-        { $set: { name: `Parent of ${name}` } }
-      );
-    }
+    await User.updateOne(
+      { role: 'parent', studentId: student._id },
+      { $set: { name: buildParentDisplayName(student, `Parent of ${student.name}`) } }
+    );
 
     res.json({ message: 'Student updated successfully', student });
   } catch (error) {
@@ -790,12 +788,12 @@ router.delete('/polls/:id', protect, adminOnly, async (req, res) => {
 router.get('/feedback', protect, adminOnly, async (req, res) => {
   try {
     const feedback = await Feedback.find()
-      .populate('parentId', 'name srvNumber')
-      .populate('studentId', 'name srvNumber')
+      .populate('parentId', 'name srvNumber studentId')
+      .populate('studentId', 'name srvNumber motherName fatherName guardianName')
       .populate('facultyId', 'name')
       .sort({ createdAt: -1 });
 
-    res.json(feedback);
+    res.json(enrichParentLinkedRecords(feedback));
   } catch (error) {
     res.status(500).json({ message: 'Error fetching feedback' });
   }
@@ -816,11 +814,11 @@ router.put('/feedback/:id', protect, adminOnly, async (req, res) => {
     feedback.updatedBy = req.user.id;
 
     await feedback.save();
-    await feedback.populate('parentId', 'name srvNumber');
-    await feedback.populate('studentId', 'name srvNumber');
+    await feedback.populate('parentId', 'name srvNumber studentId');
+    await feedback.populate('studentId', 'name srvNumber motherName fatherName guardianName');
     await feedback.populate('facultyId', 'name');
 
-    res.json({ message: 'Feedback updated successfully.', feedback });
+    res.json({ message: 'Feedback updated successfully.', feedback: enrichParentLinkedRecord(feedback) });
   } catch (error) {
     res.status(500).json({ message: 'Error updating feedback' });
   }

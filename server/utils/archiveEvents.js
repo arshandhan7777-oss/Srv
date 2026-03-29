@@ -1,5 +1,6 @@
 import Event from '../models/Event.js';
 import EventRegistration from '../models/EventRegistration.js';
+import { buildParentDisplayName } from './parentProfile.js';
 
 export async function archivePastEvents() {
   try {
@@ -14,7 +15,7 @@ export async function archivePastEvents() {
 
     for (const event of expiredEvents) {
       const registrations = await EventRegistration.find({ eventId: event._id })
-        .populate('studentId', 'name')
+        .populate('studentId', 'name motherName fatherName guardianName')
         .sort({ acknowledgedAt: -1, createdAt: -1 });
 
       event.status = 'CLOSED';
@@ -23,6 +24,7 @@ export async function archivePastEvents() {
         registrationCount: registrations.length,
         enrolledStudents: registrations.map((registration) => ({
           studentName: registration.studentId?.name || 'Student',
+          parentName: buildParentDisplayName(registration.studentId, ''),
           acknowledgedAt: registration.acknowledgedAt || registration.createdAt
         }))
       };

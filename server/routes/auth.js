@@ -4,6 +4,8 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import PasswordReset from '../models/PasswordReset.js';
 import loginLimiter from '../middleware/loginLimiter.js';
+import Student from '../models/Student.js';
+import { buildParentDisplayName } from '../utils/parentProfile.js';
 
 const router = express.Router();
 
@@ -52,9 +54,20 @@ router.post('/login', loginLimiter, async (req, res) => {
         return res.status(403).json({ message: 'Admins must use the dedicated Admin Portal to log in.' });
       }
 
+      let displayName = user.name;
+      if (user.role === 'parent' && user.studentId) {
+        const student = await Student.findById(user.studentId).select('name motherName fatherName guardianName');
+        displayName = buildParentDisplayName(student, user.name);
+
+        if (displayName !== user.name) {
+          user.name = displayName;
+          await user.save();
+        }
+      }
+
       return res.json({
         _id: user._id,
-        name: user.name,
+        name: displayName,
         srvNumber: user.srvNumber,
         role: user.role,
         assignedGrade: user.assignedGrade,

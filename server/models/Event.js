@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 const archivedStudentSchema = new mongoose.Schema({
   studentName: { type: String, required: true },
+  parentName: { type: String, default: '' },
   acknowledgedAt: { type: Date }
 }, { _id: false });
 
