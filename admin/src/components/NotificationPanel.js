@@ -18,11 +18,11 @@ export function NotificationPanel({ open, onClose, title, subtitle, children }) 
         }
       `}</style>
       <div
-        className="fixed inset-0 z-[999] flex items-center justify-center bg-slate-950/40 p-4 sm:p-6"
+        className="fixed left-0 top-0 z-[999] flex h-[100vh] w-[100vw] items-center justify-center bg-slate-950/40 px-4 py-4 sm:px-6"
         onClick={onClose}
       >
         <div
-          className="max-h-[80vh] w-[92%] max-w-[420px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.2)]"
+          className="relative w-[92%] max-w-[400px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.2)] sm:w-[90%]"
           style={{ animation: 'srvModalScaleIn 0.2s ease' }}
           onClick={(event) => event.stopPropagation()}
         >
@@ -40,7 +40,7 @@ export function NotificationPanel({ open, onClose, title, subtitle, children }) 
               <X size={18} />
             </button>
           </div>
-          <div className="max-h-[calc(80vh-73px)] overflow-y-auto px-4 py-4">
+          <div className="max-h-[calc(80vh-73px)] overflow-y-auto px-4 py-4 text-center text-slate-500">
             {children}
           </div>
         </div>
