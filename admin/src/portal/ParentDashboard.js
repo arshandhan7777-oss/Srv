@@ -358,28 +358,40 @@ export function ParentDashboard() {
                       const color = getColor(subject);
                       return (
                         <div key={subject} className={`${color.bg} border ${color.border} rounded-2xl overflow-hidden`}>
-                          {/* Subject Header */}
-                          <div className="flex items-center justify-between px-5 py-3 border-b border-inherit">
+                          {/* Subject Header — clickable for history */}
+                          <button 
+                            onClick={() => openSubjectHistory(subject)}
+                            className="w-full flex items-center justify-between px-5 py-3 border-b border-inherit hover:bg-white/60 transition-colors group cursor-pointer"
+                          >
                             <div className="flex items-center gap-2.5">
                               <span className={`w-2.5 h-2.5 rounded-full ${color.dot}`}></span>
                               <span className={`text-sm font-bold ${color.header.split(' ')[1]}`}>{subject}</span>
                             </div>
-                            <span className={`${color.header} text-[10px] font-bold px-2.5 py-0.5 rounded-full`}>
-                              {hwList.length} Task{hwList.length > 1 ? 's' : ''}
-                            </span>
-                          </div>
+                            <div className="flex items-center gap-2">
+                              <span className={`${color.header} text-[10px] font-bold px-2.5 py-0.5 rounded-full`}>
+                                {hwList.length} Task{hwList.length > 1 ? 's' : ''}
+                              </span>
+                              <span className="text-[9px] text-slate-400 font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap ml-1 flex items-center gap-1">
+                                History <ArrowRight size={12} />
+                              </span>
+                            </div>
+                          </button>
                           {/* Homework entries */}
                           <div className="divide-y divide-white/80">
                             {hwList.map(hw => (
-                              <div key={hw._id} className="px-5 py-4 hover:bg-white/50 transition-colors">
+                              <button 
+                                key={hw._id}
+                                onClick={() => openSubjectHistory(subject)}
+                                className="w-full px-5 py-4 hover:bg-white/50 transition-colors text-left cursor-pointer group"
+                              >
                                 <div className="flex justify-between items-start mb-1.5">
-                                  <h4 className="font-display font-bold text-slate-900 text-base">{hw.title}</h4>
+                                  <h4 className="font-display font-bold text-slate-900 text-base group-hover:text-blue-700 transition-colors">{hw.title}</h4>
                                   <span className="text-[11px] font-bold text-red-500 shrink-0 ml-3 mt-0.5">
                                     Due: {new Date(hw.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                   </span>
                                 </div>
                                 <p className="text-sm text-slate-600 leading-relaxed">{hw.description}</p>
-                              </div>
+                              </button>
                             ))}
                           </div>
                         </div>
