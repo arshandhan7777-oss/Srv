@@ -176,11 +176,18 @@ router.get('/stats', protect, adminOnly, async (req, res) => {
   try {
     const totalStudents = await Student.countDocuments();
     const totalFaculty = await User.countDocuments({ role: 'faculty' });
+    const totalEvents = await Event.countDocuments();
+    const totalPolls = await Poll.countDocuments();
+    const totalFeedback = await Feedback.countDocuments();
+    const totalAnnouncements = await Announcement.countDocuments();
     
-    // Aggregations could go here
     res.json({
       totalStudents,
-      totalFaculty
+      totalFaculty,
+      totalEvents,
+      totalPolls,
+      totalFeedback,
+      totalAnnouncements
     });
   } catch (error) {
     res.status(500).json({ message: 'Server errors fetching stats' });

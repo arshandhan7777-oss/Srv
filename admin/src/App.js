@@ -31,6 +31,14 @@ export default function App() {
         {/* Protected Admin Routes */}
         <Route element={<ProtectedRoute allowedRole="admin" redirectTo="/admin-login" />}>
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/faculty" element={<AdminDashboard section="faculty" />} />
+          <Route path="/admin/students" element={<AdminDashboard section="students" />} />
+          <Route path="/admin/promote" element={<AdminDashboard section="promote" />} />
+          <Route path="/admin/events" element={<AdminDashboard section="events" />} />
+          <Route path="/admin/polls" element={<AdminDashboard section="polls" />} />
+          <Route path="/admin/feedback" element={<AdminDashboard section="feedback" />} />
+          <Route path="/admin/cafeteria" element={<AdminDashboard section="cafeteria" />} />
+          <Route path="/admin/announcements" element={<AdminDashboard section="announcements" />} />
         </Route>
 
         {/* Protected Faculty Routes */}

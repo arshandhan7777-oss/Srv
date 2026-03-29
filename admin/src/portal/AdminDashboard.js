@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Users, UserPlus, BookOpen, LogOut, CheckCircle2, Coffee, Trash2, Edit2, Save, X, Megaphone } from 'lucide-react';
+import { Users, UserPlus, BookOpen, LogOut, CheckCircle2, Coffee, Trash2, Edit2, Save, X, Megaphone, GraduationCap, CalendarDays, ClipboardList, MessageSquareMore, BellRing, ArrowUpCircle, UtensilsCrossed, LayoutDashboard, ShieldAlert, ChevronLeft } from 'lucide-react';
 import srvLogo from '../assest/fav_logo/srv-t.png';
 import API_URL from '../config/api.js';
 import Swal from 'sweetalert2';
@@ -9,7 +9,7 @@ import { OpinionPollSection } from '../components/OpinionPollSection.js';
 import { FeedbackInboxSection } from '../components/FeedbackInboxSection.js';
 import { UpcomingEventsSection } from '../components/UpcomingEventsSection.js';
 
-export function AdminDashboard() {
+export function AdminDashboard({ section = 'home' }) {
   const hasValidFamilyDetails = (profile) => Boolean(
     (profile.motherName?.trim() && profile.fatherName?.trim()) ||
     profile.guardianName?.trim()
@@ -29,7 +29,14 @@ export function AdminDashboard() {
 
   const isSeniorGrade = (grade) => ['11', '12', 'XI', 'XII'].includes((grade || '').toUpperCase().trim());
 
-  const [stats, setStats] = useState({ totalStudents: 0, totalFaculty: 0 });
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    totalFaculty: 0,
+    totalEvents: 0,
+    totalPolls: 0,
+    totalFeedback: 0,
+    totalAnnouncements: 0
+  });
   
   // Faculty Form State
   const [facultyForm, setFacultyForm] = useState({ name: '', assignedGrade: '', assignedSection: '', mobileNumber: '' });
@@ -85,12 +92,16 @@ export function AdminDashboard() {
 
   const navigate = useNavigate();
 
+  const fetchStats = (token) => {
+    return axios.get(`${API_URL}/api/admin/stats`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(res => setStats(res.data)).catch(console.error);
+  };
+
   useEffect(() => {
     // Auth is handled by ProtectedRoute — just fetch data
     const token = localStorage.getItem('schoolToken');
-    axios.get(`${API_URL}/api/admin/stats`, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).then(res => setStats(res.data)).catch(console.error);
+    fetchStats(token);
 
     // Fetch faculties
     fetchFaculties(token);
@@ -102,7 +113,7 @@ export function AdminDashboard() {
     fetchSettingsAndAlerts(token);
     // Fetch announcements
     fetchAnnouncements(token);
-  }, [navigate]);
+  }, [section]);
 
   const fetchSettingsAndAlerts = (token) => {
     axios.get(`${API_URL}/api/admin/settings/fee-toggle`, { headers: { Authorization: `Bearer ${token}` } })
@@ -436,6 +447,272 @@ export function AdminDashboard() {
     }
   };
 
+  const activeSection = section || 'home';
+  const recentAnnouncements = announcements.slice(0, 5);
+
+  const statCards = [
+    { key: 'students', label: 'Total Students', value: stats.totalStudents, icon: Users, tone: 'bg-emerald-100 text-emerald-700' },
+    { key: 'faculty', label: 'Total Faculty', value: stats.totalFaculty, icon: BookOpen, tone: 'bg-blue-100 text-blue-700' },
+    { key: 'events', label: 'Total Events', value: stats.totalEvents, icon: CalendarDays, tone: 'bg-amber-100 text-amber-700' },
+    { key: 'polls', label: 'Total Polls', value: stats.totalPolls, icon: ClipboardList, tone: 'bg-violet-100 text-violet-700' },
+    { key: 'feedback', label: 'Total Feedback', value: stats.totalFeedback, icon: MessageSquareMore, tone: 'bg-rose-100 text-rose-700' },
+    { key: 'announcements', label: 'Total Announcements', value: stats.totalAnnouncements, icon: BellRing, tone: 'bg-slate-200 text-slate-700' }
+  ];
+
+  const appPages = [
+    { key: 'faculty', title: 'Faculty', subtitle: 'Add Faculty, Manage Faculty', icon: BookOpen, badge: stats.totalFaculty, gradient: 'from-emerald-500 to-teal-500' },
+    { key: 'students', title: 'Students', subtitle: 'Add Student, Manage Students', icon: GraduationCap, badge: stats.totalStudents, gradient: 'from-amber-500 to-orange-500' },
+    { key: 'promote', title: 'Promote', subtitle: 'Promote Students', icon: ArrowUpCircle, badge: 'Year', gradient: 'from-cyan-500 to-sky-500' },
+    { key: 'events', title: 'Events', subtitle: 'Upcoming Events, Acknowledgements', icon: CalendarDays, badge: stats.totalEvents, gradient: 'from-fuchsia-500 to-pink-500' },
+    { key: 'polls', title: 'Poll Center', subtitle: 'Opinion Polls, Analytics', icon: ClipboardList, badge: stats.totalPolls, gradient: 'from-violet-500 to-indigo-500' },
+    { key: 'feedback', title: 'Feedback', subtitle: 'Parent Feedback Inbox', icon: MessageSquareMore, badge: stats.totalFeedback, gradient: 'from-rose-500 to-red-500' },
+    { key: 'cafeteria', title: 'Cafeteria', subtitle: 'Manage Cafeteria Menu', icon: UtensilsCrossed, badge: weeklyMenu.length || 'Menu', gradient: 'from-orange-500 to-yellow-500' },
+    { key: 'announcements', title: 'Announcements', subtitle: 'Broadcast Announcement', icon: Megaphone, badge: stats.totalAnnouncements, gradient: 'from-slate-700 to-slate-900' }
+  ];
+
+  const pageMeta = {
+    faculty: {
+      title: 'Faculty Center',
+      description: 'Create faculty accounts, edit FAC numbers, and manage faculty access from one page.'
+    },
+    students: {
+      title: 'Student Center',
+      description: 'Admit new students, edit SRV numbers, and maintain family details and fee records.'
+    },
+    promote: {
+      title: 'Academic Promotion',
+      description: 'Move an entire grade to the next academic year in an admin-only flow.'
+    },
+    events: {
+      title: 'Event Hub',
+      description: 'Open upcoming events and acknowledgement tracking in a dedicated page.'
+    },
+    polls: {
+      title: 'Poll Center',
+      description: 'Manage opinion polls and open analytics from a cleaner workspace.'
+    },
+    feedback: {
+      title: 'Feedback Inbox',
+      description: 'Read parent feedback from a focused page without the rest of the admin tools around it.'
+    },
+    cafeteria: {
+      title: 'Cafeteria Menu',
+      description: 'Update breakfast, lunch, and snacks for the full week.'
+    },
+    announcements: {
+      title: 'Announcement Studio',
+      description: 'Publish targeted announcements to classes, students, or faculty members.'
+    }
+  };
+
+  const navigateToSection = (targetSection) => {
+    navigate(targetSection === 'home' ? '/admin/dashboard' : `/admin/${targetSection}`);
+  };
+
+  const renderHomePage = () => (
+    <div className="min-h-screen bg-slate-100">
+      <div className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
+            <div className="flex h-14 w-14 items-center justify-center rounded-[1.25rem] bg-slate-900 p-2 shadow-lg shadow-slate-300/60">
+              <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-[0.9rem] bg-white p-1.5">
+                <img src={srvLogo} alt="SRV" className="h-full w-full object-contain scale-[1.12]" />
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">SRV School</p>
+              <h1 className="text-lg font-display font-bold text-slate-900">Admin Dashboard</h1>
+            </div>
+          </div>
+
+          <button onClick={handleLogout} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">
+            <LogOut size={16} />
+            <span className="hidden sm:inline">Logout</span>
+          </button>
+        </div>
+      </div>
+
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <div className="space-y-8">
+          <section className="overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-950 via-emerald-900 to-teal-700 p-6 text-white shadow-xl shadow-emerald-950/10 sm:p-8">
+            <div className="grid gap-6 lg:grid-cols-[1.35fr,0.85fr]">
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-100">
+                  <LayoutDashboard size={14} />
+                  Admin Dashboard
+                </div>
+                <h2 className="mt-4 max-w-2xl text-3xl font-display font-bold leading-tight sm:text-4xl">
+                  Clean overview first, then quick access to every admin tool.
+                </h2>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-emerald-50/90 sm:text-base">
+                  Mobile users land on a simple dashboard with totals, alerts, and app-style shortcuts instead of one long mixed page.
+                </p>
+              </div>
+
+              <div className="rounded-[1.75rem] border border-white/15 bg-white/10 p-5 backdrop-blur">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100">Portal Controls</p>
+                    <h3 className="mt-2 text-xl font-display font-bold">Online Fee Collection</h3>
+                    <p className="mt-2 text-sm text-emerald-50/85">Keep parent payment access ready without opening another page.</p>
+                  </div>
+                  <ShieldAlert className="shrink-0 text-emerald-100" size={20} />
+                </div>
+                <div className="mt-6 flex items-center justify-between rounded-2xl bg-white/10 px-4 py-3">
+                  <div>
+                    <p className="text-sm font-semibold">{isOnlineFeeEnabled ? 'Payments Enabled' : 'Payments Disabled'}</p>
+                    <p className="text-xs text-emerald-50/80">Passwords stay unchanged for existing users.</p>
+                  </div>
+                  <button
+                    onClick={handleToggleOnlineFee}
+                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${isOnlineFeeEnabled ? 'bg-emerald-400' : 'bg-white/30'}`}
+                  >
+                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${isOnlineFeeEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                  </button>
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <button type="button" onClick={() => navigateToSection('students')} className="rounded-2xl bg-white px-4 py-3 text-left text-slate-900 transition hover:-translate-y-0.5">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Most Used</p>
+                    <p className="mt-1 text-sm font-bold">Student Center</p>
+                  </button>
+                  <button type="button" onClick={() => navigateToSection('faculty')} className="rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-left transition hover:-translate-y-0.5">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100">Quick Open</p>
+                    <p className="mt-1 text-sm font-bold">Faculty Center</p>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 grid grid-cols-2 gap-4 xl:grid-cols-6">
+              {statCards.map(card => {
+                const Icon = card.icon;
+
+                return (
+                  <div key={card.key} className="rounded-[1.5rem] border border-white/10 bg-white/10 p-4 backdrop-blur">
+                    <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl ${card.tone}`}>
+                      <Icon size={22} />
+                    </div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-50/75">{card.label}</p>
+                    <p className="mt-2 text-3xl font-display font-bold">{card.value}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="space-y-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Alerts</p>
+              <h2 className="mt-1 text-2xl font-display font-bold text-slate-900">Recent payment alerts and recovery requests</h2>
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-2">
+              <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
+                    <BellRing size={22} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-display font-bold text-slate-900">Recent Payment Alerts</h3>
+                    <p className="text-sm text-slate-500">Latest fee updates visible to admin.</p>
+                  </div>
+                </div>
+                <div className="mt-5 space-y-3">
+                  {feeAlerts.length > 0 ? feeAlerts.slice(0, 5).map(alert => (
+                    <div key={alert._id} className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3">
+                      <p className="text-sm font-semibold text-emerald-900">{alert.message}</p>
+                      <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700">{new Date(alert.createdAt).toLocaleString()}</p>
+                    </div>
+                  )) : (
+                    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-10 text-center text-sm text-slate-500">
+                      No recent payment alerts.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700">
+                    <ShieldAlert size={22} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-display font-bold text-slate-900">Recovery Requests</h3>
+                    <p className="text-sm text-slate-500">Approve password help requests directly from the dashboard.</p>
+                  </div>
+                </div>
+                <div className="mt-5 space-y-3">
+                  {pwRequests.length > 0 ? pwRequests.slice(0, 5).map(req => (
+                    <div key={req._id} className="rounded-2xl border border-indigo-100 bg-indigo-50 px-4 py-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-bold text-indigo-900">{req.srvNumber}</p>
+                          <p className="mt-1 text-xs font-semibold uppercase tracking-[0.14em] text-indigo-600">{req.role}</p>
+                        </div>
+                        <p className="text-[11px] font-semibold text-indigo-600">{new Date(req.createdAt).toLocaleDateString()}</p>
+                      </div>
+                      {resettingPwFor?._id === req._id ? (
+                        <div className="mt-3 flex gap-2">
+                          <input type="text" placeholder="New password" value={newAdminProvidedPw} onChange={e => setNewAdminProvidedPw(e.target.value)} className="w-full rounded-xl border border-indigo-200 bg-white px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500" />
+                          <button onClick={handleApprovePwReset} className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white hover:bg-indigo-700">Save</button>
+                          <button onClick={() => { setResettingPwFor(null); setNewAdminProvidedPw(''); }} className="rounded-xl bg-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-300">Cancel</button>
+                        </div>
+                      ) : (
+                        <button onClick={() => setResettingPwFor(req)} className="mt-3 rounded-xl border border-indigo-200 bg-white px-4 py-2 text-sm font-bold text-indigo-700 transition hover:bg-indigo-600 hover:text-white">
+                          Reset Request
+                        </button>
+                      )}
+                    </div>
+                  )) : (
+                    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-10 text-center text-sm text-slate-500">
+                      No recovery requests right now.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Admin Apps</p>
+              <h2 className="mt-1 text-2xl font-display font-bold text-slate-900">Tap an icon to open its page</h2>
+              <p className="mt-1 text-sm text-slate-500">Built for clean mobile navigation and quick desktop access.</p>
+            </div>
+
+            <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+              {appPages.map(page => {
+                const Icon = page.icon;
+
+                return (
+                  <button
+                    key={page.key}
+                    type="button"
+                    onClick={() => navigateToSection(page.key)}
+                    className="group rounded-[1.75rem] border border-slate-200 bg-slate-50 p-4 text-left transition duration-200 hover:-translate-y-1 hover:border-slate-300 hover:bg-white"
+                  >
+                    <div className={`flex h-14 w-14 items-center justify-center rounded-[1.25rem] bg-gradient-to-br ${page.gradient} text-white shadow-lg shadow-slate-300/40`}>
+                      <Icon size={24} />
+                    </div>
+                    <div className="mt-4 flex items-center justify-between gap-2">
+                      <h3 className="text-base font-display font-bold text-slate-900">{page.title}</h3>
+                      <span className="rounded-full bg-slate-200 px-2.5 py-1 text-[11px] font-bold text-slate-700">{page.badge}</span>
+                    </div>
+                    <p className="mt-2 text-sm leading-5 text-slate-500">{page.subtitle}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  );
+
+  if (activeSection === 'home') {
+    return renderHomePage();
+  }
+
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Top Navbar */}
@@ -446,17 +723,29 @@ export function AdminDashboard() {
               <img src={srvLogo} alt="SRV" className="w-full h-full object-contain scale-[1.15]" />
             </div>
           </div>
-          <h1 className="font-display font-bold text-xl">Admin Portal</h1>
+          <h1 className="font-display font-bold text-xl">{pageMeta[activeSection]?.title || 'Admin Portal'}</h1>
         </div>
-        <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-semibold transition-colors">
-          <LogOut size={16} /> Logout
-        </button>
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigateToSection('home')} className={`items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-semibold transition-colors ${activeSection === 'home' ? 'hidden' : 'flex'}`}>
+            <ChevronLeft size={16} /> Dashboard
+          </button>
+          <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-semibold transition-colors">
+            <LogOut size={16} /> Logout
+          </button>
+        </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {activeSection !== 'home' && pageMeta[activeSection] && (
+          <div className="mb-8 rounded-3xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Admin Apps</p>
+            <h2 className="mt-2 text-2xl font-display font-bold text-slate-900">{pageMeta[activeSection].title}</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">{pageMeta[activeSection].description}</p>
+          </div>
+        )}
         
         {/* Stats Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div className="hidden grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-5">
             <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center">
               <Users size={28} />
@@ -479,10 +768,10 @@ export function AdminDashboard() {
         </div>
 
         {/* Action Panels */}
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className={`${activeSection === 'faculty' || activeSection === 'students' ? 'grid' : 'hidden'} md:grid-cols-2 gap-8`}>
           
           {/* Add Faculty */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+          <div className={`${activeSection === 'faculty' ? 'block' : 'hidden'} bg-white rounded-2xl shadow-sm border border-slate-100 p-8`}>
             <div className="flex items-center gap-3 mb-6">
               <UserPlus className="text-emerald-600" />
               <h2 className="text-xl font-display font-bold text-slate-900">Add New Faculty</h2>
@@ -534,7 +823,7 @@ export function AdminDashboard() {
           </div>
 
           {/* Add Student */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+          <div className={`${activeSection === 'students' ? 'block' : 'hidden'} bg-white rounded-2xl shadow-sm border border-slate-100 p-8`}>
             <div className="flex items-center gap-3 mb-6">
               <UserPlus className="text-amber-500" />
               <h2 className="text-xl font-display font-bold text-slate-900">Admit New Student</h2>
@@ -632,9 +921,9 @@ export function AdminDashboard() {
         </div>
 
         {/* Global Settings & Alerts */}
-        <div className="grid md:grid-cols-3 gap-8 mt-8">
+        <div className={`${activeSection === 'announcements' ? 'grid' : 'hidden'} md:grid-cols-3 gap-8 mt-8`}>
           {/* Global Settings */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+          <div className="hidden bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
             <h2 className="text-xl font-display font-bold text-slate-900 mb-6 flex items-center gap-3">
               ⚙️ Global Settings
             </h2>
@@ -653,7 +942,7 @@ export function AdminDashboard() {
           </div>
 
           {/* Fee Alerts */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+          <div className="hidden bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
             <h2 className="text-xl font-display font-bold text-slate-900 mb-6 flex items-center gap-3">
               🔔 Recent Payment Alerts
             </h2>
@@ -670,7 +959,7 @@ export function AdminDashboard() {
           </div>
 
           {/* Password Reset Requests */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+          <div className="hidden bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
             <h2 className="text-xl font-display font-bold text-slate-900 mb-6 flex items-center gap-3">
               🔑 Recovery Requests
             </h2>
@@ -704,7 +993,7 @@ export function AdminDashboard() {
           </div>
 
           {/* Announcement Maker */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 mt-8">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 mt-8 md:col-span-3">
             <div className="flex items-center gap-3 mb-6">
               <Megaphone className="text-blue-600" />
               <h2 className="text-xl font-display font-bold text-slate-900">Broadcast Announcement</h2>
@@ -854,7 +1143,7 @@ export function AdminDashboard() {
         </div>
 
         {/* Cafeteria Menu Panel */}
-        <div className="mt-8 bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+        <div className={`${activeSection === 'cafeteria' ? 'block' : 'hidden'} mt-8 bg-white rounded-2xl shadow-sm border border-slate-100 p-8`}>
           <div className="flex items-center gap-3 mb-6">
             <Coffee className="text-orange-500" />
             <h2 className="text-xl font-display font-bold text-slate-900">Manage Cafeteria Menu</h2>
@@ -914,7 +1203,7 @@ export function AdminDashboard() {
           </div>
         </div>
         {/* Manage Faculty Panel */}
-        <div className="mt-8 bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+        <div className={`${activeSection === 'faculty' ? 'block' : 'hidden'} mt-8 bg-white rounded-2xl shadow-sm border border-slate-100 p-8`}>
           <div className="flex items-center gap-3 mb-6">
             <Users className="text-blue-500" />
             <h2 className="text-xl font-display font-bold text-slate-900">Manage Faculty</h2>
@@ -930,7 +1219,7 @@ export function AdminDashboard() {
             <table className="w-full text-left border-collapse min-w-[700px]">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-sm text-slate-500">
-                  <th className="px-5 py-3 font-semibold">SRV No</th>
+                  <th className="px-5 py-3 font-semibold">FAC No</th>
                   <th className="px-5 py-3 font-semibold">Name</th>
                   <th className="px-5 py-3 font-semibold">Mobile</th>
                   <th className="px-5 py-3 font-semibold">Grade</th>
@@ -1007,8 +1296,8 @@ export function AdminDashboard() {
         </div>
 
         {/* Manage Students Panel */}
-        <div className="mt-8 bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div className={`${activeSection === 'students' || activeSection === 'promote' ? 'block' : 'hidden'} mt-8 bg-white rounded-2xl shadow-sm border border-slate-100 p-8`}>
+          <div className={`flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 ${activeSection === 'promote' ? 'hidden' : 'flex'}`}>
             <div className="flex items-center gap-3">
               <Users className="text-purple-500" />
               <h2 className="text-xl font-display font-bold text-slate-900">View All Students</h2>
@@ -1019,17 +1308,17 @@ export function AdminDashboard() {
             </div>
           </div>
           
-          {manageStudentMsg.text && (
+          {activeSection !== 'promote' && manageStudentMsg.text && (
             <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 text-sm font-semibold border ${manageStudentMsg.type === 'success' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-red-50 text-red-600 border-red-200'}`}>
               <CheckCircle2 size={18} /> {manageStudentMsg.text}
             </div>
           )}
 
-          <div className="overflow-x-auto rounded-xl border border-slate-200">
+          <div className={`${activeSection === 'students' ? 'block' : 'hidden'} overflow-x-auto rounded-xl border border-slate-200`}>
             <table className="w-full text-left border-collapse min-w-[980px]">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-sm text-slate-500">
-                  <th className="px-5 py-3 font-semibold">FAC No</th>
+                  <th className="px-5 py-3 font-semibold">SRV No</th>
                   <th className="px-5 py-3 font-semibold">Name</th>
                   <th className="px-5 py-3 font-semibold">Grade & Sec</th>
                   <th className="px-5 py-3 font-semibold">Family Details</th>
@@ -1157,7 +1446,7 @@ export function AdminDashboard() {
           </div>
 
           {/* Promote Students Panel */}
-          <div className="mt-6 p-6 bg-gradient-to-r from-emerald-50 to-amber-50 border border-emerald-200 rounded-2xl">
+          <div className={`${activeSection === 'promote' ? 'block' : 'hidden'} mt-6 p-6 bg-gradient-to-r from-emerald-50 to-amber-50 border border-emerald-200 rounded-2xl`}>
             <h3 className="font-display font-bold text-slate-900 mb-1 flex items-center gap-2">
               🎓 Promote Students (Academic Year)
             </h3>
@@ -1187,10 +1476,10 @@ export function AdminDashboard() {
 
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 pb-10">
-        <UpcomingEventsSection role="admin" />
-        <OpinionPollSection role="admin" />
-        <FeedbackInboxSection role="admin" />
+      <div className={`${activeSection === 'events' || activeSection === 'polls' || activeSection === 'feedback' ? 'block' : 'hidden'} max-w-7xl mx-auto px-6 pb-10`}>
+        {activeSection === 'events' && <UpcomingEventsSection role="admin" />}
+        {activeSection === 'polls' && <OpinionPollSection role="admin" />}
+        {activeSection === 'feedback' && <FeedbackInboxSection role="admin" />}
       </div>
       
       {selectedFacultyProfile && (
