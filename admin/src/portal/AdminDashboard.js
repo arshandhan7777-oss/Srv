@@ -518,7 +518,7 @@ export function AdminDashboard({ section = 'home' }) {
       <button
         type="button"
         onClick={() => setShowNotifications(current => !current)}
-        className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 opacity-100 transition hover:bg-slate-50 hover:text-slate-900 active:scale-95"
+        className="relative flex h-9 w-9 min-w-9 items-center justify-center rounded-[10px] border border-slate-200 text-slate-600 opacity-100 transition hover:bg-slate-50 hover:text-slate-900 active:scale-95"
       >
         <BellRing size={18} className="opacity-100" />
         {adminNotificationCount > 0 && (

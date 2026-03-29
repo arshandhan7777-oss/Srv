@@ -514,7 +514,7 @@ export function FacultyDashboard({ section = 'dashboard' }) {
       <button
         type="button"
         onClick={() => setShowNotifications(current => !current)}
-        className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 opacity-100 transition hover:bg-slate-50 hover:text-slate-900 active:scale-95"
+        className="relative flex h-9 w-9 min-w-9 items-center justify-center rounded-[10px] border border-slate-200 text-slate-600 opacity-100 transition hover:bg-slate-50 hover:text-slate-900 active:scale-95"
       >
         <Bell size={18} className="opacity-100" />
         {unreadCount > 0 ? <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500"></span> : null}
