@@ -14,6 +14,38 @@ import { ParentEventsSection } from '../components/ParentEventsSection.js';
 
 const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6'];
 
+function SummaryCard({ icon: Icon, title, value, subtitle, tone }) {
+  return (
+    <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.99]">
+      <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl ${tone}`}>
+        <Icon size={22} />
+      </div>
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{title}</p>
+      <p className="mt-2 text-3xl font-display font-bold text-slate-900">{value}</p>
+      <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+    </div>
+  );
+}
+
+function QuickAccessCard({ icon: Icon, title, description, badge, gradient, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group rounded-[1.75rem] border border-slate-200 bg-slate-50 p-4 text-left transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg hover:border-slate-300 active:scale-[0.98]"
+    >
+      <div className={`flex h-14 w-14 items-center justify-center rounded-[1.25rem] bg-gradient-to-br ${gradient} text-white shadow-lg shadow-slate-300/40`}>
+        <Icon size={24} />
+      </div>
+      <div className="mt-4 flex items-center justify-between gap-2">
+        <h3 className="text-base font-display font-bold text-slate-900">{title}</h3>
+        {badge ? <span className="rounded-full bg-slate-200 px-2.5 py-1 text-[11px] font-bold text-slate-700">{badge}</span> : null}
+      </div>
+      <p className="mt-2 text-sm leading-5 text-slate-500">{description}</p>
+    </button>
+  );
+}
+
 export function ParentDashboard({ section = 'dashboard' }) {
   // ========== Data & Loading State ==========
 const [data, setData] = useState({ student: null, records: [], homework: [], food: null, settings: {} });
@@ -309,38 +341,343 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
   const amountDue = totalAnnualFee - totalPaid;
   
   const dueCount = [data.student?.fees?.term1, data.student?.fees?.term2, data.student?.fees?.term3].filter(s => s !== 'Paid').length;
+  const overallAcademicPercentage = marksData.length > 0
+    ? Math.round(Object.values(latestRecord?.marks || {}).reduce((sum, mark) => sum + mark, 0) / marksData.length)
+    : 0;
+  const appItems = [
+    {
+      key: 'skills',
+      title: 'Nlite Skills',
+      description: '21st-century skills, radar graph, and score breakdown',
+      icon: Sparkles,
+      badge: nliteData.length ? `${nliteData.length} areas` : 'New',
+      gradient: 'from-amber-500 to-orange-500'
+    },
+    {
+      key: 'homework',
+      title: 'Homework',
+      description: 'Today’s homework and weekly homework overview',
+      icon: BookOpen,
+      badge: data.homework?.length || weeklyHomework.length || 'Tasks',
+      gradient: 'from-blue-500 to-cyan-500'
+    },
+    {
+      key: 'events',
+      title: 'Events',
+      description: 'Upcoming events and schedules',
+      icon: CalIcon,
+      badge: 'Live',
+      gradient: 'from-fuchsia-500 to-pink-500'
+    },
+    {
+      key: 'polls',
+      title: 'Polls',
+      description: 'Active opinion polls and parent voting',
+      icon: FileText,
+      badge: 'Polls',
+      gradient: 'from-violet-500 to-indigo-500'
+    },
+    {
+      key: 'feedback',
+      title: 'Feedback',
+      description: 'Feedback, concerns, and your feedback history',
+      icon: MessageSquareMore,
+      badge: 'Inbox',
+      gradient: 'from-rose-500 to-red-500'
+    },
+    {
+      key: 'fees',
+      title: 'Fees',
+      description: 'Pending balance and secure fee payment',
+      icon: CreditCard,
+      badge: amountDue > 0 ? `₹${amountDue.toLocaleString()}` : 'Paid',
+      gradient: 'from-emerald-500 to-teal-500'
+    }
+  ];
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-50">Loading Dashboard...</div>;
+  const renderDashboardHome = () => {
+    const formattedPendingBalance = new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0
+    }).format(amountDue);
+
+    const dashboardApps = [
+      {
+        key: 'skills',
+        title: 'Nlite Skills',
+        description: '21st-century skills, radar graph, and score breakdown',
+        icon: Sparkles,
+        badge: nliteData.length ? `${nliteData.length} areas` : 'New',
+        gradient: 'from-amber-500 to-orange-500'
+      },
+      {
+        key: 'homework',
+        title: 'Homework',
+        description: 'Today’s homework and weekly homework overview',
+        icon: BookOpen,
+        badge: data.homework?.length || weeklyHomework.length || 'Tasks',
+        gradient: 'from-blue-500 to-cyan-500'
+      },
+      {
+        key: 'events',
+        title: 'Events',
+        description: 'Upcoming events and schedules',
+        icon: CalIcon,
+        badge: 'Live',
+        gradient: 'from-fuchsia-500 to-pink-500'
+      },
+      {
+        key: 'polls',
+        title: 'Polls',
+        description: 'Active opinion polls and parent voting',
+        icon: FileText,
+        badge: 'Polls',
+        gradient: 'from-violet-500 to-indigo-500'
+      },
+      {
+        key: 'feedback',
+        title: 'Feedback',
+        description: 'Feedback, concerns, and your feedback history',
+        icon: MessageSquareMore,
+        badge: 'Inbox',
+        gradient: 'from-rose-500 to-red-500'
+      },
+      {
+        key: 'fees',
+        title: 'Fees',
+        description: 'Pending balance and secure fee payment',
+        icon: CreditCard,
+        badge: amountDue > 0 ? `₹${amountDue.toLocaleString()}` : 'Paid',
+        gradient: 'from-emerald-500 to-teal-500'
+      }
+    ];
+
+    return (
+      <div className="min-h-screen bg-slate-100">
+        <div className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-[1.25rem] bg-slate-900 p-2 shadow-lg shadow-slate-300/60">
+                <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-[0.9rem] bg-white p-1.5">
+                  <img src={srvLogo} alt="SRV" className="h-full w-full object-contain scale-[1.12]" />
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">SRV School</p>
+                <h1 className="text-lg font-display font-bold text-slate-900">Parent Dashboard</h1>
+                <p className="text-xs text-slate-500">Clean access to your child&apos;s academics, fees, and daily updates</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <button
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="relative flex h-10 w-10 items-center justify-center text-slate-500 transition-colors hover:text-slate-900"
+                >
+                  <Bell size={20} />
+                  {unreadCount > 0 && (
+                    <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500"></span>
+                  )}
+                </button>
+
+                {showNotifications && (
+                  <div className="absolute right-0 z-50 mt-2 max-h-96 w-80 overflow-y-auto rounded-2xl border border-slate-100 bg-white shadow-2xl">
+                    <div className="sticky top-0 flex items-center justify-between rounded-t-2xl border-b border-slate-800 bg-slate-900 p-4 text-white">
+                      <div>
+                        <h3 className="font-display font-bold">Announcements</h3>
+                        <p className="text-xs text-slate-400">{announcements.length} total</p>
+                      </div>
+                      <button
+                        onClick={() => setShowNotifications(false)}
+                        className="flex-shrink-0 rounded p-1 text-slate-300 transition-colors hover:text-white"
+                        title="Close"
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+
+                    {announcements.length > 0 ? (
+                      <div className="divide-y divide-slate-100">
+                        {announcements.map(ann => (
+                          <div key={ann._id} className={`p-4 transition-colors hover:bg-slate-50 ${ann.priority === 'HIGH' ? 'border-l-4 border-l-red-500' : 'border-l-4 border-l-slate-200'}`}>
+                            <div className="mb-1 flex items-start justify-between gap-2">
+                              <h4 className="line-clamp-2 text-sm font-bold text-slate-900">{ann.title}</h4>
+                              <div className="flex flex-shrink-0 items-center gap-2">
+                                {ann.priority === 'HIGH' && <span className="whitespace-nowrap rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700">URGENT</span>}
+                                <button
+                                  onClick={() => dismissAnnouncement(ann._id)}
+                                  className="rounded p-0.5 text-slate-400 transition-colors hover:text-slate-600"
+                                  title="Dismiss"
+                                >
+                                  <X size={16} />
+                                </button>
+                              </div>
+                            </div>
+                            <p className="mb-2 line-clamp-2 text-xs text-slate-600">{ann.message}</p>
+                            <div className="flex items-center justify-between text-[11px]">
+                              <span className="text-slate-500">{ann.createdByRole === 'admin' ? 'Admin' : 'Faculty'}</span>
+                              <span className="text-slate-400">{new Date(ann.createdAt).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-8 text-center text-slate-400">
+                        <p className="text-sm font-semibold">No announcements yet</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <button onClick={handleLogout} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">
+                <LogOut size={16} />
+                <span className="hidden sm:inline">Logout</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <main ref={reportRef} className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+          <div className="space-y-8">
+            <section className="overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-700 p-6 text-white shadow-xl shadow-slate-900/10 sm:p-8">
+              <div className="grid gap-6 lg:grid-cols-[1.35fr,0.85fr]">
+                <div>
+                  <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-100">
+                    <Home size={14} />
+                    Parent Overview
+                  </div>
+                  <h2 className="mt-4 max-w-2xl text-3xl font-display font-bold leading-tight sm:text-4xl">
+                    Everything for your child, organized in one mobile-first home screen.
+                  </h2>
+                  <p className="mt-3 max-w-2xl text-sm leading-6 text-emerald-50/90 sm:text-base">
+                    Track academics, attendance, fee balance, homework, events, polls, feedback, and skill analysis from one clean parent dashboard.
+                  </p>
+                </div>
+
+                <div className="rounded-[1.75rem] border border-white/15 bg-white/10 p-5 backdrop-blur">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100">Student Snapshot</p>
+                  <div className="mt-4 space-y-3">
+                    <div className="rounded-2xl bg-white/10 px-4 py-3">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100">Student</p>
+                      <p className="mt-1 text-xl font-display font-bold">{data.student?.name || 'Student Name'}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="rounded-2xl bg-white/10 px-4 py-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100">Class</p>
+                        <p className="mt-1 text-lg font-display font-bold">Grade {data.student?.grade || '-'}-{data.student?.section || '-'}</p>
+                      </div>
+                      <div className="rounded-2xl bg-white/10 px-4 py-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100">SRV No</p>
+                        <p className="mt-1 text-lg font-display font-bold">{data.student?.srvNumber || 'SRVXXXX'}</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-emerald-50">
+                        {unreadCount} alert{unreadCount === 1 ? '' : 's'}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={downloadReportCard}
+                        className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-emerald-50 active:scale-[0.98]"
+                      >
+                        <Download size={16} />
+                        Report Card
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <SummaryCard
+                icon={TrendingUp}
+                title="Academic Performance"
+                value={`${overallAcademicPercentage}%`}
+                subtitle={marksData.length > 0 ? `${latestRecord?.term || 'Latest'} term • ${marksData.length} subjects` : 'No marks uploaded yet'}
+                tone="bg-emerald-100 text-emerald-600"
+              />
+              <SummaryCard
+                icon={CalIcon}
+                title="Attendance Tracker"
+                value={`${finalAttendancePercentage}%`}
+                subtitle={totalClasses > 0 ? `${presentClasses}/${totalClasses} days present` : 'No attendance records yet'}
+                tone="bg-blue-100 text-blue-600"
+              />
+              <SummaryCard
+                icon={CreditCard}
+                title="Pending Fee Balance"
+                value={`₹${amountDue.toLocaleString()}`}
+                subtitle={amountDue > 0 ? `${dueCount} term${dueCount === 1 ? '' : 's'} pending` : 'All fees cleared'}
+                tone="bg-violet-100 text-violet-600"
+              />
+            </section>
+
+            <section className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Parent Apps</p>
+                <h2 className="mt-1 text-2xl font-display font-bold text-slate-900">Tap an icon to open its page</h2>
+                <p className="mt-1 text-sm text-slate-500">Built for quick mobile navigation with one focused page for each parent feature.</p>
+              </div>
+
+              <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">
+                {dashboardApps.map(item => (
+                  <QuickAccessCard
+                    key={item.key}
+                    icon={item.icon}
+                    title={item.title}
+                    description={item.description}
+                    badge={item.badge}
+                    gradient={item.gradient}
+                    onClick={() => navigateToSection(item.key)}
+                  />
+                ))}
+              </div>
+            </section>
+          </div>
+        </main>
+      </div>
+    );
+  };
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-100">Loading Dashboard...</div>;
+
+  if (activeSection === 'dashboard') {
+    return renderDashboardHome();
+  }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* ========== TOP NAVBAR ========== */}
-      <div className="bg-slate-900 text-white px-4 sm:px-8 py-4 flex justify-between items-center shadow-md">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-emerald-900 rounded-[20px] p-[4px] shadow-lg shrink-0">
-             <div className="w-full h-full bg-white rounded-[16px] flex items-center justify-center overflow-hidden p-1.5">
-               <img src={srvLogo} alt="SRV" className="w-full h-full object-contain scale-[1.15]" />
-             </div>
-          </div>
+    <div className="min-h-screen bg-slate-100">
+      <div className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-4">
+            <div className="flex h-14 w-14 items-center justify-center rounded-[1.25rem] bg-slate-900 p-2 shadow-lg shadow-slate-300/60">
+              <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-[0.9rem] bg-white p-1.5">
+                <img src={srvLogo} alt="SRV" className="h-full w-full object-contain scale-[1.12]" />
+              </div>
+            </div>
           <div>
             <h1 className="font-display font-bold text-lg leading-tight">{pageMeta[activeSection]?.title || 'Parent Portal'}</h1>
-            <p className="text-xs text-amber-400">SRV Matriculation School</p>
+            <p className="text-xs text-slate-500">SRV Matriculation School</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
           {activeSection !== 'dashboard' && (
-            <button onClick={() => navigateToSection('dashboard')} className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-semibold transition-colors">
+            <button onClick={() => navigateToSection('dashboard')} className="hidden sm:flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
               <ChevronLeft size={16} /> Dashboard
             </button>
           )}
           <div className="relative">
             <button 
               onClick={() => setShowNotifications(!showNotifications)}
-              className="relative w-10 h-10 flex items-center justify-center text-slate-300 hover:text-white transition-colors"
+              className="relative flex h-10 w-10 items-center justify-center text-slate-500 transition-colors hover:text-slate-900"
             >
               <Bell size={20} />
               {unreadCount > 0 && (
-                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500"></span>
               )}
             </button>
             
@@ -394,10 +731,11 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
               </div>
             )}
           </div>
-          <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-semibold transition-colors">
+          <button onClick={handleLogout} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">
             <LogOut size={16} /> <span className="hidden sm:inline">Logout</span>
           </button>
         </div>
+      </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" ref={reportRef}>
