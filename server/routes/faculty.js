@@ -19,6 +19,7 @@ import { hydratePolls } from '../utils/pollService.js';
 import { buildClassAudienceFilter, normalizeClassValue, validateAndNormalizeQuestions } from '../utils/pollUtils.js';
 import { hydrateEvents } from '../utils/eventService.js';
 import { normalizeEventPayload } from '../utils/eventUtils.js';
+import { archivePastEvents } from '../utils/archiveEvents.js';
 
 const router = express.Router();
 
@@ -727,6 +728,7 @@ router.get('/events', protect, async (req, res) => {
   }
 
   try {
+    await archivePastEvents();
     const classContext = await getFacultyClassContext(req.user.id);
     const classFilter = classContext ? buildClassAudienceFilter({
       grade: classContext.assignedGrade,

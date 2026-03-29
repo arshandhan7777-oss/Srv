@@ -17,6 +17,7 @@ import { hydratePolls } from '../utils/pollService.js';
 import { normalizeClassValue, validateAndNormalizeQuestions } from '../utils/pollUtils.js';
 import { hydrateEvents } from '../utils/eventService.js';
 import { normalizeEventPayload } from '../utils/eventUtils.js';
+import { archivePastEvents } from '../utils/archiveEvents.js';
 
 const router = express.Router();
 
@@ -848,6 +849,7 @@ router.post('/events', protect, adminOnly, async (req, res) => {
 // @access  Private (Admin only)
 router.get('/events', protect, adminOnly, async (req, res) => {
   try {
+    await archivePastEvents();
     const events = await Event.find().sort({ eventDate: 1, createdAt: -1 });
     res.json(await hydrateEvents(events));
   } catch (error) {

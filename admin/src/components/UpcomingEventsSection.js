@@ -33,6 +33,13 @@ export function UpcomingEventsSection({ role }) {
   const [message, setMessage] = useState({ text: '', type: '' });
 
   const endpointBase = useMemo(() => `${API_URL}/api/${role}/events`, [role]);
+  const orderedEvents = [...events].sort((left, right) => {
+    if (left.isArchived !== right.isArchived) {
+      return left.isArchived ? 1 : -1;
+    }
+
+    return new Date(left.eventDate) - new Date(right.eventDate);
+  });
 
   const fetchEvents = async () => {
     setLoading(true);
@@ -251,25 +258,30 @@ export function UpcomingEventsSection({ role }) {
 
         {loading ? (
           <div className="text-slate-500 font-semibold">Loading events...</div>
-        ) : events.length === 0 ? (
+        ) : orderedEvents.length === 0 ? (
           <div className="border border-dashed border-slate-200 rounded-3xl p-10 text-center text-slate-400 font-semibold">
             No upcoming events created yet.
           </div>
         ) : (
           <div className="space-y-6">
-            {events.map((item) => {
+            {orderedEvents.map((item) => {
               const canManage = role === 'admin' || item.createdByRole === role;
               return (
                 <div key={item._id} className="border border-slate-200 rounded-3xl p-6">
                   <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-5">
                     <div>
                       <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${statusClasses[item.status] || statusClasses.CLOSED}`}>
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${statusClasses[item.status] || statusClasses.CLOSED}`}>
                           {item.status}
+                      </span>
+                      {item.isArchived && (
+                        <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-200 text-slate-700">
+                          Archived Summary
                         </span>
-                        <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">
-                          {formatTarget(item)}
-                        </span>
+                      )}
+                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">
+                        {formatTarget(item)}
+                      </span>
                         <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">
                           {item.registrationCount || 0} acknowledgements
                         </span>
@@ -282,7 +294,7 @@ export function UpcomingEventsSection({ role }) {
                       <p className="text-sm text-slate-600 mt-3">{item.description}</p>
                     </div>
 
-                    {canManage ? (
+                    {canManage && !item.isArchived ? (
                       <div className="flex flex-wrap gap-2">
                         {item.status === 'ACTIVE' ? (
                           <button
@@ -312,6 +324,10 @@ export function UpcomingEventsSection({ role }) {
                           <Trash2 size={16} />
                         </button>
                       </div>
+                    ) : canManage ? (
+                      <div className="px-4 py-2 rounded-2xl bg-slate-100 text-slate-600 text-sm font-semibold h-fit">
+                        Past event summary
+                      </div>
                     ) : (
                       <div className="px-4 py-2 rounded-2xl bg-slate-100 text-slate-600 text-sm font-semibold h-fit">
                         View only
@@ -326,19 +342,23 @@ export function UpcomingEventsSection({ role }) {
                           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
                             <div>
                               <p className="font-bold text-slate-900">
-                                {registration.parentId?.name || 'Parent'} • {registration.studentId?.name || 'Student'}
+                                {registration.isArchivedSnapshot
+                                  ? (registration.studentId?.name || 'Student')
+                                  : `${registration.parentId?.name || 'Parent'} • ${registration.studentId?.name || 'Student'}`}
                               </p>
                               <p className="text-xs text-slate-500 mt-1">
-                                Acknowledged {new Date(registration.acknowledgedAt || registration.createdAt).toLocaleString()}
+                                {registration.isArchivedSnapshot ? 'Archived after event completion' : 'Acknowledged'} {new Date(registration.acknowledgedAt || registration.createdAt).toLocaleString()}
                               </p>
                             </div>
                             <div className="text-sm text-slate-600">
-                              {registration.participantNames?.length > 0
+                              {registration.isArchivedSnapshot
+                                ? 'Student participation preserved'
+                                : registration.participantNames?.length > 0
                                 ? `Names: ${registration.participantNames.join(', ')}`
                                 : 'Acknowledged without names'}
                             </div>
                           </div>
-                          {registration.note && (
+                          {registration.note && !registration.isArchivedSnapshot && (
                             <p className="text-sm text-slate-600 mt-3 leading-relaxed">{registration.note}</p>
                           )}
                         </div>

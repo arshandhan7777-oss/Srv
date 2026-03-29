@@ -21,6 +21,7 @@ import { hydratePolls } from '../utils/pollService.js';
 import { buildClassAudienceFilter, validatePollAnswers } from '../utils/pollUtils.js';
 import { hydrateEvents } from '../utils/eventService.js';
 import { validateParticipantNames } from '../utils/eventUtils.js';
+import { archivePastEvents } from '../utils/archiveEvents.js';
 
 const router = express.Router();
 
@@ -578,6 +579,7 @@ router.get('/feedback', protect, parentOnly, async (req, res) => {
 // @access  Private (Parent only)
 router.get('/events', protect, parentOnly, async (req, res) => {
   try {
+    await archivePastEvents();
     const parentUser = await User.findById(req.user.id);
     if (!parentUser.studentId) return res.status(404).json({ message: 'No student linked to this account' });
 
@@ -611,6 +613,7 @@ router.post('/events/:id/register', protect, parentOnly, async (req, res) => {
   const { participantNames, note } = req.body;
 
   try {
+    await archivePastEvents();
     const parentUser = await User.findById(req.user.id);
     if (!parentUser.studentId) return res.status(404).json({ message: 'No student linked to this account' });
 
