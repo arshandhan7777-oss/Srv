@@ -14,10 +14,7 @@ import { ParentEventsSection } from '../components/ParentEventsSection.js';
 
 const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6'];
 
-export function ParentDashboard() {
-  // ========== Section Navigation State ==========
-  const [activeSection, setActiveSection] = useState('dashboard'); // dashboard, skills, homework, events, polls, feedback, fees
-
+export function ParentDashboard({ section = 'dashboard' }) {
   // ========== Data & Loading State ==========
 const [data, setData] = useState({ student: null, records: [], homework: [], food: null, settings: {} });
   const [weeklyHomework, setWeeklyHomework] = useState([]);
@@ -49,6 +46,42 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
   
   const navigate = useNavigate();
   const reportRef = useRef();
+  const activeSection = section || 'dashboard';
+
+  const pageMeta = {
+    dashboard: {
+      title: 'Parent Dashboard',
+      description: 'Academic performance, attendance, pending fees, and quick mobile access to every parent feature.'
+    },
+    skills: {
+      title: 'Nlite 21st-Century Skills',
+      description: 'Detailed student skill analysis and score breakdown.'
+    },
+    homework: {
+      title: 'Homework and Tasks',
+      description: 'Today’s homework and the weekly homework overview in one place.'
+    },
+    events: {
+      title: 'Upcoming Events',
+      description: 'School events, schedules, and parent acknowledgements.'
+    },
+    polls: {
+      title: 'Active Opinion Polls',
+      description: 'Vote in active parent polls and review the latest questions.'
+    },
+    feedback: {
+      title: 'Feedback and Concerns',
+      description: 'Send concerns to school and review your feedback history.'
+    },
+    fees: {
+      title: 'Fee Payment',
+      description: 'Check balances and complete online fee payments.'
+    }
+  };
+
+  const navigateToSection = (targetSection) => {
+    navigate(targetSection === 'dashboard' ? '/parent/dashboard' : `/parent/${targetSection}`);
+  };
 
   // ========== Fetch Data on Mount ==========
   useEffect(() => {
@@ -65,7 +98,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
 
     fetchWeeklyHomework();
     fetchAnnouncements();
-  }, [navigate]);
+  }, [section]);
 
   const fetchWeeklyHomework = async () => {
     try {
@@ -290,11 +323,16 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
              </div>
           </div>
           <div>
-            <h1 className="font-display font-bold text-lg leading-tight">Parent Portal</h1>
+            <h1 className="font-display font-bold text-lg leading-tight">{pageMeta[activeSection]?.title || 'Parent Portal'}</h1>
             <p className="text-xs text-amber-400">SRV Matriculation School</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
+          {activeSection !== 'dashboard' && (
+            <button onClick={() => navigateToSection('dashboard')} className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-semibold transition-colors">
+              <ChevronLeft size={16} /> Dashboard
+            </button>
+          )}
           <div className="relative">
             <button 
               onClick={() => setShowNotifications(!showNotifications)}
@@ -363,6 +401,19 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" ref={reportRef}>
+        {activeSection !== 'dashboard' && pageMeta[activeSection] && (
+          <div className="bg-white rounded-3xl p-6 mb-8 shadow-sm border border-slate-100">
+            <button 
+              onClick={() => navigateToSection('dashboard')}
+              className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-semibold mb-4 transition-colors"
+            >
+              <ChevronLeft size={20} /> Back to Dashboard
+            </button>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Parent Apps</p>
+            <h2 className="mt-2 text-2xl font-display font-bold text-slate-900">{pageMeta[activeSection].title}</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-500 max-w-3xl">{pageMeta[activeSection].description}</p>
+          </div>
+        )}
         
         {/* ========== STUDENT HEADER ========== */}
         <div className="bg-white rounded-3xl p-8 mb-8 shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden">
@@ -395,14 +446,14 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
             {/* DASHBOARD: Top 3 Summary Cards */}
             <div className="grid md:grid-cols-3 gap-6 mb-8">
               {/* Academic Performance Card */}
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group cursor-pointer hover:shadow-md hover:border-emerald-200 transition-all"onClick={() => setActiveSection('skills')}>
+              <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group cursor-pointer hover:shadow-md hover:border-emerald-200 transition-all"onClick={() => navigateToSection('skills')}>
                 <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full blur-3xl -z-0 group-hover:bg-emerald-100 transition-colors"></div>
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
                       <TrendingUp className="text-emerald-600" size={24} />
                     </div>
-                    <h3 className="text-lg font-display font-bold text-slate-900">Academic Performance</h3>
+                    <h3 className="text-lg font-display font-bold text-slate-900">Overall Academic Performance</h3>
                   </div>
                   {marksData.length > 0 ? (
                     <>
@@ -416,7 +467,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
               </div>
 
               {/* Attendance Card */}
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group cursor-pointer hover:shadow-md hover:border-blue-200 transition-all" onClick={() => setActiveSection('dashboard')}>
+              <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group cursor-pointer hover:shadow-md hover:border-blue-200 transition-all" onClick={() => navigateToSection('dashboard')}>
                 <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full blur-3xl -z-0 group-hover:bg-blue-100 transition-colors"></div>
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-4">
@@ -437,14 +488,14 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
               </div>
 
               {/* Fee Balance Card */}
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group cursor-pointer hover:shadow-md hover:border-violet-200 transition-all" onClick={() => setActiveSection('fees')}>
+              <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group cursor-pointer hover:shadow-md hover:border-violet-200 transition-all" onClick={() => navigateToSection('fees')}>
                 <div className="absolute top-0 right-0 w-32 h-32 bg-violet-50 rounded-full blur-3xl -z-0 group-hover:bg-violet-100 transition-colors"></div>
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center">
                       <CreditCard className="text-violet-600" size={24} />
                     </div>
-                    <h3 className="text-lg font-display font-bold text-slate-900">Fee Balance</h3>
+                    <h3 className="text-lg font-display font-bold text-slate-900">Pending Fee Balance</h3>
                   </div>
                   <p className={`text-4xl font-display font-black mb-2 ${amountDue > 0 ? 'text-red-500' : 'text-emerald-600'}`}>₹{amountDue.toLocaleString()}</p>
                   <p className="text-sm text-slate-500 font-semibold">{dueCount} Term{dueCount > 1 ? 's' : ''} Due</p>
@@ -458,7 +509,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-4 sm:gap-6">
                 {/* Nlite Skills */}
                 <button 
-                  onClick={() => setActiveSection('skills')}
+                  onClick={() => navigateToSection('skills')}
                   className="group relative p-6 sm:p-8 rounded-2xl sm:rounded-3xl border-2 border-slate-100 hover:border-amber-300 bg-gradient-to-br from-amber-50 to-white hover:shadow-xl transition-all duration-300 text-left"
                 >
                   <div className="absolute top-4 right-4 w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -471,20 +522,20 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
 
                 {/* Homework */}
                 <button 
-                  onClick={() => setActiveSection('homework')}
+                  onClick={() => navigateToSection('homework')}
                   className="group relative p-6 sm:p-8 rounded-2xl sm:rounded-3xl border-2 border-slate-100 hover:border-blue-300 bg-gradient-to-br from-blue-50 to-white hover:shadow-xl transition-all duration-300 text-left"
                 >
                   <div className="absolute top-4 right-4 w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                     <BookOpen className="text-blue-600" size={24} />
                   </div>
-                  <h3 className="font-display font-bold text-slate-900 text-base sm:text-lg mt-2">Homework & Tasks</h3>
-                  <p className="text-xs sm:text-sm text-slate-500 mt-2">Weekly overview & daily tasks</p>
+                  <h3 className="font-display font-bold text-slate-900 text-base sm:text-lg mt-2">Today's Homework & Tasks</h3>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-2">Today’s tasks and weekly homework overview</p>
                   <ArrowRight className="text-blue-600 mt-4 group-hover:translate-x-1 transition-transform" size={18} />
                 </button>
 
                 {/* Events */}
                 <button 
-                  onClick={() => setActiveSection('events')}
+                  onClick={() => navigateToSection('events')}
                   className="group relative p-6 sm:p-8 rounded-2xl sm:rounded-3xl border-2 border-slate-100 hover:border-cyan-300 bg-gradient-to-br from-cyan-50 to-white hover:shadow-xl transition-all duration-300 text-left"
                 >
                   <div className="absolute top-4 right-4 w-12 h-12 bg-cyan-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -497,33 +548,33 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
 
                 {/* Polls */}
                 <button 
-                  onClick={() => setActiveSection('polls')}
+                  onClick={() => navigateToSection('polls')}
                   className="group relative p-6 sm:p-8 rounded-2xl sm:rounded-3xl border-2 border-slate-100 hover:border-purple-300 bg-gradient-to-br from-purple-50 to-white hover:shadow-xl transition-all duration-300 text-left"
                 >
                   <div className="absolute top-4 right-4 w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                     <FileText className="text-purple-600" size={24} />
                   </div>
-                  <h3 className="font-display font-bold text-slate-900 text-base sm:text-lg mt-2">Opinion Polls</h3>
-                  <p className="text-xs sm:text-sm text-slate-500 mt-2">Active surveys & voting</p>
+                  <h3 className="font-display font-bold text-slate-900 text-base sm:text-lg mt-2">Active Opinion Polls</h3>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-2">Active surveys and parent voting</p>
                   <ArrowRight className="text-purple-600 mt-4 group-hover:translate-x-1 transition-transform" size={18} />
                 </button>
 
                 {/* Feedback */}
                 <button 
-                  onClick={() => setActiveSection('feedback')}
+                  onClick={() => navigateToSection('feedback')}
                   className="group relative p-6 sm:p-8 rounded-2xl sm:rounded-3xl border-2 border-slate-100 hover:border-pink-300 bg-gradient-to-br from-pink-50 to-white hover:shadow-xl transition-all duration-300 text-left"
                 >
                   <div className="absolute top-4 right-4 w-12 h-12 bg-pink-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                     <MessageSquareMore className="text-pink-600" size={24} />
                   </div>
                   <h3 className="font-display font-bold text-slate-900 text-base sm:text-lg mt-2">Feedback & Concerns</h3>
-                  <p className="text-xs sm:text-sm text-slate-500 mt-2">Send messages & view history</p>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-2">Send concerns and view your feedback history</p>
                   <ArrowRight className="text-pink-600 mt-4 group-hover:translate-x-1 transition-transform" size={18} />
                 </button>
 
                 {/* Fees */}
                 <button 
-                  onClick={() => setActiveSection('fees')}
+                  onClick={() => navigateToSection('fees')}
                   className="group relative p-6 sm:p-8 rounded-2xl sm:rounded-3xl border-2 border-slate-100 hover:border-emerald-300 bg-gradient-to-br from-emerald-50 to-white hover:shadow-xl transition-all duration-300 text-left"
                 >
                   <div className="absolute top-4 right-4 w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -542,8 +593,8 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
         {activeSection === 'skills' && (
           <>
             <button 
-              onClick={() => setActiveSection('dashboard')}
-              className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-semibold mb-6 transition-colors"
+              onClick={() => navigateToSection('dashboard')}
+              className="hidden"
             >
               <ChevronLeft size={20} /> Back to Dashboard
             </button>
@@ -600,8 +651,8 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
         {activeSection === 'homework' && (
           <>
             <button 
-              onClick={() => setActiveSection('dashboard')}
-              className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-semibold mb-6 transition-colors"
+              onClick={() => navigateToSection('dashboard')}
+              className="hidden"
             >
               <ChevronLeft size={20} /> Back to Dashboard
             </button>
@@ -780,8 +831,8 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
         {activeSection === 'events' && (
           <>
             <button 
-              onClick={() => setActiveSection('dashboard')}
-              className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-semibold mb-6 transition-colors"
+              onClick={() => navigateToSection('dashboard')}
+              className="hidden"
             >
               <ChevronLeft size={20} /> Back to Dashboard
             </button>
@@ -793,8 +844,8 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
         {activeSection === 'polls' && (
           <>
             <button 
-              onClick={() => setActiveSection('dashboard')}
-              className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-semibold mb-6 transition-colors"
+              onClick={() => navigateToSection('dashboard')}
+              className="hidden"
             >
               <ChevronLeft size={20} /> Back to Dashboard
             </button>
@@ -806,8 +857,8 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
         {activeSection === 'feedback' && (
           <>
             <button 
-              onClick={() => setActiveSection('dashboard')}
-              className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-semibold mb-6 transition-colors"
+              onClick={() => navigateToSection('dashboard')}
+              className="hidden"
             >
               <ChevronLeft size={20} /> Back to Dashboard
             </button>
@@ -819,8 +870,8 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
         {activeSection === 'fees' && (
           <>
             <button 
-              onClick={() => setActiveSection('dashboard')}
-              className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-semibold mb-6 transition-colors"
+              onClick={() => navigateToSection('dashboard')}
+              className="hidden"
             >
               <ChevronLeft size={20} /> Back to Dashboard
             </button>

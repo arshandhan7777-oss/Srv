@@ -49,6 +49,12 @@ export default function App() {
         {/* Protected Parent Routes */}
         <Route element={<ProtectedRoute allowedRole="parent" redirectTo="/login" />}>
           <Route path="/parent/dashboard" element={<ParentDashboard />} />
+          <Route path="/parent/skills" element={<ParentDashboard section="skills" />} />
+          <Route path="/parent/homework" element={<ParentDashboard section="homework" />} />
+          <Route path="/parent/events" element={<ParentDashboard section="events" />} />
+          <Route path="/parent/polls" element={<ParentDashboard section="polls" />} />
+          <Route path="/parent/feedback" element={<ParentDashboard section="feedback" />} />
+          <Route path="/parent/fees" element={<ParentDashboard section="fees" />} />
         </Route>
 
         {/* Catch-all redirect */}  
