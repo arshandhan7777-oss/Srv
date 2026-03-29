@@ -40,6 +40,8 @@ export function AdminDashboard() {
   const [studentMsg, setStudentMsg] = useState({ text: '', type: '' });
   const [editingSrvId, setEditingSrvId] = useState(null);
   const [editSrvValue, setEditSrvValue] = useState('');
+  const [editingFacultySrvId, setEditingFacultySrvId] = useState(null);
+  const [editFacultySrvValue, setEditFacultySrvValue] = useState('');
   const [editingStudentId, setEditingStudentId] = useState(null);
   const [editStudentForm, setEditStudentForm] = useState({ name: '', grade: '', section: '', group: '', motherName: '', fatherName: '', guardianName: '' });
   const [promoteFrom, setPromoteFrom] = useState('');
@@ -331,6 +333,21 @@ export function AdminDashboard() {
       setTimeout(() => setManageFacultyMsg({text:'', type:''}), 3000);
     } catch (err) {
       setManageFacultyMsg({ text: 'Failed to update faculty', type: 'error' });
+    }
+  };
+
+  const handleUpdateFacultySrv = async (id) => {
+    try {
+      const token = localStorage.getItem('schoolToken');
+      await axios.put(`${API_URL}/api/admin/faculty/${id}/srv`, { facultyNumber: editFacultySrvValue }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      Swal.fire({toast: true, position: 'top-end', icon: 'success', title: 'FAC updated!', showConfirmButton: false, timer: 2000});
+      setEditingFacultySrvId(null);
+      setEditFacultySrvValue('');
+      fetchFaculties(token);
+    } catch (err) {
+      Swal.fire('Error', err.response?.data?.message || 'Failed to update FAC number', 'error');
     }
   };
 
@@ -924,11 +941,25 @@ export function AdminDashboard() {
               <tbody className="divide-y divide-slate-100 text-sm">
                 {faculties.map(faculty => (
                   <tr key={faculty._id} className="hover:bg-slate-50/50">
-                    <td className="px-5 py-4 font-mono font-medium text-slate-600 border-b border-slate-50">{faculty.srvNumber}</td>
+                    <td className="px-5 py-4 font-mono font-medium text-slate-600 border-b border-slate-50">
+                      {editingFacultySrvId === faculty._id ? (
+                        <div className="flex items-center gap-1">
+                          <span className="text-slate-400 text-xs">FAC</span>
+                          <input type="text" inputMode="numeric" value={editFacultySrvValue} onChange={e => setEditFacultySrvValue(e.target.value.replace(/\D/g, ''))} className="w-20 px-2 py-1 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-xs font-mono" autoFocus />
+                          <button onClick={() => handleUpdateFacultySrv(faculty._id)} className="p-1 bg-emerald-100 text-emerald-700 rounded hover:bg-emerald-200" title="Save"><Save size={12} /></button>
+                          <button onClick={() => { setEditingFacultySrvId(null); setEditFacultySrvValue(''); }} className="p-1 bg-slate-100 text-slate-600 rounded hover:bg-slate-200" title="Cancel"><X size={12} /></button>
+                        </div>
+                      ) : (
+                        <span className="cursor-pointer hover:text-blue-600" onClick={() => { setEditingFacultySrvId(faculty._id); setEditFacultySrvValue(faculty.srvNumber.replace(/\D/g, '')); }} title="Click to edit FAC number">
+                          {faculty.srvNumber}
+                        </span>
+                      )}
+                    </td>
                     <td className="px-5 py-4 font-semibold text-slate-900 border-b border-slate-50">{faculty.name}</td>
                     
                     {editingFacultyId === faculty._id ? (
                       <>
+                        <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">{faculty.mobileNumber || '-'}</td>
                         <td className="px-3 py-3 font-semibold text-slate-700 border-b border-slate-50">
                           <input type="text" value={editFacultyForm.assignedGrade} onChange={e => setEditFacultyForm({...editFacultyForm, assignedGrade: e.target.value})} className="w-16 px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Grade" />
                         </td>
@@ -967,7 +998,7 @@ export function AdminDashboard() {
                 ))}
                 {faculties.length === 0 && (
                   <tr>
-                    <td colSpan="5" className="px-5 py-8 text-center text-slate-500 border-b border-slate-50">No faculty members found.</td>
+                    <td colSpan="6" className="px-5 py-8 text-center text-slate-500 border-b border-slate-50">No faculty members found.</td>
                   </tr>
                 )}
               </tbody>
@@ -998,7 +1029,7 @@ export function AdminDashboard() {
             <table className="w-full text-left border-collapse min-w-[980px]">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-sm text-slate-500">
-                  <th className="px-5 py-3 font-semibold">SRV No</th>
+                  <th className="px-5 py-3 font-semibold">FAC No</th>
                   <th className="px-5 py-3 font-semibold">Name</th>
                   <th className="px-5 py-3 font-semibold">Grade & Sec</th>
                   <th className="px-5 py-3 font-semibold">Family Details</th>

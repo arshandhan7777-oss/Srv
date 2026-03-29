@@ -440,15 +440,13 @@ router.put('/student/:id/srv', protect, adminOnly, async (req, res) => {
     }
     const newSrvNumber = `SRV${numStr}`;
 
-    // Skip if it's the same
     if (newSrvNumber === student.srvNumber) {
-      return res.json({ message: 'No change needed', student });
+      return res.status(400).json({ message: 'This SRV number is already assigned. Please enter a unique ID.' });
     }
 
-    // Uniqueness check
     const existing = await Student.findOne({ srvNumber: newSrvNumber });
     if (existing) {
-      return res.status(400).json({ message: `SRV number ${newSrvNumber} is already assigned to another student.` });
+      return res.status(400).json({ message: `SRV number ${newSrvNumber} is already assigned. Please enter a unique ID.` });
     }
 
     const oldSrvNumber = student.srvNumber;
@@ -462,7 +460,7 @@ router.put('/student/:id/srv', protect, adminOnly, async (req, res) => {
   } catch (error) {
     console.error('[Edit SRV Error]', error);
     if (error.code === 11000) {
-      return res.status(400).json({ message: 'This SRV number is already in use.' });
+      return res.status(400).json({ message: 'This SRV number is already in use. Please enter a unique ID.' });
     }
     res.status(500).json({ message: 'Error updating SRV number' });
   }
@@ -654,6 +652,46 @@ router.delete('/announcements/:id', protect, adminOnly, async (req, res) => {
     res.json({ message: 'Announcement deleted' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting announcement' });
+  }
+});
+
+// @route   PUT /api/admin/faculty/:id/srv
+// @desc    Edit a faculty FAC number (admin enters numeric part only)
+// @access  Private (Admin only)
+router.put('/faculty/:id/srv', protect, adminOnly, async (req, res) => {
+  const { facultyNumber } = req.body;
+  try {
+    const faculty = await User.findById(req.params.id);
+    if (!faculty || faculty.role !== 'faculty') {
+      return res.status(404).json({ message: 'Faculty not found' });
+    }
+
+    const numStr = (facultyNumber || '').toString().trim();
+    if (!/^\d+$/.test(numStr)) {
+      return res.status(400).json({ message: 'Faculty number must contain only digits (e.g., 26001)' });
+    }
+
+    const newFacultyNumber = `FAC${numStr}`;
+
+    if (newFacultyNumber === faculty.srvNumber) {
+      return res.status(400).json({ message: 'This FAC number is already assigned. Please enter a unique ID.' });
+    }
+
+    const existing = await User.findOne({ srvNumber: newFacultyNumber });
+    if (existing) {
+      return res.status(400).json({ message: `FAC number ${newFacultyNumber} is already assigned. Please enter a unique ID.` });
+    }
+
+    faculty.srvNumber = newFacultyNumber;
+    await faculty.save();
+
+    res.json({ message: `FAC number updated to ${newFacultyNumber}`, faculty });
+  } catch (error) {
+    console.error('[Edit FAC Error]', error);
+    if (error.code === 11000) {
+      return res.status(400).json({ message: 'This FAC number is already in use. Please enter a unique ID.' });
+    }
+    res.status(500).json({ message: 'Error updating FAC number' });
   }
 });
 
