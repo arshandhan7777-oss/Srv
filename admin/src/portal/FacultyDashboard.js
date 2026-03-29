@@ -7,6 +7,8 @@ import { OpinionPollSection } from '../components/OpinionPollSection.js';
 import { FeedbackInboxSection } from '../components/FeedbackInboxSection.js';
 import { UpcomingEventsSection } from '../components/UpcomingEventsSection.js';
 import { Logo } from '../components/Logo.js';
+import { PortalHeader } from '../components/PortalHeader.js';
+import { NotificationPanel } from '../components/NotificationPanel.js';
 
 export function FacultyDashboard({ section = 'dashboard' }) {
   const hasValidFamilyDetails = (profile) => Boolean(
@@ -507,6 +509,47 @@ export function FacultyDashboard({ section = 'dashboard' }) {
     { key: 'feedback', title: 'Feedback', subtitle: 'Parent Feedback Inbox', icon: MessageSquareMore, badge: unreadCount, gradient: 'from-slate-700 to-slate-900' }
   ];
 
+  const notificationAction = (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setShowNotifications(current => !current)}
+        className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 opacity-100 transition hover:bg-slate-50 hover:text-slate-900 active:scale-95"
+      >
+        <Bell size={18} className="opacity-100" />
+        {unreadCount > 0 ? <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500"></span> : null}
+      </button>
+      <NotificationPanel open={showNotifications} onClose={() => setShowNotifications(false)} title="Faculty Announcements" subtitle={`${inboxAnnouncements.length} total`}>
+        {inboxAnnouncements.length > 0 ? (
+          <div className="divide-y divide-slate-100">
+            {inboxAnnouncements.map(ann => (
+              <div key={ann._id} className={`p-4 transition-colors hover:bg-slate-50 ${ann.priority === 'HIGH' ? 'border-l-4 border-l-red-500' : 'border-l-4 border-l-slate-200'}`}>
+                <div className="mb-1 flex items-start justify-between gap-2">
+                  <h4 className="line-clamp-2 text-sm font-bold text-slate-900">{ann.title}</h4>
+                  <div className="flex flex-shrink-0 items-center gap-2">
+                    {ann.priority === 'HIGH' ? <span className="whitespace-nowrap rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700">URGENT</span> : null}
+                    <button type="button" onClick={() => dismissInboxAnnouncement(ann._id)} className="rounded p-0.5 text-slate-400 transition-colors hover:text-slate-600 active:scale-95" title="Dismiss">
+                      <X size={16} />
+                    </button>
+                  </div>
+                </div>
+                <p className="mb-2 text-xs text-slate-600">{ann.message}</p>
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-slate-500">{ann.createdBy?.name || 'Admin'}</span>
+                  <span className="text-slate-400">{new Date(ann.createdAt).toLocaleDateString()}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="p-8 text-center text-slate-400">
+            <p className="text-sm font-semibold">No faculty announcements yet</p>
+          </div>
+        )}
+      </NotificationPanel>
+    </div>
+  );
+
   const renderDashboardHome = () => (
     <div className="min-h-screen bg-slate-100">
       <div className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
@@ -595,7 +638,101 @@ export function FacultyDashboard({ section = 'dashboard' }) {
                     key={page.key}
                     type="button"
                     onClick={() => navigateToSection(page.key)}
-                    className="group rounded-[1.75rem] border border-slate-200 bg-slate-50 p-4 text-left transition duration-200 hover:-translate-y-1 hover:border-slate-300 hover:bg-white"
+                    className="group cursor-pointer rounded-[1.75rem] border border-slate-200 bg-slate-50 p-4 text-left transition duration-200 hover:-translate-y-1 hover:border-slate-300 hover:bg-white active:scale-[0.97]"
+                  >
+                    <div className={`flex h-14 w-14 items-center justify-center rounded-[1.25rem] bg-gradient-to-br ${page.gradient} text-white shadow-lg shadow-slate-300/40`}>
+                      <Icon size={24} />
+                    </div>
+                    <div className="mt-4 flex items-center justify-between gap-2">
+                      <h3 className="text-base font-display font-bold text-slate-900">{page.title}</h3>
+                      <span className="rounded-full bg-slate-200 px-2.5 py-1 text-[11px] font-bold text-slate-700">{page.badge}</span>
+                    </div>
+                    <p className="mt-2 text-sm leading-5 text-slate-500">{page.subtitle}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  );
+
+  const renderDashboardView = () => (
+    <div className="min-h-screen bg-slate-100">
+      <PortalHeader title="Faculty Dashboard" subtitle={`Class ${user.assignedGrade}-${user.assignedSection} - ${user.name}`} onLogout={handleLogout}>
+        {notificationAction}
+      </PortalHeader>
+
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <div className="space-y-8">
+          <section className="overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-700 p-6 text-white shadow-xl shadow-slate-900/10 sm:p-8">
+            <div className="grid gap-6 lg:grid-cols-[1.35fr,0.85fr]">
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-100">
+                  <LayoutDashboard size={14} />
+                  Faculty Overview
+                </div>
+                <h2 className="mt-4 max-w-2xl text-3xl font-display font-bold leading-tight sm:text-4xl">
+                  Teaching tools organized for quick mobile access.
+                </h2>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-emerald-50/90 sm:text-base">
+                  Open homework, attendance, behavior, announcements, events, polls, and feedback from one clean faculty home screen.
+                </p>
+              </div>
+
+              <div className="rounded-[1.75rem] border border-white/15 bg-white/10 p-5 backdrop-blur">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100">Today</p>
+                <div className="mt-4 grid grid-cols-1 gap-3">
+                  <div className="rounded-2xl bg-white/10 px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100">Students</p>
+                    <p className="mt-1 text-2xl font-display font-bold">{students.length}</p>
+                  </div>
+                  <div className="rounded-2xl bg-white/10 px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100">Upcoming Homework</p>
+                    <p className="mt-1 text-2xl font-display font-bold">{upcomingHomeworkCount}</p>
+                  </div>
+                  <div className="rounded-2xl bg-white/10 px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100">Inbox Alerts</p>
+                    <p className="mt-1 text-2xl font-display font-bold">{unreadCount}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="rounded-[1.5rem] border border-white/10 bg-white/10 p-4 backdrop-blur">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-50/75">My Students</p>
+                <p className="mt-2 text-3xl font-display font-bold">{students.length}</p>
+              </div>
+              <div className="rounded-[1.5rem] border border-white/10 bg-white/10 p-4 backdrop-blur">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-50/75">Assigned Homework</p>
+                <p className="mt-2 text-3xl font-display font-bold">{assignedHomework.length}</p>
+              </div>
+              <div className="rounded-[1.5rem] border border-white/10 bg-white/10 p-4 backdrop-blur">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-50/75">Overdue Tasks</p>
+                <p className="mt-2 text-3xl font-display font-bold">{overdueHomeworkCount}</p>
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Faculty Apps</p>
+              <h2 className="mt-1 text-2xl font-display font-bold text-slate-900">Tap an icon to open its page</h2>
+              <p className="mt-1 text-sm text-slate-500">Designed for fast mobile navigation without the long faculty scrolling page.</p>
+            </div>
+
+            <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+              {appPages.map(page => {
+                const Icon = page.icon;
+
+                return (
+                  <button
+                    key={page.key}
+                    type="button"
+                    onClick={() => navigateToSection(page.key)}
+                    className="group cursor-pointer rounded-[1.75rem] border border-slate-200 bg-slate-50 p-4 text-left transition duration-200 hover:-translate-y-1 hover:border-slate-300 hover:bg-white active:scale-[0.97]"
                   >
                     <div className={`flex h-14 w-14 items-center justify-center rounded-[1.25rem] bg-gradient-to-br ${page.gradient} text-white shadow-lg shadow-slate-300/40`}>
                       <Icon size={24} />
@@ -616,13 +753,21 @@ export function FacultyDashboard({ section = 'dashboard' }) {
   );
 
   if (activeSection === 'dashboard') {
-    return renderDashboardHome();
+    return renderDashboardView();
   }
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <PortalHeader
+        title={pageMeta[activeSection]?.title || 'Faculty Portal'}
+        subtitle={`Class ${user.assignedGrade}-${user.assignedSection} - ${user.name}`}
+        onBack={() => navigateToSection('dashboard')}
+        onLogout={handleLogout}
+      >
+        {notificationAction}
+      </PortalHeader>
       {/* Top Navbar */}
-      <div className="bg-slate-900 text-white px-8 py-4 flex justify-between items-center shadow-md">
+      <div className="hidden bg-slate-900 text-white px-8 py-4 flex justify-between items-center shadow-md">
         <div className="flex items-center gap-4">
           <Logo className="shrink-0" />
           <div>

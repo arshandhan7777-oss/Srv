@@ -12,6 +12,7 @@ import { AdminLogin } from './portal/AdminLogin';
 import { AdminDashboard } from './portal/AdminDashboard';
 import { FacultyDashboard } from './portal/FacultyDashboard';
 import { ParentDashboard } from './portal/ParentDashboard';
+import { NotFound } from './portal/NotFound';
 
 /* Security Guard */
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -66,7 +67,7 @@ export default function App() {
         </Route>
 
         {/* Catch-all redirect */}  
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   );

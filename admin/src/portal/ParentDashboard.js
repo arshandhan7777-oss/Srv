@@ -11,6 +11,8 @@ import { ParentPollsSection } from '../components/ParentPollsSection.js';
 import { ParentFeedbackSection } from '../components/ParentFeedbackSection.js';
 import { ParentEventsSection } from '../components/ParentEventsSection.js';
 import { Logo } from '../components/Logo.js';
+import { PortalHeader } from '../components/PortalHeader.js';
+import { NotificationPanel } from '../components/NotificationPanel.js';
 
 const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6'];
 
@@ -422,6 +424,53 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
     }
   ];
 
+  const formattedPendingBalance = new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0
+  }).format(amountDue);
+
+  const notificationAction = (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setShowNotifications(current => !current)}
+        className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 opacity-100 transition hover:bg-slate-50 hover:text-slate-900 active:scale-95"
+      >
+        <Bell size={18} className="opacity-100" />
+        {unreadCount > 0 ? <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500"></span> : null}
+      </button>
+      <NotificationPanel open={showNotifications} onClose={() => setShowNotifications(false)} title="Announcements" subtitle={`${announcements.length} total`}>
+        {announcements.length > 0 ? (
+          <div className="divide-y divide-slate-100">
+            {announcements.map(ann => (
+              <div key={ann._id} className={`p-4 transition-colors hover:bg-slate-50 ${ann.priority === 'HIGH' ? 'border-l-4 border-l-red-500' : 'border-l-4 border-l-slate-200'}`}>
+                <div className="mb-1 flex items-start justify-between gap-2">
+                  <h4 className="line-clamp-2 text-sm font-bold text-slate-900">{ann.title}</h4>
+                  <div className="flex flex-shrink-0 items-center gap-2">
+                    {ann.priority === 'HIGH' ? <span className="whitespace-nowrap rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700">URGENT</span> : null}
+                    <button type="button" onClick={() => dismissAnnouncement(ann._id)} className="rounded p-0.5 text-slate-400 transition-colors hover:text-slate-600 active:scale-95" title="Dismiss">
+                      <X size={16} />
+                    </button>
+                  </div>
+                </div>
+                <p className="mb-2 text-xs text-slate-600">{ann.message}</p>
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-slate-500">{ann.createdByRole === 'admin' ? 'Admin' : 'Faculty'}</span>
+                  <span className="text-slate-400">{new Date(ann.createdAt).toLocaleDateString()}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="p-8 text-center text-slate-400">
+            <p className="text-sm font-semibold">No announcements yet</p>
+          </div>
+        )}
+      </NotificationPanel>
+    </div>
+  );
+
   const renderDashboardHome = () => {
     const formattedPendingBalance = new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -482,86 +531,9 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
 
     return (
       <div className="min-h-screen bg-slate-100">
-        <div className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-4">
-              <Logo />
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">SRV School</p>
-                <h1 className="text-lg font-display font-bold text-slate-900">Parent Dashboard</h1>
-                <p className="text-xs text-slate-500">Clean access to your child&apos;s academics, fees, and daily updates</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <button
-                  onClick={() => setShowNotifications(!showNotifications)}
-                  className="relative flex h-10 w-10 items-center justify-center text-slate-500 transition-colors hover:text-slate-900"
-                >
-                  <Bell size={20} />
-                  {unreadCount > 0 && (
-                    <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500"></span>
-                  )}
-                </button>
-
-                {showNotifications && (
-                  <div className="absolute right-0 z-50 mt-2 max-h-96 w-80 overflow-y-auto rounded-2xl border border-slate-100 bg-white shadow-2xl">
-                    <div className="sticky top-0 flex items-center justify-between rounded-t-2xl border-b border-slate-800 bg-slate-900 p-4 text-white">
-                      <div>
-                        <h3 className="font-display font-bold">Announcements</h3>
-                        <p className="text-xs text-slate-400">{announcements.length} total</p>
-                      </div>
-                      <button
-                        onClick={() => setShowNotifications(false)}
-                        className="flex-shrink-0 rounded p-1 text-slate-300 transition-colors hover:text-white"
-                        title="Close"
-                      >
-                        <X size={18} />
-                      </button>
-                    </div>
-
-                    {announcements.length > 0 ? (
-                      <div className="divide-y divide-slate-100">
-                        {announcements.map(ann => (
-                          <div key={ann._id} className={`p-4 transition-colors hover:bg-slate-50 ${ann.priority === 'HIGH' ? 'border-l-4 border-l-red-500' : 'border-l-4 border-l-slate-200'}`}>
-                            <div className="mb-1 flex items-start justify-between gap-2">
-                              <h4 className="line-clamp-2 text-sm font-bold text-slate-900">{ann.title}</h4>
-                              <div className="flex flex-shrink-0 items-center gap-2">
-                                {ann.priority === 'HIGH' && <span className="whitespace-nowrap rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700">URGENT</span>}
-                                <button
-                                  onClick={() => dismissAnnouncement(ann._id)}
-                                  className="rounded p-0.5 text-slate-400 transition-colors hover:text-slate-600"
-                                  title="Dismiss"
-                                >
-                                  <X size={16} />
-                                </button>
-                              </div>
-                            </div>
-                            <p className="mb-2 line-clamp-2 text-xs text-slate-600">{ann.message}</p>
-                            <div className="flex items-center justify-between text-[11px]">
-                              <span className="text-slate-500">{ann.createdByRole === 'admin' ? 'Admin' : 'Faculty'}</span>
-                              <span className="text-slate-400">{new Date(ann.createdAt).toLocaleDateString()}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="p-8 text-center text-slate-400">
-                        <p className="text-sm font-semibold">No announcements yet</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <button onClick={handleLogout} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">
-                <LogOut size={16} />
-                <span className="hidden sm:inline">Logout</span>
-              </button>
-            </div>
-          </div>
-        </div>
+        <PortalHeader title="Parent Dashboard" subtitle="Clean access to your child's academics, fees, and daily updates" onLogout={handleLogout}>
+          {notificationAction}
+        </PortalHeader>
 
         <main ref={reportRef} className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           <div className="space-y-8">
@@ -674,7 +646,15 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
 
   return (
     <div className="min-h-screen bg-slate-100">
-      <div className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
+      <PortalHeader
+        title={pageMeta[activeSection]?.title || 'Parent Portal'}
+        subtitle="SRV Matriculation School"
+        onBack={() => navigateToSection('dashboard')}
+        onLogout={handleLogout}
+      >
+        {notificationAction}
+      </PortalHeader>
+      <div className="hidden sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4">
             <Logo />

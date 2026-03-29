@@ -7,7 +7,8 @@ import Swal from 'sweetalert2';
 import { OpinionPollSection } from '../components/OpinionPollSection.js';
 import { FeedbackInboxSection } from '../components/FeedbackInboxSection.js';
 import { UpcomingEventsSection } from '../components/UpcomingEventsSection.js';
-import { Logo } from '../components/Logo.js';
+import { PortalHeader } from '../components/PortalHeader.js';
+import { NotificationPanel } from '../components/NotificationPanel.js';
 
 export function AdminDashboard({ section = 'home' }) {
   const hasValidFamilyDetails = (profile) => Boolean(
@@ -73,6 +74,7 @@ export function AdminDashboard({ section = 'home' }) {
   // Fees and Settings State
   const [isOnlineFeeEnabled, setIsOnlineFeeEnabled] = useState(false);
   const [feeAlerts, setFeeAlerts] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   // Password Requests
   const [pwRequests, setPwRequests] = useState([]);
@@ -509,24 +511,77 @@ export function AdminDashboard({ section = 'home' }) {
     navigate(targetSection === 'home' ? '/admin/dashboard' : `/admin/${targetSection}`);
   };
 
-  const renderHomePage = () => (
-    <div className="min-h-screen bg-slate-100">
-      <div className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <Logo />
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">SRV School</p>
-              <h1 className="text-lg font-display font-bold text-slate-900">Admin Dashboard</h1>
+  const adminNotificationCount = feeAlerts.length + pwRequests.length;
+
+  const notificationAction = (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setShowNotifications(current => !current)}
+        className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 opacity-100 transition hover:bg-slate-50 hover:text-slate-900 active:scale-95"
+      >
+        <BellRing size={18} className="opacity-100" />
+        {adminNotificationCount > 0 && (
+          <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500"></span>
+        )}
+      </button>
+      <NotificationPanel
+        open={showNotifications}
+        onClose={() => setShowNotifications(false)}
+        title="Admin Alerts"
+        subtitle={`${feeAlerts.length} payment alerts • ${pwRequests.length} recovery requests`}
+      >
+        <div className="space-y-4 p-4">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Payment Alerts</p>
+            <div className="mt-2 space-y-2">
+              {feeAlerts.length > 0 ? feeAlerts.slice(0, 4).map(alert => (
+                <div key={alert._id} className="rounded-2xl border border-emerald-100 bg-emerald-50 px-3 py-3">
+                  <p className="text-sm font-semibold text-emerald-900">{alert.message}</p>
+                  <p className="mt-1 text-[11px] text-emerald-700">{new Date(alert.createdAt).toLocaleString()}</p>
+                </div>
+              )) : (
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-3 py-6 text-center text-sm text-slate-500">
+                  No payment alerts.
+                </div>
+              )}
             </div>
           </div>
 
-          <button onClick={handleLogout} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">
-            <LogOut size={16} />
-            <span className="hidden sm:inline">Logout</span>
-          </button>
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Recovery Requests</p>
+            <div className="mt-2 space-y-2">
+              {pwRequests.length > 0 ? pwRequests.slice(0, 4).map(req => (
+                <div key={req._id} className="rounded-2xl border border-indigo-100 bg-indigo-50 px-3 py-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-bold text-indigo-900">{req.srvNumber}</p>
+                      <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-indigo-700">{req.role}</p>
+                    </div>
+                    <p className="text-[11px] text-indigo-700">{new Date(req.createdAt).toLocaleDateString()}</p>
+                  </div>
+                </div>
+              )) : (
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-3 py-6 text-center text-sm text-slate-500">
+                  No recovery requests.
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      </NotificationPanel>
+    </div>
+  );
+
+  const renderHomePage = () => (
+    <div className="min-h-screen bg-slate-100">
+      <PortalHeader
+        title="Admin Dashboard"
+        subtitle="School operations, alerts, and quick admin actions"
+        onLogout={handleLogout}
+      >
+        {notificationAction}
+      </PortalHeader>
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         <div className="space-y-8">
@@ -567,11 +622,11 @@ export function AdminDashboard({ section = 'home' }) {
                   </button>
                 </div>
                 <div className="mt-4 grid grid-cols-2 gap-3">
-                  <button type="button" onClick={() => navigateToSection('students')} className="rounded-2xl bg-white px-4 py-3 text-left text-slate-900 transition hover:-translate-y-0.5">
+                  <button type="button" onClick={() => navigateToSection('students')} className="cursor-pointer rounded-2xl bg-white px-4 py-3 text-left text-slate-900 transition hover:-translate-y-0.5 active:scale-[0.97]">
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Most Used</p>
                     <p className="mt-1 text-sm font-bold">Student Center</p>
                   </button>
-                  <button type="button" onClick={() => navigateToSection('faculty')} className="rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-left transition hover:-translate-y-0.5">
+                  <button type="button" onClick={() => navigateToSection('faculty')} className="cursor-pointer rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-left transition hover:-translate-y-0.5 active:scale-[0.97]">
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100">Quick Open</p>
                     <p className="mt-1 text-sm font-bold">Faculty Center</p>
                   </button>
@@ -685,7 +740,7 @@ export function AdminDashboard({ section = 'home' }) {
                     key={page.key}
                     type="button"
                     onClick={() => navigateToSection(page.key)}
-                    className="group rounded-[1.75rem] border border-slate-200 bg-slate-50 p-4 text-left transition duration-200 hover:-translate-y-1 hover:border-slate-300 hover:bg-white"
+                    className="group cursor-pointer rounded-[1.75rem] border border-slate-200 bg-slate-50 p-4 text-left transition duration-200 hover:-translate-y-1 hover:border-slate-300 hover:bg-white active:scale-[0.97]"
                   >
                     <div className={`flex h-14 w-14 items-center justify-center rounded-[1.25rem] bg-gradient-to-br ${page.gradient} text-white shadow-lg shadow-slate-300/40`}>
                       <Icon size={24} />
@@ -711,21 +766,14 @@ export function AdminDashboard({ section = 'home' }) {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Top Navbar */}
-      <div className="bg-emerald-900 text-white px-8 py-4 flex justify-between items-center shadow-md">
-        <div className="flex items-center gap-3">
-          <Logo className="shrink-0" />
-          <h1 className="font-display font-bold text-xl">{pageMeta[activeSection]?.title || 'Admin Portal'}</h1>
-        </div>
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigateToSection('home')} className={`items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-semibold transition-colors ${activeSection === 'home' ? 'hidden' : 'flex'}`}>
-            <ChevronLeft size={16} /> Dashboard
-          </button>
-          <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-semibold transition-colors">
-            <LogOut size={16} /> Logout
-          </button>
-        </div>
-      </div>
+      <PortalHeader
+        title={pageMeta[activeSection]?.title || 'Admin Portal'}
+        subtitle="SRV Matriculation School"
+        onBack={() => navigateToSection('home')}
+        onLogout={handleLogout}
+      >
+        {notificationAction}
+      </PortalHeader>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {activeSection !== 'home' && pageMeta[activeSection] && (
