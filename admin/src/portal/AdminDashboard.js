@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Users, UserPlus, BookOpen, LogOut, CheckCircle2, Coffee, Trash2, Edit2, Save, X } from 'lucide-react';
+import { Users, UserPlus, BookOpen, LogOut, CheckCircle2, Coffee, Trash2, Edit2, Save, X, Megaphone } from 'lucide-react';
 import srvLogo from '../assest/fav_logo/srv-t.png';
 import API_URL from '../config/api.js';
 import Swal from 'sweetalert2';
@@ -48,6 +48,11 @@ export function AdminDashboard() {
   const [resettingPwFor, setResettingPwFor] = useState(null);
   const [newAdminProvidedPw, setNewAdminProvidedPw] = useState('');
 
+  // Announcements
+  const [announcementForm, setAnnouncementForm] = useState({ title: '', message: '', priority: 'MEDIUM', targetGrade: '', targetSection: '' });
+  const [announcements, setAnnouncements] = useState([]);
+  const [announcementMsg, setAnnouncementMsg] = useState({ text: '', type: '' });
+
   // Advanced Profile State
   const [allStudents, setAllStudents] = useState([]);
   const [selectedFacultyProfile, setSelectedFacultyProfile] = useState(null);
@@ -70,6 +75,8 @@ export function AdminDashboard() {
     fetchStudents(token);
     // Fetch settings and alerts
     fetchSettingsAndAlerts(token);
+    // Fetch announcements
+    fetchAnnouncements(token);
   }, [navigate]);
 
   const fetchSettingsAndAlerts = (token) => {
@@ -110,6 +117,57 @@ export function AdminDashboard() {
     axios.get(`${API_URL}/api/admin/students`, {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => setAllStudents(res.data)).catch(console.error);
+  };
+
+  const fetchAnnouncements = (token) => {
+    axios.get(`${API_URL}/api/admin/announcements`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(res => setAnnouncements(res.data)).catch(console.error);
+  };
+
+  const submitAnnouncement = async (e) => {
+    e.preventDefault();
+    if (!announcementForm.title.trim() || !announcementForm.message.trim()) {
+      setAnnouncementMsg({ text: 'Title and message are required', type: 'error' });
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('schoolToken');
+      await axios.post(`${API_URL}/api/admin/announcements`, announcementForm, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAnnouncementMsg({ text: 'Announcement published successfully!', type: 'success' });
+      setAnnouncementForm({ title: '', message: '', priority: 'MEDIUM', targetGrade: '', targetSection: '' });
+      fetchAnnouncements(token);
+    } catch (err) {
+      setAnnouncementMsg({ text: 'Error publishing announcement', type: 'error' });
+    }
+  };
+
+  const deleteAnnouncement = async (id) => {
+    const { isConfirmed } = await Swal.fire({
+      title: 'Delete Announcement?',
+      text: 'This action cannot be undone',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Delete'
+    });
+
+    if (!isConfirmed) return;
+
+    try {
+      const token = localStorage.getItem('schoolToken');
+      await axios.delete(`${API_URL}/api/admin/announcements/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchAnnouncements(token);
+      Swal.fire('Deleted!', 'Announcement deleted successfully.', 'success');
+    } catch (err) {
+      Swal.fire('Error', 'Failed to delete announcement', 'error');
+    }
   };
 
   const openFacultyProfile = (faculty) => {
@@ -556,6 +614,119 @@ export function AdminDashboard() {
               )) : (
                 <p className="text-slate-500 text-sm text-center py-4 italic">No pending requests.</p>
               )}
+            </div>
+          </div>
+
+          {/* Announcement Maker */}
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 mt-8">
+            <div className="flex items-center gap-3 mb-6">
+              <Megaphone className="text-blue-600" />
+              <h2 className="text-xl font-display font-bold text-slate-900">Broadcast Announcement</h2>
+            </div>
+            
+            {announcementMsg.text && (
+              <div className={`mb-4 px-4 py-3 rounded-lg text-sm font-semibold ${announcementMsg.type === 'success' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-red-100 text-red-800 border border-red-200'}`}>
+                {announcementMsg.text}
+              </div>
+            )}
+
+            <form onSubmit={submitAnnouncement} className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Announcement Title</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g., School Assembly Cancelled"
+                  value={announcementForm.title}
+                  onChange={e => setAnnouncementForm({...announcementForm, title: e.target.value})}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Message</label>
+                <textarea 
+                  placeholder="Write your announcement message..."
+                  rows="4"
+                  value={announcementForm.message}
+                  onChange={e => setAnnouncementForm({...announcementForm, message: e.target.value})}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                ></textarea>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Priority</label>
+                  <select 
+                    value={announcementForm.priority}
+                    onChange={e => setAnnouncementForm({...announcementForm, priority: e.target.value})}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="LOW">Low</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="HIGH">High (Urgent)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Target Type</label>
+                  <select 
+                    value={announcementForm.targetGrade ? 'grade' : 'all'}
+                    onChange={e => {
+                      if (e.target.value === 'all') {
+                        setAnnouncementForm({...announcementForm, targetGrade: '', targetSection: ''});
+                      }
+                    }}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="all">All Students</option>
+                    <option value="grade">Specific Grade & Section</option>
+                  </select>
+                </div>
+              </div>
+
+              {announcementForm.targetGrade !== '' && (
+                <div className="grid md:grid-cols-2 gap-4">
+                  <input 
+                    type="text" 
+                    placeholder="Grade (e.g., 10)"
+                    value={announcementForm.targetGrade}
+                    onChange={e => setAnnouncementForm({...announcementForm, targetGrade: e.target.value})}
+                    className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <input 
+                    type="text" 
+                    placeholder="Section (e.g., A)"
+                    value={announcementForm.targetSection}
+                    onChange={e => setAnnouncementForm({...announcementForm, targetSection: e.target.value})}
+                    className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              )}
+
+              <button type="submit" className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors">
+                📢 Publish Announcement
+              </button>
+            </form>
+
+            {/* Recent Announcements */}
+            <div className="border-t border-slate-200 pt-6">
+              <h3 className="font-bold text-slate-900 mb-4">Recent Announcements ({announcements.length})</h3>
+              <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
+                {announcements.length > 0 ? announcements.slice(0, 5).map(ann => (
+                  <div key={ann._id} className={`p-3 rounded-xl border-l-4 ${ann.priority === 'HIGH' ? 'bg-red-50 border-l-red-500' : ann.priority === 'MEDIUM' ? 'bg-amber-50 border-l-amber-500' : 'bg-slate-50 border-l-slate-500'}`}>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1">
+                        <p className="font-bold text-sm text-slate-900">{ann.title}</p>
+                        <p className="text-xs text-slate-600 line-clamp-1">{ann.message}</p>
+                        <p className="text-[10px] text-slate-500 mt-1">{new Date(ann.createdAt).toLocaleDateString()} · {ann.type === 'CLASS' ? `Grade ${ann.targetGrade} - ${ann.targetSection}` : 'All Students'}</p>
+                      </div>
+                      <button onClick={() => deleteAnnouncement(ann._id)} className="text-red-500 hover:text-red-700 p-1"><Trash2 size={16} /></button>
+                    </div>
+                  </div>
+                )) : (
+                  <p className="text-slate-400 text-sm text-center py-4">No announcements yet</p>
+                )}
+              </div>
             </div>
           </div>
         </div>

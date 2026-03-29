@@ -3,6 +3,7 @@ import Student from '../models/Student.js';
 import AcademicRecord from '../models/AcademicRecord.js';
 import Homework from '../models/Homework.js';
 import Notification from '../models/Notification.js';
+import Announcement from '../models/Announcement.js';
 import FoodMenu from '../models/FoodMenu.js';
 import Attendance from '../models/Attendance.js';
 import Behavior from '../models/Behavior.js';
@@ -348,6 +349,37 @@ router.get('/debug/homework', protect, parentOnly, async (req, res) => {
   } catch (error) {
     console.error('[Debug] Error:', error);
     res.status(500).json({ message: 'Error', error: error.message });
+  }
+});
+
+// @route   GET /api/parent/announcements
+// @desc    Get all announcements for this parent (global + class-specific)
+// @access  Private (Parent only)
+router.get('/announcements', protect, parentOnly, async (req, res) => {
+  try {
+    const parentUser = await User.findById(req.user.id);
+    if (!parentUser.studentId) return res.status(404).json({ message: 'No student linked to this account' });
+
+    const student = await Student.findById(parentUser.studentId);
+    if (!student) return res.status(404).json({ message: 'Student record not found' });
+
+    // Get global announcements + class-specific announcements
+    const announcements = await Announcement.find({
+      isPublished: true,
+      $or: [
+        { type: 'GLOBAL' },
+        {
+          type: 'CLASS',
+          targetGrade: student.grade.toString(),
+          targetSection: student.section
+        }
+      ]
+    }).populate('createdBy', 'name role').sort({ createdAt: -1 });
+
+    res.json(announcements);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching announcements' });
   }
 });
 

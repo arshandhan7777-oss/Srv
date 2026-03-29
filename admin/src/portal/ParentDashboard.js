@@ -20,6 +20,11 @@ export function ParentDashboard() {
   const [amountToPay, setAmountToPay] = useState('');
   const [processing, setProcessing] = useState(false);
   
+  // Notifications & Announcements
+  const [announcements, setAnnouncements] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  
   // Homework Calendar State
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const d = new Date();
@@ -50,6 +55,7 @@ export function ParentDashboard() {
     });
 
     fetchWeeklyHomework();
+    fetchAnnouncements();
   }, [navigate]);
 
   const fetchWeeklyHomework = async () => {
@@ -62,6 +68,21 @@ export function ParentDashboard() {
       setWeeklyHomework(res.data);
     } catch (err) {
       console.error('Error fetching weekly homework:', err.message, err.response?.data);
+    }
+  };
+
+  const fetchAnnouncements = async () => {
+    try {
+      const token = localStorage.getItem('schoolToken');
+      const res = await axios.get(`${API_URL}/api/parent/announcements`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAnnouncements(res.data);
+      // Count unread announcements (those without isRead flag)
+      const unread = res.data.filter(a => !a.isRead).length;
+      setUnreadCount(unread);
+    } catch (err) {
+      console.error('Error fetching announcements:', err);
     }
   };
 
@@ -254,10 +275,49 @@ export function ParentDashboard() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button className="relative w-10 h-10 flex items-center justify-center text-slate-300 hover:text-white transition-colors">
-            <Bell size={20} />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
-          </button>
+          <div className="relative">
+            <button 
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="relative w-10 h-10 flex items-center justify-center text-slate-300 hover:text-white transition-colors"
+            >
+              <Bell size={20} />
+              {unreadCount > 0 && (
+                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+              )}
+            </button>
+            
+            {/* Notifications Dropdown */}
+            {showNotifications && (
+              <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 max-h-96 overflow-y-auto">
+                <div className="sticky top-0 bg-slate-900 text-white p-4 border-b border-slate-800 rounded-t-2xl">
+                  <h3 className="font-display font-bold">Announcements</h3>
+                  <p className="text-xs text-slate-400">{announcements.length} total</p>
+                </div>
+                
+                {announcements.length > 0 ? (
+                  <div className="divide-y divide-slate-100">
+                    {announcements.map(ann => (
+                      <div key={ann._id} className={`p-4 hover:bg-slate-50 transition-colors ${ann.priority === 'HIGH' ? 'border-l-4 border-l-red-500' : 'border-l-4 border-l-slate-200'}`}>
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <h4 className="font-bold text-slate-900 text-sm line-clamp-2">{ann.title}</h4>
+                          {ann.priority === 'HIGH' && <span className="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">URGENT</span>}
+                        </div>
+                        <p className="text-xs text-slate-600 line-clamp-2 mb-2">{ann.message}</p>
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="text-slate-500">{ann.createdByRole === 'admin' ? '🏢 Admin' : '👨‍🏫 Faculty'}</span>
+                          <span className="text-slate-400">{new Date(ann.createdAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-8 text-center text-slate-400">
+                    <p className="text-sm font-semibold">No announcements yet</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
           <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-semibold transition-colors">
             <LogOut size={16} /> <span className="hidden sm:inline">Logout</span>
           </button>

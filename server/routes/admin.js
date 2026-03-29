@@ -5,6 +5,7 @@ import Student from '../models/Student.js';
 import FoodMenu from '../models/FoodMenu.js';
 import Setting from '../models/Setting.js';
 import Notification from '../models/Notification.js';
+import Announcement from '../models/Announcement.js';
 import PasswordReset from '../models/PasswordReset.js';
 import { protect, adminOnly } from '../middleware/auth.js';
 
@@ -544,6 +545,64 @@ router.post('/password-requests/:id/approve', protect, adminOnly, async (req, re
     res.json({ message: 'Password successfully reset.', request });
   } catch (error) {
     res.status(500).json({ message: 'Error approving password request' });
+  }
+});
+
+// @route   POST /api/admin/announcements
+// @desc    Create a global announcement
+// @access  Private (Admin only)
+router.post('/announcements', protect, adminOnly, async (req, res) => {
+  const { title, message, priority, targetGrade, targetSection } = req.body;
+
+  try {
+    if (!title || !message) {
+      return res.status(400).json({ message: 'Title and message are required' });
+    }
+
+    const announcement = await Announcement.create({
+      title,
+      message,
+      priority: priority || 'MEDIUM',
+      type: targetGrade && targetSection ? 'CLASS' : 'GLOBAL',
+      targetGrade,
+      targetSection,
+      createdBy: req.user.id,
+      createdByRole: 'admin',
+      isPublished: true
+    });
+
+    res.status(201).json({
+      message: 'Announcement created successfully',
+      announcement
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error creating announcement' });
+  }
+});
+
+// @route   GET /api/admin/announcements
+// @desc    Get all announcements created by admin
+// @access  Private (Admin only)
+router.get('/announcements', protect, adminOnly, async (req, res) => {
+  try {
+    const announcements = await Announcement.find({ createdBy: req.user.id }).sort({ createdAt: -1 });
+    res.json(announcements);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching announcements' });
+  }
+});
+
+// @route   DELETE /api/admin/announcements/:id
+// @desc    Delete an announcement
+// @access  Private (Admin only)
+router.delete('/announcements/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const announcement = await Announcement.findByIdAndDelete(req.params.id);
+    if (!announcement) return res.status(404).json({ message: 'Announcement not found' });
+    res.json({ message: 'Announcement deleted' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting announcement' });
   }
 });
 

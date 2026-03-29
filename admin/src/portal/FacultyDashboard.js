@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Users, LogOut, CheckSquare, BookOpen, AlertCircle, ChevronLeft, ChevronRight, Calendar as CalIcon, Clock, Edit2, Trash2, CalendarClock, X, Check, History, ArrowRight, Archive, ChevronDown } from 'lucide-react';
+import { Users, LogOut, CheckSquare, BookOpen, AlertCircle, ChevronLeft, ChevronRight, Calendar as CalIcon, Clock, Edit2, Trash2, CalendarClock, X, Check, History, ArrowRight, Archive, ChevronDown, Megaphone } from 'lucide-react';
 import srvLogo from '../assest/fav_logo/srv-t.png';
 import API_URL from '../config/api.js';
 
@@ -47,6 +47,11 @@ export function FacultyDashboard() {
   const [attDate, setAttDate] = useState(new Date().toISOString().split('T')[0]);
   const [attRecords, setAttRecords] = useState({});
   const [attMsg, setAttMsg] = useState({ text: '', type: '' });
+  
+  // Announcements
+  const [announcementForm, setAnnouncementForm] = useState({ title: '', message: '', priority: 'MEDIUM', toAllStudents: true });
+  const [announcements, setAnnouncements] = useState([]);
+  const [announcementMsg, setAnnouncementMsg] = useState({ text: '', type: '' });
   
   const openAttendanceModal = () => {
     const initialRecords = {};
@@ -188,6 +193,7 @@ export function FacultyDashboard() {
     }).then(res => setStudents(res.data)).catch(console.error);
 
     fetchHomework();
+    fetchAnnouncements(token);
   }, [navigate, user.role]);
 
   const fetchHomework = async () => {
@@ -199,6 +205,44 @@ export function FacultyDashboard() {
       setAssignedHomework(res.data);
     } catch (err) {
       console.error('Error fetching homework', err);
+    }
+  };
+
+  const fetchAnnouncements = (token) => {
+    axios.get(`${API_URL}/api/faculty/announcements`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(res => setAnnouncements(res.data)).catch(console.error);
+  };
+
+  const submitAnnouncement = async (e) => {
+    e.preventDefault();
+    if (!announcementForm.title.trim() || !announcementForm.message.trim()) {
+      setAnnouncementMsg({ text: 'Title and message are required', type: 'error' });
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('schoolToken');
+      await axios.post(`${API_URL}/api/faculty/announcements`, announcementForm, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAnnouncementMsg({ text: 'Announcement sent to students!', type: 'success' });
+      setAnnouncementForm({ title: '', message: '', priority: 'MEDIUM', toAllStudents: true });
+      fetchAnnouncements(token);
+    } catch (err) {
+      setAnnouncementMsg({ text: 'Error sending announcement', type: 'error' });
+    }
+  };
+
+  const deleteAnnouncement = async (id) => {
+    try {
+      const token = localStorage.getItem('schoolToken');
+      await axios.delete(`${API_URL}/api/faculty/announcements/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchAnnouncements(token);
+    } catch (err) {
+      console.error('Error deleting announcement', err);
     }
   };
 
@@ -858,6 +902,95 @@ export function FacultyDashboard() {
                   </div>
                 </button>
               </div>
+            </div>
+
+            {/* Send Announcement */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mt-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Megaphone className="text-blue-600" size={20} />
+                <h3 className="text-lg font-display font-bold text-slate-900">Send Announcement</h3>
+              </div>
+              
+              {announcementMsg.text && (
+                <div className={`mb-4 px-4 py-3 rounded-lg text-sm font-semibold ${announcementMsg.type === 'success' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-red-100 text-red-800 border border-red-200'}`}>
+                  {announcementMsg.text}
+                </div>
+              )}
+
+              <form onSubmit={submitAnnouncement} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Title</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g., Important: Test Schedule"
+                    value={announcementForm.title}
+                    onChange={e => setAnnouncementForm({...announcementForm, title: e.target.value})}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Message</label>
+                  <textarea 
+                    placeholder="Write your message..."
+                    rows="3"
+                    value={announcementForm.message}
+                    onChange={e => setAnnouncementForm({...announcementForm, message: e.target.value})}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  ></textarea>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Priority</label>
+                    <select 
+                      value={announcementForm.priority}
+                      onChange={e => setAnnouncementForm({...announcementForm, priority: e.target.value})}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="LOW">Low</option>
+                      <option value="MEDIUM">Medium</option>
+                      <option value="HIGH">High (Urgent)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Target</label>
+                    <select 
+                      value={announcementForm.toAllStudents ? 'all' : 'none'}
+                      onChange={e => setAnnouncementForm({...announcementForm, toAllStudents: e.target.value === 'all'})}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="all">All My Students</option>
+                      <option value="none">Manual Selection</option>
+                    </select>
+                  </div>
+                </div>
+
+                <button type="submit" className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors text-sm">
+                  📢 Send to Students
+                </button>
+              </form>
+
+              {/* Recent Announcements */}
+              {announcements.length > 0 && (
+                <div className="border-t border-slate-200 pt-4 mt-6">
+                  <p className="text-sm font-bold text-slate-700 mb-3">Recent ({announcements.length})</p>
+                  <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
+                    {announcements.slice(0, 3).map(ann => (
+                      <div key={ann._id} className={`p-2.5 rounded-lg text-xs border-l-4 ${ann.priority === 'HIGH' ? 'bg-red-50 border-l-red-500' : ann.priority === 'MEDIUM' ? 'bg-amber-50 border-l-amber-500' : 'bg-slate-50 border-l-slate-500'}`}>
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1">
+                            <p className="font-bold text-slate-900">{ann.title}</p>
+                            <p className="text-slate-600 line-clamp-1">{ann.message}</p>
+                          </div>
+                          <button onClick={() => deleteAnnouncement(ann._id)} className="text-red-500 hover:text-red-700 flex-shrink-0"><Trash2 size={14} /></button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
           </div>

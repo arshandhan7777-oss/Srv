@@ -3,6 +3,7 @@ import Student from '../models/Student.js';
 import AcademicRecord from '../models/AcademicRecord.js';
 import Homework from '../models/Homework.js';
 import Notification from '../models/Notification.js';
+import Announcement from '../models/Announcement.js';
 import Attendance from '../models/Attendance.js';
 import Behavior from '../models/Behavior.js';
 import User from '../models/User.js';
@@ -323,6 +324,95 @@ router.post('/behavior', protect, facultyOrAdmin, async (req, res) => {
     res.json({ message: 'Behavior logs saved for ' + new Date(parsedDate).toLocaleDateString(), behaviorDoc });
   } catch (error) {
     res.status(500).json({ message: 'Error saving behavior logs' });
+  }
+});
+
+// @route   POST /api/faculty/announcements
+// @desc    Create an announcement for faculty's students
+// @access  Private (Faculty only)
+router.post('/announcements', protect, async (req, res) => {
+  if (req.user.role !== 'faculty') {
+    return res.status(403).json({ message: 'Only faculty can create announcements' });
+  }
+
+  const { title, message, priority, toAllStudents } = req.body;
+
+  try {
+    if (!title || !message) {
+      return res.status(400).json({ message: 'Title and message are required' });
+    }
+
+    let recipients = [];
+    
+    if (toAllStudents) {
+      // Send to all students in faculty's grade/section
+      const students = await Student.find({
+        grade: req.user.assignedGrade,
+        section: req.user.assignedSection
+      });
+      
+      // Get parent users for these students
+      recipients = await User.find({
+        studentId: { $in: students.map(s => s._id) },
+        role: 'parent'
+      }).select('_id');
+      
+      recipients = recipients.map(r => r._id);
+    }
+
+    const announcement = await Announcement.create({
+      title,
+      message,
+      priority: priority || 'MEDIUM',
+      type: 'CLASS',
+      targetGrade: req.user.assignedGrade,
+      targetSection: req.user.assignedSection,
+      recipients,
+      createdBy: req.user.id,
+      createdByRole: 'faculty',
+      isPublished: true
+    });
+
+    res.status(201).json({
+      message: 'Announcement created successfully',
+      announcement
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error creating announcement' });
+  }
+});
+
+// @route   GET /api/faculty/announcements
+// @desc    Get all announcements created by this faculty
+// @access  Private (Faculty only)
+router.get('/announcements', protect, async (req, res) => {
+  if (req.user.role !== 'faculty') {
+    return res.status(403).json({ message: 'Only faculty can view their announcements' });
+  }
+
+  try {
+    const announcements = await Announcement.find({ createdBy: req.user.id }).sort({ createdAt: -1 });
+    res.json(announcements);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching announcements' });
+  }
+});
+
+// @route   DELETE /api/faculty/announcements/:id
+// @desc    Delete an announcement
+// @access  Private (Faculty only)
+router.delete('/announcements/:id', protect, async (req, res) => {
+  if (req.user.role !== 'faculty') {
+    return res.status(403).json({ message: 'Only faculty can delete their announcements' });
+  }
+
+  try {
+    const announcement = await Announcement.findByIdAndDelete(req.params.id);
+    if (!announcement) return res.status(404).json({ message: 'Announcement not found' });
+    res.json({ message: 'Announcement deleted' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting announcement' });
   }
 });
 
