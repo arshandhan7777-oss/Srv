@@ -8,6 +8,8 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import API_URL from '../config/api.js';
 import Swal from 'sweetalert2';
+import { ParentPollsSection } from '../components/ParentPollsSection.js';
+import { ParentFeedbackSection } from '../components/ParentFeedbackSection.js';
 
 const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6'];
 
@@ -910,6 +912,9 @@ export function ParentDashboard() {
             </div>
           )}
         </div>
+
+        <ParentPollsSection />
+        <ParentFeedbackSection />
 
         {/* Pay Fees Section */}
         <div className="mt-8 bg-white rounded-3xl p-8 shadow-sm border border-slate-100">

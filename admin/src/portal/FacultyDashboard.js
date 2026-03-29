@@ -4,6 +4,8 @@ import axios from 'axios';
 import { Users, LogOut, CheckSquare, BookOpen, AlertCircle, ChevronLeft, ChevronRight, Calendar as CalIcon, Clock, Edit2, Trash2, CalendarClock, X, Check, History, ArrowRight, Archive, ChevronDown, Megaphone } from 'lucide-react';
 import srvLogo from '../assest/fav_logo/srv-t.png';
 import API_URL from '../config/api.js';
+import { OpinionPollSection } from '../components/OpinionPollSection.js';
+import { FeedbackInboxSection } from '../components/FeedbackInboxSection.js';
 
 export function FacultyDashboard() {
   const [students, setStudents] = useState([]);
@@ -1044,6 +1046,10 @@ export function FacultyDashboard() {
           </div>
         </div>
 
+      </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+        <OpinionPollSection role="faculty" />
+        <FeedbackInboxSection role="faculty" />
       </div>
       {/* Attendance Modal */}
       {showAttModal && (

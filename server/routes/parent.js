@@ -9,9 +9,14 @@ import Attendance from '../models/Attendance.js';
 import Behavior from '../models/Behavior.js';
 import Setting from '../models/Setting.js';
 import User from '../models/User.js';
+import Poll from '../models/Poll.js';
+import PollResponse from '../models/PollResponse.js';
+import Feedback from '../models/Feedback.js';
 import { protect } from '../middleware/auth.js';
 import { archiveOldHomework } from '../utils/archiveHomework.js';
 import { buildHomeworkClassFilter } from '../utils/homeworkMatching.js';
+import { hydratePolls } from '../utils/pollService.js';
+import { buildClassAudienceFilter, validatePollAnswers } from '../utils/pollUtils.js';
 
 const router = express.Router();
 
@@ -380,6 +385,162 @@ router.get('/announcements', protect, parentOnly, async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error fetching announcements' });
+  }
+});
+
+// @route   GET /api/parent/polls
+// @desc    Get active polls available for the linked student
+// @access  Private (Parent only)
+router.get('/polls', protect, parentOnly, async (req, res) => {
+  try {
+    const parentUser = await User.findById(req.user.id);
+    if (!parentUser.studentId) return res.status(404).json({ message: 'No student linked to this account' });
+
+    const student = await Student.findById(parentUser.studentId);
+    if (!student) return res.status(404).json({ message: 'Student record not found' });
+
+    const now = new Date();
+    const classFilter = buildClassAudienceFilter({ grade: student.grade, section: student.section });
+
+    const polls = await Poll.find({
+      isPublished: true,
+      status: 'ACTIVE',
+      $and: [
+        {
+          $or: [
+            { closesAt: null },
+            { closesAt: { $gte: now } }
+          ]
+        },
+        {
+          $or: [
+            { targetType: 'GLOBAL' },
+            { targetType: 'CLASS', ...classFilter }
+          ]
+        }
+      ]
+    }).sort({ createdAt: -1 });
+
+    res.json(await hydratePolls(polls, { respondentId: req.user.id }));
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching polls' });
+  }
+});
+
+// @route   POST /api/parent/polls/:id/respond
+// @desc    Submit or update a parent poll response
+// @access  Private (Parent only)
+router.post('/polls/:id/respond', protect, parentOnly, async (req, res) => {
+  const { answers } = req.body;
+
+  try {
+    const parentUser = await User.findById(req.user.id);
+    if (!parentUser.studentId) return res.status(404).json({ message: 'No student linked to this account' });
+
+    const student = await Student.findById(parentUser.studentId);
+    if (!student) return res.status(404).json({ message: 'Student record not found' });
+
+    const now = new Date();
+    const classFilter = buildClassAudienceFilter({ grade: student.grade, section: student.section });
+
+    const poll = await Poll.findOne({
+      _id: req.params.id,
+      isPublished: true,
+      status: 'ACTIVE',
+      $and: [
+        {
+          $or: [
+            { closesAt: null },
+            { closesAt: { $gte: now } }
+          ]
+        },
+        {
+          $or: [
+            { targetType: 'GLOBAL' },
+            { targetType: 'CLASS', ...classFilter }
+          ]
+        }
+      ]
+    });
+
+    if (!poll) {
+      return res.status(404).json({ message: 'Poll not found or no longer active.' });
+    }
+
+    const normalizedAnswers = validatePollAnswers(poll, answers);
+
+    const response = await PollResponse.findOneAndUpdate(
+      { pollId: poll._id, respondentId: req.user.id },
+      {
+        $set: {
+          studentId: student._id,
+          answers: normalizedAnswers,
+          respondedAt: new Date()
+        }
+      },
+      {
+        new: true,
+        upsert: true,
+        runValidators: true,
+        setDefaultsOnInsert: true
+      }
+    );
+
+    res.json({ message: 'Poll response saved successfully.', response });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Error submitting poll response' });
+  }
+});
+
+// @route   POST /api/parent/feedback
+// @desc    Submit feedback from parent to admin/faculty
+// @access  Private (Parent only)
+router.post('/feedback', protect, parentOnly, async (req, res) => {
+  const { category, subject, message } = req.body;
+
+  try {
+    const parentUser = await User.findById(req.user.id);
+    if (!parentUser.studentId) return res.status(404).json({ message: 'No student linked to this account' });
+
+    const student = await Student.findById(parentUser.studentId);
+    if (!student) return res.status(404).json({ message: 'Student record not found' });
+
+    if (!category || !subject || !message) {
+      return res.status(400).json({ message: 'Category, subject, and message are required.' });
+    }
+
+    const feedback = await Feedback.create({
+      parentId: req.user.id,
+      studentId: student._id,
+      facultyId: student.facultyId || undefined,
+      studentName: student.name,
+      grade: String(student.grade),
+      section: String(student.section),
+      category,
+      subject: String(subject).trim(),
+      message: String(message).trim()
+    });
+
+    await feedback.populate('studentId', 'name srvNumber');
+
+    res.status(201).json({ message: 'Feedback submitted successfully.', feedback });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Error submitting feedback' });
+  }
+});
+
+// @route   GET /api/parent/feedback
+// @desc    Get feedback submitted by this parent
+// @access  Private (Parent only)
+router.get('/feedback', protect, parentOnly, async (req, res) => {
+  try {
+    const feedback = await Feedback.find({ parentId: req.user.id })
+      .populate('studentId', 'name srvNumber')
+      .sort({ createdAt: -1 });
+
+    res.json(feedback);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching feedback' });
   }
 });
 

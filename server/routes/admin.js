@@ -7,7 +7,12 @@ import Setting from '../models/Setting.js';
 import Notification from '../models/Notification.js';
 import Announcement from '../models/Announcement.js';
 import PasswordReset from '../models/PasswordReset.js';
+import Poll from '../models/Poll.js';
+import PollResponse from '../models/PollResponse.js';
+import Feedback from '../models/Feedback.js';
 import { protect, adminOnly } from '../middleware/auth.js';
+import { hydratePolls } from '../utils/pollService.js';
+import { normalizeClassValue, validateAndNormalizeQuestions } from '../utils/pollUtils.js';
 
 const router = express.Router();
 
@@ -623,6 +628,173 @@ router.delete('/announcements/:id', protect, adminOnly, async (req, res) => {
     res.json({ message: 'Announcement deleted' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting announcement' });
+  }
+});
+
+// @route   POST /api/admin/polls
+// @desc    Create a new opinion poll
+// @access  Private (Admin only)
+router.post('/polls', protect, adminOnly, async (req, res) => {
+  const { title, description, targetType, targetGrade, targetSection, closesAt, questions } = req.body;
+
+  try {
+    if (!title || !String(title).trim()) {
+      return res.status(400).json({ message: 'Poll title is required.' });
+    }
+
+    const normalizedQuestions = validateAndNormalizeQuestions(questions);
+    const normalizedTargetType = targetType === 'GLOBAL' ? 'GLOBAL' : 'CLASS';
+
+    const pollData = {
+      title: String(title).trim(),
+      description: String(description ?? '').trim(),
+      targetType: normalizedTargetType,
+      createdBy: req.user.id,
+      createdByRole: 'admin',
+      status: 'ACTIVE',
+      isPublished: true,
+      questions: normalizedQuestions
+    };
+
+    if (closesAt) {
+      pollData.closesAt = new Date(closesAt);
+    }
+
+    if (normalizedTargetType === 'CLASS') {
+      if (!targetGrade || !targetSection) {
+        return res.status(400).json({ message: 'Grade and section are required for class polls.' });
+      }
+
+      pollData.targetGrade = normalizeClassValue(targetGrade);
+      pollData.targetSection = normalizeClassValue(targetSection);
+    }
+
+    const poll = await Poll.create(pollData);
+    const [hydratedPoll] = await hydratePolls([poll]);
+
+    res.status(201).json({ message: 'Poll created successfully.', poll: hydratedPoll });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Error creating poll' });
+  }
+});
+
+// @route   GET /api/admin/polls
+// @desc    Get all opinion polls with analytics
+// @access  Private (Admin only)
+router.get('/polls', protect, adminOnly, async (req, res) => {
+  try {
+    const polls = await Poll.find().sort({ createdAt: -1 });
+    res.json(await hydratePolls(polls));
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching polls' });
+  }
+});
+
+// @route   PUT /api/admin/polls/:id
+// @desc    Update poll metadata or close a poll
+// @access  Private (Admin only)
+router.put('/polls/:id', protect, adminOnly, async (req, res) => {
+  const { title, description, targetType, targetGrade, targetSection, closesAt, status, questions } = req.body;
+
+  try {
+    const poll = await Poll.findById(req.params.id);
+    if (!poll) return res.status(404).json({ message: 'Poll not found' });
+
+    if (title !== undefined) poll.title = String(title).trim();
+    if (description !== undefined) poll.description = String(description).trim();
+    if (status !== undefined) poll.status = status;
+    if (closesAt !== undefined) poll.closesAt = closesAt ? new Date(closesAt) : null;
+
+    const nextTargetType = targetType || poll.targetType;
+    if (nextTargetType === 'GLOBAL') {
+      poll.targetType = 'GLOBAL';
+      poll.targetGrade = undefined;
+      poll.targetSection = undefined;
+    } else {
+      const resolvedGrade = normalizeClassValue(targetGrade ?? poll.targetGrade);
+      const resolvedSection = normalizeClassValue(targetSection ?? poll.targetSection);
+
+      if (!resolvedGrade || !resolvedSection) {
+        return res.status(400).json({ message: 'Grade and section are required for class polls.' });
+      }
+
+      poll.targetType = 'CLASS';
+      poll.targetGrade = resolvedGrade;
+      poll.targetSection = resolvedSection;
+    }
+
+    if (questions !== undefined) {
+      const responseCount = await PollResponse.countDocuments({ pollId: poll._id });
+      if (responseCount > 0) {
+        return res.status(400).json({ message: 'Questions cannot be changed after votes have been submitted.' });
+      }
+
+      poll.questions = validateAndNormalizeQuestions(questions);
+    }
+
+    await poll.save();
+    const [hydratedPoll] = await hydratePolls([poll]);
+
+    res.json({ message: 'Poll updated successfully.', poll: hydratedPoll });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Error updating poll' });
+  }
+});
+
+// @route   DELETE /api/admin/polls/:id
+// @desc    Delete a poll and its responses
+// @access  Private (Admin only)
+router.delete('/polls/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const poll = await Poll.findByIdAndDelete(req.params.id);
+    if (!poll) return res.status(404).json({ message: 'Poll not found' });
+
+    await PollResponse.deleteMany({ pollId: req.params.id });
+    res.json({ message: 'Poll deleted successfully.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting poll' });
+  }
+});
+
+// @route   GET /api/admin/feedback
+// @desc    Get all parent feedback
+// @access  Private (Admin only)
+router.get('/feedback', protect, adminOnly, async (req, res) => {
+  try {
+    const feedback = await Feedback.find()
+      .populate('parentId', 'name srvNumber')
+      .populate('studentId', 'name srvNumber')
+      .populate('facultyId', 'name')
+      .sort({ createdAt: -1 });
+
+    res.json(feedback);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching feedback' });
+  }
+});
+
+// @route   PUT /api/admin/feedback/:id
+// @desc    Update feedback review status
+// @access  Private (Admin only)
+router.put('/feedback/:id', protect, adminOnly, async (req, res) => {
+  const { status, staffNote } = req.body;
+
+  try {
+    const feedback = await Feedback.findById(req.params.id);
+    if (!feedback) return res.status(404).json({ message: 'Feedback not found' });
+
+    if (status !== undefined) feedback.status = status;
+    if (staffNote !== undefined) feedback.staffNote = String(staffNote).trim();
+    feedback.updatedBy = req.user.id;
+
+    await feedback.save();
+    await feedback.populate('parentId', 'name srvNumber');
+    await feedback.populate('studentId', 'name srvNumber');
+    await feedback.populate('facultyId', 'name');
+
+    res.json({ message: 'Feedback updated successfully.', feedback });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating feedback' });
   }
 });
 

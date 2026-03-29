@@ -7,11 +7,37 @@ import Announcement from '../models/Announcement.js';
 import Attendance from '../models/Attendance.js';
 import Behavior from '../models/Behavior.js';
 import User from '../models/User.js';
+import Poll from '../models/Poll.js';
+import PollResponse from '../models/PollResponse.js';
+import Feedback from '../models/Feedback.js';
 import { protect, facultyOrAdmin } from '../middleware/auth.js';
 import { archiveOldHomework } from '../utils/archiveHomework.js';
 import { buildHomeworkClassFilter, resolveHomeworkAudience } from '../utils/homeworkMatching.js';
+import { hydratePolls } from '../utils/pollService.js';
+import { buildClassAudienceFilter, normalizeClassValue, validateAndNormalizeQuestions } from '../utils/pollUtils.js';
 
 const router = express.Router();
+
+const getFacultyClassContext = async (facultyId) => {
+  const faculty = await User.findById(facultyId).select('assignedGrade assignedSection');
+  let assignedGrade = faculty?.assignedGrade;
+  let assignedSection = faculty?.assignedSection;
+
+  if ((!assignedGrade || !assignedSection) && facultyId) {
+    const firstStudent = await Student.findOne({ facultyId }).select('grade section');
+    assignedGrade = assignedGrade || firstStudent?.grade;
+    assignedSection = assignedSection || firstStudent?.section;
+  }
+
+  if (!assignedGrade || !assignedSection) {
+    return null;
+  }
+
+  return {
+    assignedGrade: normalizeClassValue(assignedGrade),
+    assignedSection: normalizeClassValue(assignedSection)
+  };
+};
 
 // @route   GET /api/faculty/students
 // @desc    Get all students assigned to this faculty
@@ -452,6 +478,177 @@ router.delete('/announcements/:id', protect, async (req, res) => {
     res.json({ message: 'Announcement deleted' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting announcement' });
+  }
+});
+
+// @route   POST /api/faculty/polls
+// @desc    Create a class poll for the faculty's assigned class
+// @access  Private (Faculty only)
+router.post('/polls', protect, async (req, res) => {
+  if (req.user.role !== 'faculty') {
+    return res.status(403).json({ message: 'Only faculty can create polls' });
+  }
+
+  const { title, description, closesAt, questions } = req.body;
+
+  try {
+    const classContext = await getFacultyClassContext(req.user.id);
+    if (!classContext) {
+      return res.status(400).json({ message: 'Faculty class assignment is missing. Please contact admin.' });
+    }
+
+    const poll = await Poll.create({
+      title: String(title ?? '').trim(),
+      description: String(description ?? '').trim(),
+      closesAt: closesAt ? new Date(closesAt) : null,
+      targetType: 'CLASS',
+      targetGrade: classContext.assignedGrade,
+      targetSection: classContext.assignedSection,
+      createdBy: req.user.id,
+      createdByRole: 'faculty',
+      status: 'ACTIVE',
+      isPublished: true,
+      questions: validateAndNormalizeQuestions(questions)
+    });
+
+    const [hydratedPoll] = await hydratePolls([poll]);
+    res.status(201).json({ message: 'Poll created successfully.', poll: hydratedPoll });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Error creating poll' });
+  }
+});
+
+// @route   GET /api/faculty/polls
+// @desc    Get faculty-created polls plus admin polls for the class
+// @access  Private (Faculty only)
+router.get('/polls', protect, async (req, res) => {
+  if (req.user.role !== 'faculty') {
+    return res.status(403).json({ message: 'Only faculty can view polls' });
+  }
+
+  try {
+    const classContext = await getFacultyClassContext(req.user.id);
+    const classFilter = classContext ? buildClassAudienceFilter({
+      grade: classContext.assignedGrade,
+      section: classContext.assignedSection
+    }) : null;
+
+    const query = classFilter ? {
+      $or: [
+        { createdBy: req.user.id },
+        { createdByRole: 'admin', targetType: 'GLOBAL' },
+        { createdByRole: 'admin', targetType: 'CLASS', ...classFilter }
+      ]
+    } : { createdBy: req.user.id };
+
+    const polls = await Poll.find(query).sort({ createdAt: -1 });
+    res.json(await hydratePolls(polls));
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching polls' });
+  }
+});
+
+// @route   PUT /api/faculty/polls/:id
+// @desc    Update or close a faculty poll
+// @access  Private (Faculty only)
+router.put('/polls/:id', protect, async (req, res) => {
+  if (req.user.role !== 'faculty') {
+    return res.status(403).json({ message: 'Only faculty can update polls' });
+  }
+
+  const { title, description, closesAt, status, questions } = req.body;
+
+  try {
+    const poll = await Poll.findOne({ _id: req.params.id, createdBy: req.user.id });
+    if (!poll) return res.status(404).json({ message: 'Poll not found' });
+
+    if (title !== undefined) poll.title = String(title).trim();
+    if (description !== undefined) poll.description = String(description).trim();
+    if (status !== undefined) poll.status = status;
+    if (closesAt !== undefined) poll.closesAt = closesAt ? new Date(closesAt) : null;
+
+    if (questions !== undefined) {
+      const responseCount = await PollResponse.countDocuments({ pollId: poll._id });
+      if (responseCount > 0) {
+        return res.status(400).json({ message: 'Questions cannot be changed after votes have been submitted.' });
+      }
+
+      poll.questions = validateAndNormalizeQuestions(questions);
+    }
+
+    await poll.save();
+    const [hydratedPoll] = await hydratePolls([poll]);
+
+    res.json({ message: 'Poll updated successfully.', poll: hydratedPoll });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Error updating poll' });
+  }
+});
+
+// @route   DELETE /api/faculty/polls/:id
+// @desc    Delete a faculty poll and its responses
+// @access  Private (Faculty only)
+router.delete('/polls/:id', protect, async (req, res) => {
+  if (req.user.role !== 'faculty') {
+    return res.status(403).json({ message: 'Only faculty can delete polls' });
+  }
+
+  try {
+    const poll = await Poll.findOneAndDelete({ _id: req.params.id, createdBy: req.user.id });
+    if (!poll) return res.status(404).json({ message: 'Poll not found' });
+
+    await PollResponse.deleteMany({ pollId: req.params.id });
+    res.json({ message: 'Poll deleted successfully.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting poll' });
+  }
+});
+
+// @route   GET /api/faculty/feedback
+// @desc    Get feedback for the faculty's tracked class
+// @access  Private (Faculty only)
+router.get('/feedback', protect, async (req, res) => {
+  if (req.user.role !== 'faculty') {
+    return res.status(403).json({ message: 'Only faculty can view feedback' });
+  }
+
+  try {
+    const feedback = await Feedback.find({ facultyId: req.user.id })
+      .populate('parentId', 'name srvNumber')
+      .populate('studentId', 'name srvNumber')
+      .sort({ createdAt: -1 });
+
+    res.json(feedback);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching feedback' });
+  }
+});
+
+// @route   PUT /api/faculty/feedback/:id
+// @desc    Update feedback review status
+// @access  Private (Faculty only)
+router.put('/feedback/:id', protect, async (req, res) => {
+  if (req.user.role !== 'faculty') {
+    return res.status(403).json({ message: 'Only faculty can update feedback' });
+  }
+
+  const { status, staffNote } = req.body;
+
+  try {
+    const feedback = await Feedback.findOne({ _id: req.params.id, facultyId: req.user.id });
+    if (!feedback) return res.status(404).json({ message: 'Feedback not found' });
+
+    if (status !== undefined) feedback.status = status;
+    if (staffNote !== undefined) feedback.staffNote = String(staffNote).trim();
+    feedback.updatedBy = req.user.id;
+
+    await feedback.save();
+    await feedback.populate('parentId', 'name srvNumber');
+    await feedback.populate('studentId', 'name srvNumber');
+
+    res.json({ message: 'Feedback updated successfully.', feedback });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating feedback' });
   }
 });
 
