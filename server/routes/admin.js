@@ -18,6 +18,7 @@ import { normalizeClassValue, validateAndNormalizeQuestions } from '../utils/pol
 import { hydrateEvents } from '../utils/eventService.js';
 import { normalizeEventPayload } from '../utils/eventUtils.js';
 import { archivePastEvents } from '../utils/archiveEvents.js';
+import { applyStudentFamilyDetails, validateStudentFamilyDetails } from '../utils/studentFamilyDetails.js';
 
 const router = express.Router();
 
@@ -84,6 +85,11 @@ router.post('/student', protect, adminOnly, async (req, res) => {
   const { name, grade, section, group, dateOfBirth, contactNumber, address, admissionNumber } = req.body;
 
   try {
+    const familyValidation = validateStudentFamilyDetails(req.body);
+    if (!familyValidation.isValid) {
+      return res.status(400).json({ message: familyValidation.message });
+    }
+
     let srvNumber;
 
     if (admissionNumber && admissionNumber.toString().trim() !== '') {
@@ -124,6 +130,7 @@ router.post('/student', protect, adminOnly, async (req, res) => {
       grade,
       section,
       group,
+      ...familyValidation.familyDetails,
       dateOfBirth,
       contactNumber,
       address,
@@ -354,7 +361,7 @@ router.put('/student/:id/fees', protect, adminOnly, async (req, res) => {
 });
 
 // @route   PUT /api/admin/student/:id
-// @desc    Edit student details (name, grade, section, group)
+// @desc    Edit student details
 // @access  Private (Admin only)
 router.put('/student/:id', protect, adminOnly, async (req, res) => {
   const { name, grade, section, group } = req.body;
@@ -362,10 +369,21 @@ router.put('/student/:id', protect, adminOnly, async (req, res) => {
     const student = await Student.findById(req.params.id);
     if (!student) return res.status(404).json({ message: 'Student not found' });
 
+    const familyValidation = validateStudentFamilyDetails({
+      motherName: student.motherName,
+      fatherName: student.fatherName,
+      guardianName: student.guardianName,
+      ...req.body
+    });
+    if (!familyValidation.isValid) {
+      return res.status(400).json({ message: familyValidation.message });
+    }
+
     if (name !== undefined) student.name = name;
     if (grade !== undefined) student.grade = grade;
     if (section !== undefined) student.section = section;
     if (group !== undefined) student.group = group;
+    applyStudentFamilyDetails(student, familyValidation.familyDetails);
 
     await student.save();
 

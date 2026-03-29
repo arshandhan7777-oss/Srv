@@ -5,6 +5,9 @@ const studentSchema = new mongoose.Schema({
   srvNumber: { type: String, required: true, unique: true }, // Same as the Parent's SrvNumber
   grade: { type: String, required: true },
   section: { type: String, required: true },
+  motherName: { type: String, trim: true, default: '' },
+  fatherName: { type: String, trim: true, default: '' },
+  guardianName: { type: String, trim: true, default: '' },
   dateOfBirth: { type: Date },
   contactNumber: { type: String },
   address: { type: String },

@@ -9,8 +9,30 @@ import { FeedbackInboxSection } from '../components/FeedbackInboxSection.js';
 import { UpcomingEventsSection } from '../components/UpcomingEventsSection.js';
 
 export function FacultyDashboard() {
+  const hasValidFamilyDetails = (profile) => Boolean(
+    (profile.motherName?.trim() && profile.fatherName?.trim()) ||
+    profile.guardianName?.trim()
+  );
+
+  const getFamilySummary = (student) => {
+    if (student.motherName && student.fatherName) {
+      return `Mother: ${student.motherName} | Father: ${student.fatherName}`;
+    }
+
+    if (student.guardianName) {
+      return `Guardian: ${student.guardianName}`;
+    }
+
+    return 'Family details missing';
+  };
+
+  const isSeniorGrade = (grade) => ['11', '12', 'XI', 'XII'].includes((grade || '').toUpperCase().trim());
+
   const [students, setStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [editingStudentProfile, setEditingStudentProfile] = useState(null);
+  const [studentProfileForm, setStudentProfileForm] = useState({ name: '', grade: '', section: '', group: '', motherName: '', fatherName: '', guardianName: '' });
+  const [profileMsg, setProfileMsg] = useState({ text: '', type: '' });
   const [assignedHomework, setAssignedHomework] = useState([]);
   
   // Grading Form State
@@ -195,14 +217,18 @@ export function FacultyDashboard() {
   useEffect(() => {
     // Auth is handled by ProtectedRoute — just fetch data
     const token = localStorage.getItem('schoolToken');
-    axios.get(`${API_URL}/api/faculty/students`, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).then(res => setStudents(res.data)).catch(console.error);
+    fetchStudents(token);
 
     fetchHomework();
     fetchAnnouncements(token);
     fetchInboxAnnouncements(token);
   }, [navigate, user.role]);
+
+  const fetchStudents = (token) => {
+    axios.get(`${API_URL}/api/faculty/students`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(res => setStudents(res.data)).catch(console.error);
+  };
 
   const fetchHomework = async () => {
     try {
@@ -294,6 +320,48 @@ export function FacultyDashboard() {
     localStorage.removeItem('schoolToken');
     localStorage.removeItem('schoolUser');
     navigate('/login');
+  };
+
+  const openStudentProfileEditor = (student) => {
+    setEditingStudentProfile(student);
+    setStudentProfileForm({
+      name: student.name,
+      grade: student.grade,
+      section: student.section,
+      group: student.group || '',
+      motherName: student.motherName || '',
+      fatherName: student.fatherName || '',
+      guardianName: student.guardianName || ''
+    });
+    setProfileMsg({ text: '', type: '' });
+  };
+
+  const saveStudentProfile = async (e) => {
+    e.preventDefault();
+
+    if (!hasValidFamilyDetails(studentProfileForm)) {
+      setProfileMsg({ text: 'Enter both mother and father names, or provide a guardian name.', type: 'error' });
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('schoolToken');
+      const res = await axios.put(`${API_URL}/api/faculty/student/${editingStudentProfile._id}`, studentProfileForm, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setStudents(prev => prev.map(student => (
+        student._id === editingStudentProfile._id ? res.data.student : student
+      )));
+      setEditingStudentProfile(res.data.student);
+      setSelectedStudent(prev => (
+        prev && prev._id === res.data.student._id ? { ...prev, ...res.data.student } : prev
+      ));
+      setProfileMsg({ text: 'Student profile updated successfully.', type: 'success' });
+      fetchStudents(token);
+    } catch (err) {
+      setProfileMsg({ text: err.response?.data?.message || 'Failed to update student profile.', type: 'error' });
+    }
   };
 
   const submitGrades = async (e) => {
@@ -492,14 +560,27 @@ export function FacultyDashboard() {
                   {students.map(s => (
                     <tr key={s._id} className="border-b border-slate-50 hover:bg-slate-50/50">
                       <td className="px-6 py-4 font-mono text-sm font-semibold text-slate-600">{s.srvNumber}</td>
-                      <td className="px-6 py-4 font-semibold text-slate-900">{s.name}</td>
                       <td className="px-6 py-4">
-                        <button 
-                          onClick={() => { setSelectedStudent(s); setGradeMsg({text:'', type:''}); }}
-                          className="text-emerald-600 font-semibold text-sm hover:underline"
-                        >
-                          Evaluate Nlite & Marks
-                        </button>
+                        <p className="font-semibold text-slate-900">{s.name}</p>
+                        <p className={`text-xs mt-1 ${getFamilySummary(s) === 'Family details missing' ? 'text-red-500 font-semibold' : 'text-slate-500'}`}>
+                          {getFamilySummary(s)}
+                        </p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col items-start gap-2">
+                          <button 
+                            onClick={() => { setSelectedStudent(s); setGradeMsg({text:'', type:''}); }}
+                            className="text-emerald-600 font-semibold text-sm hover:underline"
+                          >
+                            Evaluate Nlite & Marks
+                          </button>
+                          <button
+                            onClick={() => openStudentProfileEditor(s)}
+                            className="text-blue-600 font-semibold text-sm hover:underline"
+                          >
+                            Edit Profile
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -513,6 +594,96 @@ export function FacultyDashboard() {
                 </tbody>
               </table>
             </div>
+
+            {editingStudentProfile && (
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+                <div className="flex justify-between items-center gap-4 mb-6">
+                  <div>
+                    <h3 className="text-xl font-display font-bold text-slate-900">Edit Student Profile</h3>
+                    <p className="text-sm text-slate-500 mt-1">{editingStudentProfile.name} ({editingStudentProfile.srvNumber})</p>
+                  </div>
+                  <button onClick={() => { setEditingStudentProfile(null); setProfileMsg({ text: '', type: '' }); }} className="text-slate-400 hover:text-slate-600 font-bold">Close</button>
+                </div>
+
+                {profileMsg.text && (
+                  <div className={`mb-4 px-4 py-3 rounded-lg text-sm font-semibold ${profileMsg.type === 'success' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                    {profileMsg.text}
+                  </div>
+                )}
+
+                <form onSubmit={saveStudentProfile} className="space-y-4">
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <input
+                      type="text"
+                      value={studentProfileForm.name}
+                      onChange={e => setStudentProfileForm({ ...studentProfileForm, name: e.target.value })}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Student name"
+                    />
+                    <input
+                      type="text"
+                      value={studentProfileForm.grade}
+                      onChange={e => setStudentProfileForm({ ...studentProfileForm, grade: e.target.value, group: '' })}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Grade"
+                    />
+                    <input
+                      type="text"
+                      value={studentProfileForm.section}
+                      onChange={e => setStudentProfileForm({ ...studentProfileForm, section: e.target.value })}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Section"
+                    />
+                  </div>
+
+                  {isSeniorGrade(studentProfileForm.grade) && (
+                    <input
+                      type="text"
+                      value={studentProfileForm.group}
+                      onChange={e => setStudentProfileForm({ ...studentProfileForm, group: e.target.value })}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Group"
+                    />
+                  )}
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <input
+                      type="text"
+                      value={studentProfileForm.motherName}
+                      onChange={e => setStudentProfileForm({ ...studentProfileForm, motherName: e.target.value })}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Mother name"
+                    />
+                    <input
+                      type="text"
+                      value={studentProfileForm.fatherName}
+                      onChange={e => setStudentProfileForm({ ...studentProfileForm, fatherName: e.target.value })}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Father name"
+                    />
+                  </div>
+
+                  <input
+                    type="text"
+                    value={studentProfileForm.guardianName}
+                    onChange={e => setStudentProfileForm({ ...studentProfileForm, guardianName: e.target.value })}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Guardian name (if parent names are not available)"
+                  />
+
+                  <p className="text-xs text-slate-500">Enter mother and father names together, or fill only the guardian field.</p>
+
+                  <div className="flex items-center gap-3">
+                    <button type="submit" className="px-5 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors">
+                      Save Profile
+                    </button>
+                    <button type="button" onClick={() => { setEditingStudentProfile(null); setProfileMsg({ text: '', type: '' }); }} className="px-5 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors">
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
 
             {/* Grading Drawer / Panel */}
             {selectedStudent && (

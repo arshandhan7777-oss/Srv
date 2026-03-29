@@ -10,6 +10,25 @@ import { FeedbackInboxSection } from '../components/FeedbackInboxSection.js';
 import { UpcomingEventsSection } from '../components/UpcomingEventsSection.js';
 
 export function AdminDashboard() {
+  const hasValidFamilyDetails = (profile) => Boolean(
+    (profile.motherName?.trim() && profile.fatherName?.trim()) ||
+    profile.guardianName?.trim()
+  );
+
+  const getFamilySummary = (student) => {
+    if (student.motherName && student.fatherName) {
+      return `Mother: ${student.motherName} | Father: ${student.fatherName}`;
+    }
+
+    if (student.guardianName) {
+      return `Guardian: ${student.guardianName}`;
+    }
+
+    return 'Missing family details';
+  };
+
+  const isSeniorGrade = (grade) => ['11', '12', 'XI', 'XII'].includes((grade || '').toUpperCase().trim());
+
   const [stats, setStats] = useState({ totalStudents: 0, totalFaculty: 0 });
   
   // Faculty Form State
@@ -17,12 +36,12 @@ export function AdminDashboard() {
   const [facultyMsg, setFacultyMsg] = useState({ text: '', type: '' });
 
   // Student Form State
-  const [studentForm, setStudentForm] = useState({ name: '', grade: '', section: '', group: '', dateOfBirth: '', admissionNumber: '' });
+  const [studentForm, setStudentForm] = useState({ name: '', grade: '', section: '', group: '', dateOfBirth: '', admissionNumber: '', motherName: '', fatherName: '', guardianName: '' });
   const [studentMsg, setStudentMsg] = useState({ text: '', type: '' });
   const [editingSrvId, setEditingSrvId] = useState(null);
   const [editSrvValue, setEditSrvValue] = useState('');
   const [editingStudentId, setEditingStudentId] = useState(null);
-  const [editStudentForm, setEditStudentForm] = useState({ name: '', grade: '', section: '', group: '' });
+  const [editStudentForm, setEditStudentForm] = useState({ name: '', grade: '', section: '', group: '', motherName: '', fatherName: '', guardianName: '' });
   const [promoteFrom, setPromoteFrom] = useState('');
   const [promoteTo, setPromoteTo] = useState('');
 
@@ -254,6 +273,10 @@ export function AdminDashboard() {
   };
 
   const handleUpdateStudent = async (id) => {
+    if (!hasValidFamilyDetails(editStudentForm)) {
+      Swal.fire('Missing Family Details', 'Enter both mother and father names, or provide a guardian name.', 'warning');
+      return;
+    }
     try {
       const token = localStorage.getItem('schoolToken');
       await axios.put(`${API_URL}/api/admin/student/${id}`, editStudentForm, {
@@ -358,6 +381,10 @@ export function AdminDashboard() {
 
   const handleStudentSubmit = async (e) => {
     e.preventDefault();
+    if (!hasValidFamilyDetails(studentForm)) {
+      Swal.fire('Missing Family Details', 'Enter both mother and father names, or provide a guardian name.', 'warning');
+      return;
+    }
     try {
       const token = localStorage.getItem('schoolToken');
       const res = await axios.post(`${API_URL}/api/admin/student`, studentForm, {
@@ -365,11 +392,11 @@ export function AdminDashboard() {
       });
       Swal.fire({
         title: 'Student Admitted!',
-        html: `<b>SRV Number:</b> ${res.data.student.srvNumber}<br/><b>Password:</b> ${studentForm.dateOfBirth}`,
+        html: `<b>SRV Number:</b> ${res.data.student.srvNumber}<br/><b>Password:</b> ${res.data.parentLogin.defaultPassword}`,
         icon: 'success',
         confirmButtonColor: '#059669'
       });
-      setStudentForm({ name: '', grade: '', section: '', group: '', dateOfBirth: '', admissionNumber: '' });
+      setStudentForm({ name: '', grade: '', section: '', group: '', dateOfBirth: '', admissionNumber: '', motherName: '', fatherName: '', guardianName: '' });
       setStats(prev => ({...prev, totalStudents: prev.totalStudents + 1}));
       fetchStudents(token); // dynamically refresh the table
     } catch (err) {
@@ -543,7 +570,30 @@ export function AdminDashboard() {
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500" 
                 />
               </div>
-              {['11', '12', 'XI', 'XII'].includes(studentForm.grade.toUpperCase().trim()) && (
+              <div className="grid md:grid-cols-2 gap-4">
+                <input 
+                  type="text" 
+                  placeholder="Mother Name" 
+                  value={studentForm.motherName}
+                  onChange={e => setStudentForm({...studentForm, motherName: e.target.value})}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500" 
+                />
+                <input 
+                  type="text" 
+                  placeholder="Father Name" 
+                  value={studentForm.fatherName}
+                  onChange={e => setStudentForm({...studentForm, fatherName: e.target.value})}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500" 
+                />
+              </div>
+              <input 
+                type="text" 
+                placeholder="Guardian Name (if parent names are not available)" 
+                value={studentForm.guardianName}
+                onChange={e => setStudentForm({...studentForm, guardianName: e.target.value})}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500" 
+              />
+              {isSeniorGrade(studentForm.grade) && (
                 <input 
                   type="text" 
                   placeholder="Group Details (e.g. Science, Commerce, Arts)" 
@@ -557,7 +607,7 @@ export function AdminDashboard() {
                 Admit Student & Generate Parent Login
               </button>
               <p className="text-xs text-slate-500 text-center mt-2 flex items-center justify-center gap-1">
-                <CheckCircle2 size={12} className="text-emerald-500" /> SRV prefix auto-added. Leave admission # blank for auto-sequence.
+                <CheckCircle2 size={12} className="text-emerald-500" /> Enter mother and father names, or add a guardian. SRV prefix auto-added if you leave admission # blank.
               </p>
             </form>
           </div>
@@ -945,12 +995,13 @@ export function AdminDashboard() {
           )}
 
           <div className="overflow-x-auto rounded-xl border border-slate-200">
-            <table className="w-full text-left border-collapse min-w-[800px]">
+            <table className="w-full text-left border-collapse min-w-[980px]">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-sm text-slate-500">
                   <th className="px-5 py-3 font-semibold">SRV No</th>
                   <th className="px-5 py-3 font-semibold">Name</th>
                   <th className="px-5 py-3 font-semibold">Grade & Sec</th>
+                  <th className="px-5 py-3 font-semibold">Family Details</th>
                   <th className="px-5 py-3 font-semibold">Class In-Charge</th>
                   <th className="px-5 py-3 font-semibold text-center">Fee Status (Overall)</th>
                   <th className="px-5 py-3 font-semibold text-center w-[120px]">Actions</th>
@@ -1000,9 +1051,21 @@ export function AdminDashboard() {
                           <input type="text" value={editStudentForm.name} onChange={e => setEditStudentForm({...editStudentForm, name: e.target.value})} className="w-full px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-xs" placeholder="Name" />
                         </td>
                         <td className="px-3 py-3 border-b border-slate-50">
-                          <div className="flex gap-1">
-                            <input type="text" value={editStudentForm.grade} onChange={e => setEditStudentForm({...editStudentForm, grade: e.target.value})} className="w-12 px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-xs" placeholder="Gr" />
-                            <input type="text" value={editStudentForm.section} onChange={e => setEditStudentForm({...editStudentForm, section: e.target.value})} className="w-12 px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-xs" placeholder="Sec" />
+                          <div className="space-y-2">
+                            <div className="flex gap-1">
+                              <input type="text" value={editStudentForm.grade} onChange={e => setEditStudentForm({...editStudentForm, grade: e.target.value, group: ''})} className="w-12 px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-xs" placeholder="Gr" />
+                              <input type="text" value={editStudentForm.section} onChange={e => setEditStudentForm({...editStudentForm, section: e.target.value})} className="w-12 px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-xs" placeholder="Sec" />
+                            </div>
+                            {isSeniorGrade(editStudentForm.grade) && (
+                              <input type="text" value={editStudentForm.group} onChange={e => setEditStudentForm({...editStudentForm, group: e.target.value})} className="w-full px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-xs" placeholder="Group" />
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-3 py-3 border-b border-slate-50">
+                          <div className="space-y-2 min-w-[240px]">
+                            <input type="text" value={editStudentForm.motherName} onChange={e => setEditStudentForm({...editStudentForm, motherName: e.target.value})} className="w-full px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-xs" placeholder="Mother name" />
+                            <input type="text" value={editStudentForm.fatherName} onChange={e => setEditStudentForm({...editStudentForm, fatherName: e.target.value})} className="w-full px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-xs" placeholder="Father name" />
+                            <input type="text" value={editStudentForm.guardianName} onChange={e => setEditStudentForm({...editStudentForm, guardianName: e.target.value})} className="w-full px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-xs" placeholder="Guardian name" />
                           </div>
                         </td>
                         <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">
@@ -1021,7 +1084,15 @@ export function AdminDashboard() {
                     ) : (
                       <>
                         <td className="px-5 py-4 font-semibold text-slate-900 border-b border-slate-50">{student.name}</td>
-                        <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">{student.grade}-{student.section}</td>
+                        <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">
+                          <div>{student.grade}-{student.section}</div>
+                          {student.group && <div className="text-xs text-slate-400 mt-1">{student.group}</div>}
+                        </td>
+                        <td className="px-5 py-4 text-slate-700 border-b border-slate-50">
+                          <div className={getFamilySummary(student) === 'Missing family details' ? 'font-semibold text-red-500' : 'text-xs leading-5'}>
+                            {getFamilySummary(student)}
+                          </div>
+                        </td>
                         <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">
                           {student.facultyId ? student.facultyId.name : <span className="text-slate-400 italic">Unassigned</span>}
                         </td>
@@ -1031,7 +1102,7 @@ export function AdminDashboard() {
                           </span>
                         </td>
                         <td className="px-5 py-4 flex items-center justify-center gap-2 border-b border-slate-50">
-                          <button onClick={() => { setEditingStudentId(student._id); setEditStudentForm({ name: student.name, grade: student.grade, section: student.section, group: student.group || '' }); }} className="text-blue-600 hover:text-blue-800 font-semibold text-xs hover:underline flex items-center gap-1" title="Edit Student">
+                          <button onClick={() => { setEditingStudentId(student._id); setEditStudentForm({ name: student.name, grade: student.grade, section: student.section, group: student.group || '', motherName: student.motherName || '', fatherName: student.fatherName || '', guardianName: student.guardianName || '' }); }} className="text-blue-600 hover:text-blue-800 font-semibold text-xs hover:underline flex items-center gap-1" title="Edit Student">
                             <Edit2 size={12}/> Edit
                           </button>
                           <button onClick={() => setSelectedStudentForFees(student)} className="text-purple-600 hover:text-purple-800 font-semibold text-xs hover:underline" title="Manage Fees">
@@ -1047,7 +1118,7 @@ export function AdminDashboard() {
                 ))}
                 {allStudents.length === 0 && (
                   <tr>
-                    <td colSpan="6" className="px-5 py-8 text-center text-slate-500 border-b border-slate-50">No students found.</td>
+                    <td colSpan="7" className="px-5 py-8 text-center text-slate-500 border-b border-slate-50">No students found.</td>
                   </tr>
                 )}
               </tbody>

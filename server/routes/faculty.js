@@ -20,6 +20,7 @@ import { buildClassAudienceFilter, normalizeClassValue, validateAndNormalizeQues
 import { hydrateEvents } from '../utils/eventService.js';
 import { normalizeEventPayload } from '../utils/eventUtils.js';
 import { archivePastEvents } from '../utils/archiveEvents.js';
+import { applyStudentFamilyDetails, validateStudentFamilyDetails } from '../utils/studentFamilyDetails.js';
 
 const router = express.Router();
 
@@ -55,6 +56,45 @@ router.get('/students', protect, facultyOrAdmin, async (req, res) => {
     res.json(students);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching students' });
+  }
+});
+
+// @route   PUT /api/faculty/student/:id
+// @desc    Update a student profile from the faculty dashboard
+// @access  Private (Faculty/Admin)
+router.put('/student/:id', protect, facultyOrAdmin, async (req, res) => {
+  const { name, grade, section, group } = req.body;
+
+  try {
+    const query = req.user.role === 'admin'
+      ? { _id: req.params.id }
+      : { _id: req.params.id, facultyId: req.user.id };
+
+    const student = await Student.findOne(query);
+    if (!student) return res.status(404).json({ message: 'Student not found' });
+
+    const familyValidation = validateStudentFamilyDetails({
+      motherName: student.motherName,
+      fatherName: student.fatherName,
+      guardianName: student.guardianName,
+      ...req.body
+    });
+    if (!familyValidation.isValid) {
+      return res.status(400).json({ message: familyValidation.message });
+    }
+
+    if (name !== undefined) student.name = name;
+    if (grade !== undefined) student.grade = grade;
+    if (section !== undefined) student.section = section;
+    if (group !== undefined) student.group = group;
+    applyStudentFamilyDetails(student, familyValidation.familyDetails);
+
+    await student.save();
+
+    res.json({ message: 'Student profile updated successfully', student });
+  } catch (error) {
+    console.error('[Faculty Edit Student Error]', error);
+    res.status(500).json({ message: 'Error updating student profile' });
   }
 });
 
