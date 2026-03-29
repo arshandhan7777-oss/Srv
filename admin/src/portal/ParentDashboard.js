@@ -700,18 +700,22 @@ export function ParentDashboard() {
                                   </div>
                                 </button>
 
-                                {/* Homework entries under this subject */}
+                                {/* Homework entries under this subject — clickable for history */}
                                 <div className="px-3 pb-2 space-y-1.5">
                                   {subjectHw.map(hw => (
-                                    <div key={hw._id} className="bg-slate-800/50 rounded-lg p-2.5 relative">
-                                      <h4 className="font-display font-bold text-white text-[12px] mb-0.5 leading-tight">{hw.title}</h4>
+                                    <button 
+                                      key={hw._id}
+                                      onClick={() => openSubjectHistory(subject)}
+                                      className="w-full bg-slate-800/50 rounded-lg p-2.5 relative hover:bg-slate-700/60 transition-colors text-left group"
+                                    >
+                                      <h4 className="font-display font-bold text-white text-[12px] mb-0.5 leading-tight group-hover:text-emerald-300 transition-colors">{hw.title}</h4>
                                       <p className="text-[10px] text-slate-400 line-clamp-2 leading-relaxed mb-1.5">{hw.description}</p>
                                       <div className="flex items-center justify-between">
                                         <span className="text-[9px] text-slate-500 font-semibold flex items-center gap-1">
                                           <Clock size={9} /> Due: {new Date(hw.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                         </span>
                                       </div>
-                                    </div>
+                                    </button>
                                   ))}
                                 </div>
                               </div>
