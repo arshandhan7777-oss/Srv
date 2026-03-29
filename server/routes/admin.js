@@ -549,27 +549,47 @@ router.post('/password-requests/:id/approve', protect, adminOnly, async (req, re
 });
 
 // @route   POST /api/admin/announcements
-// @desc    Create a global announcement
+// @desc    Create a global, class, or faculty announcement
 // @access  Private (Admin only)
 router.post('/announcements', protect, adminOnly, async (req, res) => {
-  const { title, message, priority, targetGrade, targetSection } = req.body;
+  const { title, message, priority, targetType, targetGrade, targetSection, recipients } = req.body;
 
   try {
     if (!title || !message) {
       return res.status(400).json({ message: 'Title and message are required' });
     }
 
-    const announcement = await Announcement.create({
+    // Determine announcement type
+    let type = 'GLOBAL';
+    let announcementData = {
       title,
       message,
       priority: priority || 'MEDIUM',
-      type: targetGrade && targetSection ? 'CLASS' : 'GLOBAL',
-      targetGrade,
-      targetSection,
       createdBy: req.user.id,
       createdByRole: 'admin',
       isPublished: true
-    });
+    };
+
+    if (targetType === 'CLASS') {
+      if (!targetGrade || !targetSection) {
+        return res.status(400).json({ message: 'Target grade and section are required for CLASS announcements' });
+      }
+      type = 'CLASS';
+      announcementData.targetGrade = targetGrade;
+      announcementData.targetSection = targetSection;
+    } else if (targetType === 'FACULTY') {
+      if (!recipients || recipients.length === 0) {
+        return res.status(400).json({ message: 'Recipients are required for FACULTY announcements' });
+      }
+      type = 'FACULTY';
+      announcementData.recipients = recipients;
+    } else {
+      type = 'GLOBAL';
+    }
+
+    announcementData.type = type;
+
+    const announcement = await Announcement.create(announcementData);
 
     res.status(201).json({
       message: 'Announcement created successfully',

@@ -49,9 +49,10 @@ export function AdminDashboard() {
   const [newAdminProvidedPw, setNewAdminProvidedPw] = useState('');
 
   // Announcements
-  const [announcementForm, setAnnouncementForm] = useState({ title: '', message: '', priority: 'MEDIUM', targetGrade: '', targetSection: '' });
+  const [announcementForm, setAnnouncementForm] = useState({ title: '', message: '', priority: 'MEDIUM', targetType: 'students', targetGrade: '', targetSection: '' });
   const [announcements, setAnnouncements] = useState([]);
   const [announcementMsg, setAnnouncementMsg] = useState({ text: '', type: '' });
+  const [selectedAnnouncementFaculties, setSelectedAnnouncementFaculties] = useState([]);
 
   // Advanced Profile State
   const [allStudents, setAllStudents] = useState([]);
@@ -132,13 +133,28 @@ export function AdminDashboard() {
       return;
     }
 
+    if (announcementForm.targetType === 'faculty' && selectedAnnouncementFaculties.length === 0) {
+      setAnnouncementMsg({ text: 'Select at least one faculty member', type: 'error' });
+      return;
+    }
+
+    if (announcementForm.targetType === 'class' && (!announcementForm.targetGrade || !announcementForm.targetSection)) {
+      setAnnouncementMsg({ text: 'Select Grade and Section', type: 'error' });
+      return;
+    }
+
     try {
       const token = localStorage.getItem('schoolToken');
-      await axios.post(`${API_URL}/api/admin/announcements`, announcementForm, {
+      const payload = {
+        ...announcementForm,
+        selectedFacultyIds: announcementForm.targetType === 'faculty' ? selectedAnnouncementFaculties : []
+      };
+      await axios.post(`${API_URL}/api/admin/announcements`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAnnouncementMsg({ text: 'Announcement published successfully!', type: 'success' });
-      setAnnouncementForm({ title: '', message: '', priority: 'MEDIUM', targetGrade: '', targetSection: '' });
+      setAnnouncementForm({ title: '', message: '', priority: 'MEDIUM', targetType: 'students', targetGrade: '', targetSection: '' });
+      setSelectedAnnouncementFaculties([]);
       fetchAnnouncements(token);
     } catch (err) {
       setAnnouncementMsg({ text: 'Error publishing announcement', type: 'error' });
@@ -670,21 +686,21 @@ export function AdminDashboard() {
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Target Type</label>
                   <select 
-                    value={announcementForm.targetGrade ? 'grade' : 'all'}
+                    value={announcementForm.targetType}
                     onChange={e => {
-                      if (e.target.value === 'all') {
-                        setAnnouncementForm({...announcementForm, targetGrade: '', targetSection: ''});
-                      }
+                      setAnnouncementForm({...announcementForm, targetType: e.target.value, targetGrade: '', targetSection: ''});
+                      setSelectedAnnouncementFaculties([]);
                     }}
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="all">All Students</option>
-                    <option value="grade">Specific Grade & Section</option>
+                    <option value="students">All Students</option>
+                    <option value="class">Specific Grade & Section</option>
+                    <option value="faculty">Faculty Members</option>
                   </select>
                 </div>
               </div>
 
-              {announcementForm.targetGrade !== '' && (
+              {announcementForm.targetType === 'class' && (
                 <div className="grid md:grid-cols-2 gap-4">
                   <input 
                     type="text" 
@@ -702,6 +718,41 @@ export function AdminDashboard() {
                   />
                 </div>
               )}
+
+              {announcementForm.targetType === 'faculty' && (
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                  <label className="block text-sm font-semibold text-slate-700 mb-3">Select Faculty Members</label>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {faculties.length > 0 ? faculties.map(faculty => (
+                      <label key={faculty._id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white transition-colors cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={selectedAnnouncementFaculties.includes(faculty._id)}
+                          onChange={e => {
+                            if (e.target.checked) {
+                              setSelectedAnnouncementFaculties([...selectedAnnouncementFaculties, faculty._id]);
+                            } else {
+                              setSelectedAnnouncementFaculties(selectedAnnouncementFaculties.filter(id => id !== faculty._id));
+                            }
+                          }}
+                          className="w-4 h-4 rounded border-2 border-slate-300 accent-blue-600 cursor-pointer"
+                        />
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-slate-900">{faculty.name}</p>
+                          <p className="text-xs text-slate-500">{faculty.srvNumber} · Grade {faculty.assignedGrade} - {faculty.assignedSection}</p>
+                        </div>
+                        {selectedAnnouncementFaculties.includes(faculty._id) && (
+                          <span className="text-blue-600 font-bold text-sm">✓</span>
+                        )}
+                      </label>
+                    )) : (
+                      <p className="text-slate-500 text-sm text-center py-4">No faculty members found</p>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500 mt-2">
+                    {selectedAnnouncementFaculties.length > 0 ? `${selectedAnnouncementFaculties.length} faculty member${selectedAnnouncementFaculties.length > 1 ? 's' : ''} selected` : 'Select at least one faculty member'}
+                  </p>
+                </div>
 
               <button type="submit" className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors">
                 📢 Publish Announcement

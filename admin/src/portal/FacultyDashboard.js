@@ -52,6 +52,7 @@ export function FacultyDashboard() {
   const [announcementForm, setAnnouncementForm] = useState({ title: '', message: '', priority: 'MEDIUM', toAllStudents: true });
   const [announcements, setAnnouncements] = useState([]);
   const [announcementMsg, setAnnouncementMsg] = useState({ text: '', type: '' });
+  const [selectedAnnouncementStudents, setSelectedAnnouncementStudents] = useState([]);
   
   const openAttendanceModal = () => {
     const initialRecords = {};
@@ -221,13 +222,23 @@ export function FacultyDashboard() {
       return;
     }
 
+    if (!announcementForm.toAllStudents && selectedAnnouncementStudents.length === 0) {
+      setAnnouncementMsg({ text: 'Select at least one student', type: 'error' });
+      return;
+    }
+
     try {
       const token = localStorage.getItem('schoolToken');
-      await axios.post(`${API_URL}/api/faculty/announcements`, announcementForm, {
+      const payload = {
+        ...announcementForm,
+        selectedStudentIds: !announcementForm.toAllStudents ? selectedAnnouncementStudents : []
+      };
+      await axios.post(`${API_URL}/api/faculty/announcements`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAnnouncementMsg({ text: 'Announcement sent to students!', type: 'success' });
       setAnnouncementForm({ title: '', message: '', priority: 'MEDIUM', toAllStudents: true });
+      setSelectedAnnouncementStudents([]);
       fetchAnnouncements(token);
     } catch (err) {
       setAnnouncementMsg({ text: 'Error sending announcement', type: 'error' });
@@ -966,6 +977,43 @@ export function FacultyDashboard() {
                     </select>
                   </div>
                 </div>
+
+                {/* Student Selection - Manual Mode */}
+                {!announcementForm.toAllStudents && (
+                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                    <label className="block text-sm font-semibold text-slate-700 mb-3">Select Students</label>
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {students.length > 0 ? students.map(student => (
+                        <label key={student._id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white transition-colors cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            checked={selectedAnnouncementStudents.includes(student._id)}
+                            onChange={e => {
+                              if (e.target.checked) {
+                                setSelectedAnnouncementStudents([...selectedAnnouncementStudents, student._id]);
+                              } else {
+                                setSelectedAnnouncementStudents(selectedAnnouncementStudents.filter(id => id !== student._id));
+                              }
+                            }}
+                            className="w-4 h-4 rounded border-2 border-slate-300 accent-blue-600 cursor-pointer"
+                          />
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-slate-900">{student.name}</p>
+                            <p className="text-xs text-slate-500">{student.srvNumber}</p>
+                          </div>
+                          {selectedAnnouncementStudents.includes(student._id) && (
+                            <span className="text-blue-600 font-bold text-sm">✓</span>
+                          )}
+                        </label>
+                      )) : (
+                        <p className="text-slate-500 text-sm text-center py-4">No students assigned yet</p>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-2">
+                      {selectedAnnouncementStudents.length > 0 ? `${selectedAnnouncementStudents.length} student${selectedAnnouncementStudents.length > 1 ? 's' : ''} selected` : 'Select at least one student'}
+                    </p>
+                  </div>
+                )}
 
                 <button type="submit" className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors text-sm">
                   📢 Send to Students

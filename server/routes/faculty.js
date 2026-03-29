@@ -335,7 +335,7 @@ router.post('/announcements', protect, async (req, res) => {
     return res.status(403).json({ message: 'Only faculty can create announcements' });
   }
 
-  const { title, message, priority, toAllStudents } = req.body;
+  const { title, message, priority, toAllStudents, selectedStudentIds } = req.body;
 
   try {
     if (!title || !message) {
@@ -358,6 +358,16 @@ router.post('/announcements', protect, async (req, res) => {
       }).select('_id');
       
       recipients = recipients.map(r => r._id);
+    } else if (selectedStudentIds && selectedStudentIds.length > 0) {
+      // Send to manually selected students
+      recipients = await User.find({
+        studentId: { $in: selectedStudentIds },
+        role: 'parent'
+      }).select('_id');
+      
+      recipients = recipients.map(r => r._id);
+    } else {
+      return res.status(400).json({ message: 'No recipients selected' });
     }
 
     const announcement = await Announcement.create({
@@ -393,6 +403,35 @@ router.get('/announcements', protect, async (req, res) => {
 
   try {
     const announcements = await Announcement.find({ createdBy: req.user.id }).sort({ createdAt: -1 });
+    res.json(announcements);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching announcements' });
+  }
+});
+
+// @route   GET /api/faculty/announcements/inbox
+// @desc    Get all announcements targeted to this faculty (from admin)
+// @access  Private (Faculty only)
+router.get('/announcements/inbox/all', protect, async (req, res) => {
+  if (req.user.role !== 'faculty') {
+    return res.status(403).json({ message: 'Only faculty can view their announcements' });
+  }
+
+  try {
+    // Get global announcements + announcements where this faculty is in recipients
+    const announcements = await Announcement.find({
+      $or: [
+        { type: 'GLOBAL', createdByRole: 'admin' },
+        { 
+          type: 'FACULTY',
+          recipients: req.user.id,
+          createdByRole: 'admin'
+        }
+      ]
+    })
+    .populate('createdBy', 'name email')
+    .sort({ createdAt: -1 });
+    
     res.json(announcements);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching announcements' });
