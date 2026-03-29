@@ -413,9 +413,18 @@ export function FacultyDashboard() {
 
             {showNotifications && (
               <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 max-h-96 overflow-y-auto">
-                <div className="sticky top-0 bg-slate-900 text-white p-4 border-b border-slate-800 rounded-t-2xl">
-                  <h3 className="font-display font-bold">Faculty Announcements</h3>
-                  <p className="text-xs text-slate-400">{inboxAnnouncements.length} total</p>
+                <div className="sticky top-0 bg-slate-900 text-white p-4 border-b border-slate-800 rounded-t-2xl flex items-center justify-between">
+                  <div>
+                    <h3 className="font-display font-bold">Faculty Announcements</h3>
+                    <p className="text-xs text-slate-400">{inboxAnnouncements.length} total</p>
+                  </div>
+                  <button 
+                    onClick={() => setShowNotifications(false)}
+                    className="text-slate-300 hover:text-white p-1 rounded transition-colors flex-shrink-0"
+                    title="Close"
+                  >
+                    <X size={18} />
+                  </button>
                 </div>
 
                 {inboxAnnouncements.length > 0 ? (
