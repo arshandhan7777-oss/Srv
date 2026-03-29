@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Users, LogOut, CheckSquare, BookOpen, AlertCircle, ChevronLeft, ChevronRight, Calendar as CalIcon, Clock, Edit2, Trash2, CalendarClock, X, Check, History, ArrowRight, Archive, ChevronDown, Megaphone, Bell } from 'lucide-react';
+import { Users, LogOut, CheckSquare, BookOpen, AlertCircle, ChevronLeft, ChevronRight, Calendar as CalIcon, Clock, Edit2, Trash2, CalendarClock, X, Check, History, ArrowRight, Archive, ChevronDown, Megaphone, Bell, LayoutDashboard, ClipboardList, MessageSquareMore } from 'lucide-react';
 import srvLogo from '../assest/fav_logo/srv-t.png';
 import API_URL from '../config/api.js';
 import { OpinionPollSection } from '../components/OpinionPollSection.js';
 import { FeedbackInboxSection } from '../components/FeedbackInboxSection.js';
 import { UpcomingEventsSection } from '../components/UpcomingEventsSection.js';
 
-export function FacultyDashboard() {
+export function FacultyDashboard({ section = 'dashboard' }) {
   const hasValidFamilyDetails = (profile) => Boolean(
     (profile.motherName?.trim() && profile.fatherName?.trim()) ||
     profile.guardianName?.trim()
@@ -148,6 +148,46 @@ export function FacultyDashboard() {
 
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('schoolUser') || '{}');
+  const activeSection = section || 'dashboard';
+
+  const pageMeta = {
+    dashboard: {
+      title: 'Faculty Dashboard',
+      description: 'A clean overview with quick mobile access to all teaching tools.'
+    },
+    homework: {
+      title: 'Homework Center',
+      description: 'Assign homework and manage the daily homework dashboard.'
+    },
+    attendance: {
+      title: 'Attendance',
+      description: 'Mark daily attendance for your students.'
+    },
+    behavior: {
+      title: 'Daily Behavior',
+      description: 'Log daily behavior scores and remarks for students.'
+    },
+    announcements: {
+      title: 'Announcements',
+      description: 'Send announcements to all students or selected students.'
+    },
+    events: {
+      title: 'Events',
+      description: 'Open upcoming events and event acknowledgements.'
+    },
+    polls: {
+      title: 'Poll Center',
+      description: 'Create opinion polls and review poll analytics.'
+    },
+    feedback: {
+      title: 'Feedback Inbox',
+      description: 'Review parent feedback in a focused inbox.'
+    }
+  };
+
+  const navigateToSection = (targetSection) => {
+    navigate(targetSection === 'dashboard' ? '/faculty/dashboard' : `/faculty/${targetSection}`);
+  };
 
   // Calendar Helper Functions
   const days = [];
@@ -222,7 +262,7 @@ export function FacultyDashboard() {
     fetchHomework();
     fetchAnnouncements(token);
     fetchInboxAnnouncements(token);
-  }, [navigate, user.role]);
+  }, [section, user.role]);
 
   const fetchStudents = (token) => {
     axios.get(`${API_URL}/api/faculty/students`, {
@@ -453,6 +493,136 @@ export function FacultyDashboard() {
     }
   };
 
+  const upcomingHomeworkCount = assignedHomework.filter(hw => isUpcomingDeadline(hw.dueDate)).length;
+  const overdueHomeworkCount = assignedHomework.filter(hw => isPastDeadline(hw.dueDate)).length;
+  const recentAnnouncementCount = announcements.length;
+
+  const appPages = [
+    { key: 'homework', title: 'Assign Homework', subtitle: 'Assign Homework, Daily Homework Dashboard', icon: BookOpen, badge: assignedHomework.length, gradient: 'from-amber-500 to-orange-500' },
+    { key: 'attendance', title: 'Attendance', subtitle: 'Mark Attendance', icon: CheckSquare, badge: students.length, gradient: 'from-emerald-500 to-teal-500' },
+    { key: 'behavior', title: 'Log Behavior', subtitle: 'Log Daily Behavior', icon: AlertCircle, badge: 'Daily', gradient: 'from-rose-500 to-orange-500' },
+    { key: 'announcements', title: 'Announcement', subtitle: 'Send Announcement', icon: Megaphone, badge: recentAnnouncementCount, gradient: 'from-blue-500 to-cyan-500' },
+    { key: 'events', title: 'Events', subtitle: 'Upcoming Events, Event Acknowledgements', icon: CalIcon, badge: 'Live', gradient: 'from-fuchsia-500 to-pink-500' },
+    { key: 'polls', title: 'Poll Center', subtitle: 'Opinion Poll Center, Poll Analytics', icon: ClipboardList, badge: 'Polls', gradient: 'from-violet-500 to-indigo-500' },
+    { key: 'feedback', title: 'Feedback', subtitle: 'Parent Feedback Inbox', icon: MessageSquareMore, badge: unreadCount, gradient: 'from-slate-700 to-slate-900' }
+  ];
+
+  const renderDashboardHome = () => (
+    <div className="min-h-screen bg-slate-100">
+      <div className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-4">
+            <div className="flex h-14 w-14 items-center justify-center rounded-[1.25rem] bg-slate-900 p-2 shadow-lg shadow-slate-300/60">
+              <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-[0.9rem] bg-white p-1.5">
+                <img src={srvLogo} alt="SRV" className="h-full w-full object-contain scale-[1.12]" />
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">SRV School</p>
+              <h1 className="text-lg font-display font-bold text-slate-900">Faculty Dashboard</h1>
+              <p className="text-xs text-slate-500">Class {user.assignedGrade}-{user.assignedSection} · {user.name}</p>
+            </div>
+          </div>
+
+          <button onClick={handleLogout} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">
+            <LogOut size={16} />
+            <span className="hidden sm:inline">Logout</span>
+          </button>
+        </div>
+      </div>
+
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <div className="space-y-8">
+          <section className="overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-700 p-6 text-white shadow-xl shadow-slate-900/10 sm:p-8">
+            <div className="grid gap-6 lg:grid-cols-[1.35fr,0.85fr]">
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-100">
+                  <LayoutDashboard size={14} />
+                  Faculty Overview
+                </div>
+                <h2 className="mt-4 max-w-2xl text-3xl font-display font-bold leading-tight sm:text-4xl">
+                  Teaching tools organized for quick mobile access.
+                </h2>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-emerald-50/90 sm:text-base">
+                  Open homework, attendance, behavior, announcements, events, polls, and feedback from one clean faculty home screen.
+                </p>
+              </div>
+
+              <div className="rounded-[1.75rem] border border-white/15 bg-white/10 p-5 backdrop-blur">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100">Today</p>
+                <div className="mt-4 grid grid-cols-1 gap-3">
+                  <div className="rounded-2xl bg-white/10 px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100">Students</p>
+                    <p className="mt-1 text-2xl font-display font-bold">{students.length}</p>
+                  </div>
+                  <div className="rounded-2xl bg-white/10 px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100">Upcoming Homework</p>
+                    <p className="mt-1 text-2xl font-display font-bold">{upcomingHomeworkCount}</p>
+                  </div>
+                  <div className="rounded-2xl bg-white/10 px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100">Inbox Alerts</p>
+                    <p className="mt-1 text-2xl font-display font-bold">{unreadCount}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="rounded-[1.5rem] border border-white/10 bg-white/10 p-4 backdrop-blur">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-50/75">My Students</p>
+                <p className="mt-2 text-3xl font-display font-bold">{students.length}</p>
+              </div>
+              <div className="rounded-[1.5rem] border border-white/10 bg-white/10 p-4 backdrop-blur">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-50/75">Assigned Homework</p>
+                <p className="mt-2 text-3xl font-display font-bold">{assignedHomework.length}</p>
+              </div>
+              <div className="rounded-[1.5rem] border border-white/10 bg-white/10 p-4 backdrop-blur">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-50/75">Overdue Tasks</p>
+                <p className="mt-2 text-3xl font-display font-bold">{overdueHomeworkCount}</p>
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Faculty Apps</p>
+              <h2 className="mt-1 text-2xl font-display font-bold text-slate-900">Tap an icon to open its page</h2>
+              <p className="mt-1 text-sm text-slate-500">Designed for fast mobile navigation without the long faculty scrolling page.</p>
+            </div>
+
+            <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+              {appPages.map(page => {
+                const Icon = page.icon;
+
+                return (
+                  <button
+                    key={page.key}
+                    type="button"
+                    onClick={() => navigateToSection(page.key)}
+                    className="group rounded-[1.75rem] border border-slate-200 bg-slate-50 p-4 text-left transition duration-200 hover:-translate-y-1 hover:border-slate-300 hover:bg-white"
+                  >
+                    <div className={`flex h-14 w-14 items-center justify-center rounded-[1.25rem] bg-gradient-to-br ${page.gradient} text-white shadow-lg shadow-slate-300/40`}>
+                      <Icon size={24} />
+                    </div>
+                    <div className="mt-4 flex items-center justify-between gap-2">
+                      <h3 className="text-base font-display font-bold text-slate-900">{page.title}</h3>
+                      <span className="rounded-full bg-slate-200 px-2.5 py-1 text-[11px] font-bold text-slate-700">{page.badge}</span>
+                    </div>
+                    <p className="mt-2 text-sm leading-5 text-slate-500">{page.subtitle}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  );
+
+  if (activeSection === 'dashboard') {
+    return renderDashboardHome();
+  }
+
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Top Navbar */}
@@ -464,11 +634,14 @@ export function FacultyDashboard() {
             </div>
           </div>
           <div>
-            <h1 className="font-display font-bold text-lg leading-tight">Faculty Portal</h1>
+            <h1 className="font-display font-bold text-lg leading-tight">{pageMeta[activeSection]?.title || 'Faculty Portal'}</h1>
             <p className="text-xs text-slate-400">Class {user.assignedGrade}-{user.assignedSection} • {user.name}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <button onClick={() => navigateToSection('dashboard')} className={`items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-semibold transition-colors ${activeSection === 'dashboard' ? 'hidden' : 'hidden sm:flex'}`}>
+            <ChevronLeft size={16} /> Dashboard
+          </button>
           <div className="relative">
             <button
               onClick={() => setShowNotifications(!showNotifications)}
@@ -536,10 +709,20 @@ export function FacultyDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {activeSection !== 'dashboard' && pageMeta[activeSection] && (
+          <div className="mb-8 rounded-3xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
+            <button onClick={() => navigateToSection('dashboard')} className="mb-4 flex items-center gap-2 text-slate-600 hover:text-slate-900 font-semibold transition-colors">
+              <ChevronLeft size={20} /> Back to Dashboard
+            </button>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Faculty Apps</p>
+            <h2 className="mt-2 text-2xl font-display font-bold text-slate-900">{pageMeta[activeSection].title}</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">{pageMeta[activeSection].description}</p>
+          </div>
+        )}
         
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className={`${activeSection === 'homework' || activeSection === 'attendance' || activeSection === 'behavior' || activeSection === 'announcements' ? 'grid' : 'hidden'} ${activeSection === 'homework' ? 'lg:grid-cols-3' : 'max-w-xl mx-auto'} gap-8`}>
           {/* Main Content - Student List */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className={`${activeSection === 'homework' ? 'lg:col-span-2 space-y-6 block' : 'hidden'}`}>
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-display font-bold text-slate-900 flex items-center gap-2">
                 <Users className="text-emerald-600" /> My Students
@@ -1116,9 +1299,9 @@ export function FacultyDashboard() {
           </div>
 
           {/* Sidebar Actions */}
-          <div className="space-y-6">
+          <div className={`${activeSection === 'homework' || activeSection === 'attendance' || activeSection === 'behavior' || activeSection === 'announcements' ? 'space-y-6 block' : 'hidden'}`}>
             {/* Upload Homework */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+            <div className={`${activeSection === 'homework' ? 'block' : 'hidden'} bg-white rounded-2xl shadow-sm border border-slate-100 p-6`}>
               <div className="flex items-center gap-3 mb-5">
                 <BookOpen className="text-amber-500" />
                 <h3 className="text-lg font-display font-bold text-slate-900">Assign Homework</h3>
@@ -1161,17 +1344,19 @@ export function FacultyDashboard() {
             </div>
 
             {/* Quick Actions */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-              <h3 className="text-lg font-display font-bold text-slate-900 mb-4">Quick Actions</h3>
+            <div className={`${activeSection === 'attendance' || activeSection === 'behavior' || activeSection === 'homework' ? 'block' : 'hidden'} bg-white rounded-2xl shadow-sm border border-slate-100 p-6`}>
+              <h3 className="text-lg font-display font-bold text-slate-900 mb-4">
+                {activeSection === 'attendance' ? 'Mark Attendance' : activeSection === 'behavior' ? 'Log Daily Behavior' : 'Quick Actions'}
+              </h3>
               <div className="space-y-3">
-                <button onClick={openAttendanceModal} className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 transition-colors text-left">
+                <button onClick={openAttendanceModal} className={`${activeSection === 'behavior' ? 'hidden' : 'w-full flex'} items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 transition-colors text-left`}>
                   <CheckSquare className="text-emerald-600" size={20} />
                   <div>
                     <p className="font-semibold text-sm text-slate-900">Mark Attendance</p>
                     <p className="text-xs text-slate-500">Select student to record attendance</p>
                   </div>
                 </button>
-                <button onClick={openBehaviorModal} className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-amber-500 hover:bg-amber-50 transition-colors text-left">
+                <button onClick={openBehaviorModal} className={`${activeSection === 'attendance' ? 'hidden' : 'w-full flex'} items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-amber-500 hover:bg-amber-50 transition-colors text-left`}>
                   <AlertCircle className="text-amber-600" size={20} />
                   <div>
                     <p className="font-semibold text-sm text-slate-900">Log Daily Behavior</p>
@@ -1182,7 +1367,7 @@ export function FacultyDashboard() {
             </div>
 
             {/* Send Announcement */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mt-6">
+            <div className={`${activeSection === 'announcements' ? 'block' : 'hidden'} bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mt-6`}>
               <div className="flex items-center gap-3 mb-4">
                 <Megaphone className="text-blue-600" size={20} />
                 <h3 className="text-lg font-display font-bold text-slate-900">Send Announcement</h3>
@@ -1311,10 +1496,10 @@ export function FacultyDashboard() {
         </div>
 
       </div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
-        <UpcomingEventsSection role="faculty" />
-        <OpinionPollSection role="faculty" />
-        <FeedbackInboxSection role="faculty" />
+      <div className={`${activeSection === 'events' || activeSection === 'polls' || activeSection === 'feedback' ? 'block' : 'hidden'} max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10`}>
+        {activeSection === 'events' && <UpcomingEventsSection role="faculty" />}
+        {activeSection === 'polls' && <OpinionPollSection role="faculty" />}
+        {activeSection === 'feedback' && <FeedbackInboxSection role="faculty" />}
       </div>
       {/* Attendance Modal */}
       {showAttModal && (

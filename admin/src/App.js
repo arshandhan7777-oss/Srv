@@ -44,6 +44,13 @@ export default function App() {
         {/* Protected Faculty Routes */}
         <Route element={<ProtectedRoute allowedRole="faculty" redirectTo="/login" />}>
           <Route path="/faculty/dashboard" element={<FacultyDashboard />} />
+          <Route path="/faculty/homework" element={<FacultyDashboard section="homework" />} />
+          <Route path="/faculty/attendance" element={<FacultyDashboard section="attendance" />} />
+          <Route path="/faculty/behavior" element={<FacultyDashboard section="behavior" />} />
+          <Route path="/faculty/announcements" element={<FacultyDashboard section="announcements" />} />
+          <Route path="/faculty/events" element={<FacultyDashboard section="events" />} />
+          <Route path="/faculty/polls" element={<FacultyDashboard section="polls" />} />
+          <Route path="/faculty/feedback" element={<FacultyDashboard section="feedback" />} />
         </Route>
 
         {/* Protected Parent Routes */}
