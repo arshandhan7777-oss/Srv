@@ -22,7 +22,7 @@ import { archivePastEvents } from '../utils/archiveEvents.js';
 import { applyStudentFamilyDetails, validateStudentFamilyDetails } from '../utils/studentFamilyDetails.js';
 import { buildParentDisplayName, enrichParentLinkedRecord, enrichParentLinkedRecords } from '../utils/parentProfile.js';
 import { hasParentMobileNumber, normalizeParentMobileNumber, syncParentAccountDetails } from '../utils/parentContact.js';
-import { buildCloudinaryUploadConfig, destroyCloudinaryAsset } from '../utils/cloudinary.js';
+import { buildCloudinaryUploadConfig, buildCloudinaryUploadSignature, destroyCloudinaryAsset } from '../utils/cloudinary.js';
 
 const router = express.Router();
 const MAX_MEMORY_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -437,6 +437,19 @@ router.get('/memories/upload-config', protect, adminOnly, async (req, res) => {
     res.json(buildCloudinaryUploadConfig());
   } catch (error) {
     res.status(500).json({ message: 'Error loading upload configuration' });
+  }
+});
+
+// @route   POST /api/admin/memories/upload-signature
+// @desc    Create signed Cloudinary upload params for browser uploads
+// @access  Private (Admin only)
+router.post('/memories/upload-signature', protect, adminOnly, async (req, res) => {
+  try {
+    res.json(buildCloudinaryUploadSignature({
+      folder: req.body?.folder
+    }));
+  } catch (error) {
+    res.status(400).json({ message: error.message || 'Unable to create upload signature.' });
   }
 });
 

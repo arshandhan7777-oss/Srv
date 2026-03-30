@@ -10,6 +10,7 @@ const roleConfig = {
   admin: {
     fetchUrl: '/api/admin/memories',
     uploadConfigUrl: '/api/admin/memories/upload-config',
+    uploadSignatureUrl: '/api/admin/memories/upload-signature',
     createUrl: '/api/admin/memories',
     deleteUrl: '/api/admin/memories',
     heading: 'Upload Student Photos and Videos',
@@ -140,7 +141,7 @@ export function MemoriesSection({ role = 'parent' }) {
       return;
     }
 
-    if (!uploadConfig?.enabled || !uploadConfig?.cloudName || !uploadConfig?.uploadPreset) {
+    if (!uploadConfig?.enabled || !uploadConfig?.cloudName) {
       Swal.fire('Upload not ready', uploadConfig?.message || 'Cloudinary upload is not configured yet.', 'error');
       return;
     }
@@ -153,8 +154,28 @@ export function MemoriesSection({ role = 'parent' }) {
 
       const cloudinaryFormData = new FormData();
       cloudinaryFormData.append('file', file);
-      cloudinaryFormData.append('upload_preset', uploadConfig.uploadPreset);
-      cloudinaryFormData.append('folder', uploadConfig.folder || 'SRV');
+
+      if (uploadConfig.signedUploadsEnabled && config.uploadSignatureUrl) {
+        const signatureResponse = await axios.post(
+          `${API_URL}${config.uploadSignatureUrl}`,
+          { folder: uploadConfig.folder || 'SRV' },
+          { headers }
+        );
+        const signedUpload = signatureResponse.data;
+
+        cloudinaryFormData.append('api_key', signedUpload.apiKey);
+        cloudinaryFormData.append('timestamp', String(signedUpload.timestamp));
+        cloudinaryFormData.append('signature', signedUpload.signature);
+        cloudinaryFormData.append('folder', signedUpload.folder || uploadConfig.folder || 'SRV');
+        if (signedUpload.publicId) {
+          cloudinaryFormData.append('public_id', signedUpload.publicId);
+        }
+      } else if (uploadConfig.unsignedUploadsEnabled && uploadConfig.uploadPreset) {
+        cloudinaryFormData.append('upload_preset', uploadConfig.uploadPreset);
+        cloudinaryFormData.append('folder', uploadConfig.folder || 'SRV');
+      } else {
+        throw new Error(uploadConfig.message || 'Cloudinary upload is not configured yet.');
+      }
 
       const cloudinaryResponse = await fetch(
         `https://api.cloudinary.com/v1_1/${uploadConfig.cloudName}/auto/upload`,

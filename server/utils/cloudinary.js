@@ -12,18 +12,23 @@ export const getCloudinaryConfig = () => ({
 
 export const buildCloudinaryUploadConfig = () => {
   const config = getCloudinaryConfig();
-  const enabled = Boolean(config.cloudName && config.uploadPreset);
-  const canManageAssets = Boolean(config.cloudName && config.apiKey && config.apiSecret);
+  const unsignedUploadsEnabled = Boolean(config.cloudName && config.uploadPreset);
+  const signedUploadsEnabled = Boolean(config.cloudName && config.apiKey && config.apiSecret);
+  const enabled = Boolean(unsignedUploadsEnabled || signedUploadsEnabled);
+  const canManageAssets = signedUploadsEnabled;
 
   return {
     enabled,
     canManageAssets,
+    signedUploadsEnabled,
+    unsignedUploadsEnabled,
     cloudName: config.cloudName,
+    apiKey: config.apiKey,
     uploadPreset: config.uploadPreset,
     folder: config.folder,
     message: enabled
       ? ''
-      : 'Cloudinary upload is not ready yet. Add the cloud name and upload preset to continue.'
+      : 'Cloudinary upload is not ready yet. Add the cloud name plus either an unsigned preset or full API credentials.'
   };
 };
 
@@ -79,4 +84,31 @@ export const destroyCloudinaryAsset = async ({ publicId, resourceType = 'image' 
   }
 
   return { ok: true, payload };
+};
+
+export const buildCloudinaryUploadSignature = ({ folder, publicId } = {}) => {
+  const { cloudName, apiKey, apiSecret, folder: defaultFolder } = getCloudinaryConfig();
+
+  if (!cloudName || !apiKey || !apiSecret) {
+    throw new Error('Cloudinary signed upload is not configured.');
+  }
+
+  const timestamp = Math.floor(Date.now() / 1000);
+  const params = {
+    folder: folder || defaultFolder,
+    timestamp
+  };
+
+  if (publicId) {
+    params.public_id = publicId;
+  }
+
+  return {
+    cloudName,
+    apiKey,
+    folder: params.folder,
+    timestamp,
+    publicId: params.public_id || '',
+    signature: signCloudinaryParams(params)
+  };
 };
