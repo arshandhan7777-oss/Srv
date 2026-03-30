@@ -1308,7 +1308,7 @@ export function AdminDashboard({ section = 'home' }) {
             </div>
           )}
 
-          <div className="space-y-4 md:hidden">
+          <div className="space-y-4 lg:hidden">
             {faculties.map(faculty => (
               <div key={faculty._id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -1342,7 +1342,7 @@ export function AdminDashboard({ section = 'home' }) {
             ) : null}
           </div>
 
-          <div className="hidden overflow-x-auto rounded-xl border border-slate-200 md:block">
+          <div className="hidden overflow-x-auto rounded-xl border border-slate-200 lg:block">
             <table className="w-full text-left border-collapse min-w-[700px]">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-sm text-slate-500">
@@ -1406,7 +1406,7 @@ export function AdminDashboard({ section = 'home' }) {
             </div>
           )}
 
-          <div className={`${activeSection === 'students' ? 'block' : 'hidden'} space-y-4 md:hidden`}>
+          <div className={`${activeSection === 'students' ? 'block' : 'hidden'} space-y-4 lg:hidden`}>
             {filteredStudents.map(student => (
               <div key={student._id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -1448,7 +1448,7 @@ export function AdminDashboard({ section = 'home' }) {
             ) : null}
           </div>
 
-          <div className={`${activeSection === 'students' ? 'hidden md:block' : 'hidden'} overflow-x-auto rounded-xl border border-slate-200`}>
+          <div className={`${activeSection === 'students' ? 'hidden lg:block' : 'hidden'} overflow-x-auto rounded-xl border border-slate-200`}>
             <table className="w-full text-left border-collapse min-w-[980px]">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-sm text-slate-500">
