@@ -94,7 +94,18 @@ router.get('/dashboard', protect, parentOnly, async (req, res) => {
     // Get today's food menu
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const today = days[new Date().getDay()];
-    const food = await FoodMenu.findOne({ day: today });
+    let food = await FoodMenu.findOne({ day: today });
+
+    if (!food) {
+      food = await FoodMenu.findOne({
+        day: { $regex: new RegExp(`^\\s*${today}\\s*$`, 'i') }
+      });
+    }
+
+    if (!food) {
+      const weeklyMenu = await FoodMenu.find();
+      food = weeklyMenu.find(item => String(item.day || '').trim().toLowerCase() === today.toLowerCase()) || null;
+    }
 
     // Get online fee setting
     let setting = await Setting.findOne({ key: 'onlineFeePayment' });

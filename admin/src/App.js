@@ -57,6 +57,8 @@ export default function App() {
         {/* Protected Parent Routes */}
         <Route element={<ProtectedRoute allowedRole="parent" redirectTo="/login" />}>
           <Route path="/parent/dashboard" element={<ParentDashboard />} />
+          <Route path="/parent/academics" element={<ParentDashboard section="academics" />} />
+          <Route path="/parent/attendance" element={<ParentDashboard section="attendance" />} />
           <Route path="/parent/skills" element={<ParentDashboard section="skills" />} />
           <Route path="/parent/homework" element={<ParentDashboard section="homework" />} />
           <Route path="/parent/homework/:subject" element={<ParentDashboard section="homework" />} />

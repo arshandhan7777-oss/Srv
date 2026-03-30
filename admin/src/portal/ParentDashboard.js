@@ -16,16 +16,30 @@ import { NotificationPanel } from '../components/NotificationPanel.js';
 
 const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6'];
 
-function SummaryCard({ icon: Icon, title, value, subtitle, tone }) {
+function SummaryCard({ icon: Icon, title, value, subtitle, tone, onClick }) {
   return (
-    <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.99]">
+    <button
+      type="button"
+      onClick={onClick}
+      className={`w-full rounded-[1.75rem] border border-slate-200 bg-white p-5 text-left shadow-sm transition-all duration-300 ${
+        onClick
+          ? 'hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.99]'
+          : ''
+      }`}
+    >
       <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl ${tone}`}>
         <Icon size={22} />
       </div>
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{title}</p>
       <p className="mt-2 text-3xl font-display font-bold text-slate-900">{value}</p>
       <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
-    </div>
+      {onClick ? (
+        <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-slate-600">
+          View details
+          <ArrowRight size={16} />
+        </span>
+      ) : null}
+    </button>
   );
 }
 
@@ -88,6 +102,14 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
     dashboard: {
       title: 'Parent Dashboard',
       description: 'Academic performance, attendance, pending fees, and quick mobile access to every parent feature.'
+    },
+    academics: {
+      title: 'Academic Performance',
+      description: 'Subject-wise marks, term averages, and the latest academic record.'
+    },
+    attendance: {
+      title: 'Attendance Tracker',
+      description: 'Daily attendance summary, history, and attendance percentage.'
     },
     skills: {
       title: 'Nlite 21st-Century Skills',
@@ -318,21 +340,45 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
   }, [activeSection, selectedHomeworkSubject]);
 
   // ========== Dynamic Data Formatting ==========
-  const latestRecord = data.records?.[0];
+  const recordHistory = [...(data.records || [])].sort((a, b) => {
+    return new Date(b.createdAt || b.updatedAt || 0) - new Date(a.createdAt || a.updatedAt || 0);
+  });
+  const latestRecord = recordHistory[0];
+  const latestMarksValues = Object.values(latestRecord?.marks || {}).map(mark => Number(mark) || 0);
   
   const marksData = latestRecord?.marks ? Object.entries(latestRecord.marks).map(([sub, val]) => ({
     subject: sub.charAt(0).toUpperCase() + sub.slice(1).replace(/([A-Z])/g, ' $1'),
-    marks: val
+    marks: Number(val) || 0
   })) : [];
 
+  const academicTrendData = [...recordHistory].reverse().map((record, index) => {
+    const values = Object.values(record.marks || {}).map(mark => Number(mark) || 0);
+    const average = values.length > 0
+      ? Math.round(values.reduce((sum, mark) => sum + mark, 0) / values.length)
+      : 0;
+
+    return {
+      term: record.term || `Term ${index + 1}`,
+      average
+    };
+  });
+
   const totalClasses = data.attendance?.length || 0;
-  const presentClasses = data.attendance?.filter(a => a.status === 'Present' || a.status === 'Half-Day').length || 0;
+  const presentOnlyClasses = data.attendance?.filter(a => a.status === 'Present').length || 0;
+  const halfDayClasses = data.attendance?.filter(a => a.status === 'Half-Day').length || 0;
+  const presentClasses = presentOnlyClasses + halfDayClasses;
+  const absentClasses = Math.max(totalClasses - presentClasses, 0);
   const finalAttendancePercentage = totalClasses > 0 ? Math.round((presentClasses / totalClasses) * 100) : 0;
 
-  const attendanceData = totalClasses > 0 ? [
-    { name: 'Present', value: presentClasses },
-    { name: 'Absent', value: totalClasses - presentClasses },
-  ] : [];
+  const attendanceChartData = [
+    { name: 'Present', value: presentOnlyClasses },
+    { name: 'Half-Day', value: halfDayClasses },
+    { name: 'Absent', value: absentClasses }
+  ].filter(item => item.value > 0);
+
+  const recentAttendance = [...(data.attendance || [])]
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, 12);
 
   const behaviorChartData = data.behavior?.map(b => ({
     date: new Date(b.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
@@ -370,9 +416,13 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
   const amountDue = totalAnnualFee - totalPaid;
   
   const dueCount = [data.student?.fees?.term1, data.student?.fees?.term2, data.student?.fees?.term3].filter(s => s !== 'Paid').length;
-  const overallAcademicPercentage = marksData.length > 0
-    ? Math.round(Object.values(latestRecord?.marks || {}).reduce((sum, mark) => sum + mark, 0) / marksData.length)
+  const overallAcademicPercentage = latestMarksValues.length > 0
+    ? Math.round(latestMarksValues.reduce((sum, mark) => sum + mark, 0) / latestMarksValues.length)
     : 0;
+  const hasTodayMenu = Boolean(
+    data.food &&
+    [data.food.breakfast, data.food.lunch, data.food.snacks].some(item => String(item || '').trim())
+  );
   const appItems = [
     {
       key: 'skills',
@@ -594,6 +644,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
                 value={`${overallAcademicPercentage}%`}
                 subtitle={marksData.length > 0 ? `${latestRecord?.term || 'Latest'} term • ${marksData.length} subjects` : 'No marks uploaded yet'}
                 tone="bg-emerald-100 text-emerald-600"
+                onClick={() => navigateToSection('academics')}
               />
               <SummaryCard
                 icon={CalIcon}
@@ -601,6 +652,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
                 value={`${finalAttendancePercentage}%`}
                 subtitle={totalClasses > 0 ? `${presentClasses}/${totalClasses} days present` : 'No attendance records yet'}
                 tone="bg-blue-100 text-blue-600"
+                onClick={() => navigateToSection('attendance')}
               />
               <SummaryCard
                 icon={CreditCard}
@@ -608,7 +660,43 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
                 value={`₹${amountDue.toLocaleString()}`}
                 subtitle={amountDue > 0 ? `${dueCount} term${dueCount === 1 ? '' : 's'} pending` : 'All fees cleared'}
                 tone="bg-violet-100 text-violet-600"
+                onClick={() => navigateToSection('fees')}
               />
+            </section>
+
+            <section className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Today Menu</p>
+                  <h2 className="mt-1 text-2xl font-display font-bold text-slate-900">Today&apos;s Cafeteria Menu</h2>
+                  <p className="mt-1 text-sm text-slate-500">Parents can quickly check the meals planned for today.</p>
+                </div>
+                <div className="inline-flex items-center gap-2 rounded-full bg-orange-100 px-4 py-2 text-sm font-semibold text-orange-700">
+                  <Coffee size={16} />
+                  {data.food?.day || new Date().toLocaleDateString('en-US', { weekday: 'long' })}
+                </div>
+              </div>
+
+              {hasTodayMenu ? (
+                <div className="mt-6 grid gap-4 md:grid-cols-3">
+                  <div className="rounded-[1.5rem] border border-orange-200 bg-orange-50 p-5">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-orange-600">Breakfast</p>
+                    <p className="mt-3 text-lg font-display font-bold text-slate-900">{data.food?.breakfast || 'Not specified'}</p>
+                  </div>
+                  <div className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-5">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-600">Lunch</p>
+                    <p className="mt-3 text-lg font-display font-bold text-slate-900">{data.food?.lunch || 'Not specified'}</p>
+                  </div>
+                  <div className="rounded-[1.5rem] border border-blue-200 bg-blue-50 p-5">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-600">Snacks</p>
+                    <p className="mt-3 text-lg font-display font-bold text-slate-900">{data.food?.snacks || 'Not specified'}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-6 rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-center text-sm font-semibold text-slate-500">
+                  Today&apos;s food menu has not been published by the administration yet.
+                </div>
+              )}
             </section>
 
             <section className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
@@ -924,6 +1012,272 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
               </div>
             </div>
           </>
+        )}
+
+        {/* ========== SECTION: ACADEMICS ========== */}
+        {activeSection === 'academics' && (
+          <div className="grid gap-6 xl:grid-cols-[1.2fr,0.8fr]">
+            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-14 h-14 bg-emerald-100 rounded-xl flex items-center justify-center">
+                    <TrendingUp className="text-emerald-600" size={28} />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-display font-bold text-slate-900">Subject-wise Marks</h2>
+                    <p className="text-sm text-slate-500 mt-1">Parents can review the latest subject scores in one place.</p>
+                  </div>
+                </div>
+                <span className="rounded-full bg-emerald-100 px-4 py-2 text-sm font-bold text-emerald-700">
+                  {latestRecord?.term || 'Latest Record'}
+                </span>
+              </div>
+
+              {marksData.length > 0 ? (
+                <>
+                  <div className="mt-8 grid gap-4 sm:grid-cols-3">
+                    <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
+                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Overall Average</p>
+                      <p className="mt-2 text-3xl font-display font-black text-slate-900">{overallAcademicPercentage}%</p>
+                    </div>
+                    <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5">
+                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-600">Subjects</p>
+                      <p className="mt-2 text-3xl font-display font-black text-emerald-700">{marksData.length}</p>
+                    </div>
+                    <div className="rounded-2xl border border-blue-100 bg-blue-50 p-5">
+                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-600">Highest Mark</p>
+                      <p className="mt-2 text-3xl font-display font-black text-blue-700">{Math.max(...marksData.map(item => item.marks))}%</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-8 h-80 w-full" style={{ minHeight: '320px' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={marksData} margin={{ top: 10, right: 16, left: -20, bottom: 8 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                        <XAxis dataKey="subject" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
+                        <YAxis domain={[0, 100]} axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
+                        <Tooltip formatter={(value) => [`${value}%`, 'Mark']} />
+                        <Bar dataKey="marks" radius={[10, 10, 0, 0]} fill="#10b981" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  <div className="mt-8 grid gap-4 md:grid-cols-2">
+                    {marksData.map(item => (
+                      <div key={item.subject} className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
+                        <div className="flex items-center justify-between gap-3">
+                          <h3 className="text-base font-display font-bold text-slate-900">{item.subject}</h3>
+                          <span className="rounded-full bg-white px-3 py-1 text-sm font-bold text-emerald-700 shadow-sm">
+                            {item.marks}%
+                          </span>
+                        </div>
+                        <div className="mt-4 h-3 overflow-hidden rounded-full bg-slate-200">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400"
+                            style={{ width: `${Math.max(0, Math.min(item.marks, 100))}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="mt-8 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50 px-6 py-12 text-center">
+                  <BookMarked size={42} className="mx-auto text-slate-300" />
+                  <p className="mt-4 text-base font-semibold text-slate-500">No academic marks have been uploaded yet.</p>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-6">
+              <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <Zap className="text-blue-600" size={24} />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-display font-bold text-slate-900">Term Trend</h3>
+                    <p className="text-sm text-slate-500 mt-1">Average marks across uploaded terms.</p>
+                  </div>
+                </div>
+
+                {academicTrendData.length > 0 ? (
+                  <div className="h-72 w-full" style={{ minHeight: '288px' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={academicTrendData} margin={{ top: 10, right: 12, left: -20, bottom: 8 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                        <XAxis dataKey="term" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
+                        <YAxis domain={[0, 100]} axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
+                        <Tooltip formatter={(value) => [`${value}%`, 'Average']} />
+                        <Line type="monotone" dataKey="average" stroke="#2563eb" strokeWidth={3} dot={{ r: 4, fill: '#2563eb' }} activeDot={{ r: 6 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 py-10 text-center text-sm font-semibold text-slate-500">
+                    Term trend will appear after marks are published.
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                <h3 className="text-xl font-display font-bold text-slate-900">Latest Record</h3>
+                {latestRecord ? (
+                  <div className="mt-6 space-y-4">
+                    <div className="rounded-2xl bg-slate-50 p-5">
+                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Published Term</p>
+                      <p className="mt-2 text-2xl font-display font-black text-slate-900">{latestRecord.term || 'Latest Term'}</p>
+                    </div>
+                    <div className="rounded-2xl bg-slate-50 p-5">
+                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Updated On</p>
+                      <p className="mt-2 text-base font-semibold text-slate-900">
+                        {new Date(latestRecord.createdAt || Date.now()).toLocaleDateString('en-US', {
+                          month: 'long',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-slate-50 p-5">
+                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Student</p>
+                      <p className="mt-2 text-base font-semibold text-slate-900">{data.student?.name || 'Student Name'}</p>
+                      <p className="mt-1 text-sm text-slate-500">Grade {data.student?.grade || '-'} / Section {data.student?.section || '-'}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-6 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 py-10 text-center text-sm font-semibold text-slate-500">
+                    No academic record is available for this student yet.
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ========== SECTION: ATTENDANCE ========== */}
+        {activeSection === 'attendance' && (
+          <div className="grid gap-6 xl:grid-cols-[0.85fr,1.15fr]">
+            <div className="space-y-6">
+              <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <CalIcon className="text-blue-600" size={28} />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-display font-bold text-slate-900">Attendance Summary</h2>
+                    <p className="text-sm text-slate-500 mt-1">Parents can track the student&apos;s daily attendance from here.</p>
+                  </div>
+                </div>
+
+                {totalClasses > 0 ? (
+                  <>
+                    <div className="grid gap-4 sm:grid-cols-3">
+                      <div className="rounded-2xl border border-blue-100 bg-blue-50 p-5">
+                        <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-600">Attendance</p>
+                        <p className="mt-2 text-3xl font-display font-black text-blue-700">{finalAttendancePercentage}%</p>
+                      </div>
+                      <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5">
+                        <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-600">Present</p>
+                        <p className="mt-2 text-3xl font-display font-black text-emerald-700">{presentOnlyClasses}</p>
+                      </div>
+                      <div className="rounded-2xl border border-amber-100 bg-amber-50 p-5">
+                        <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-600">Half-Day</p>
+                        <p className="mt-2 text-3xl font-display font-black text-amber-700">{halfDayClasses}</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-8 h-72 w-full" style={{ minHeight: '288px' }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={attendanceChartData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={70}
+                            outerRadius={100}
+                            paddingAngle={4}
+                            dataKey="value"
+                          >
+                            {attendanceChartData.map((entry, index) => (
+                              <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5 text-sm text-slate-600">
+                      Total working days tracked: <span className="font-bold text-slate-900">{totalClasses}</span>
+                      <br />
+                      Absent days: <span className="font-bold text-slate-900">{absentClasses}</span>
+                      <br />
+                      Half-day entries are counted toward the attendance percentage shown above.
+                    </div>
+                  </>
+                ) : (
+                  <div className="rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50 px-6 py-12 text-center">
+                    <AlertCircleIcon size={42} className="mx-auto text-slate-300" />
+                    <p className="mt-4 text-base font-semibold text-slate-500">No attendance records have been published yet.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+              <div className="flex items-center justify-between gap-3 mb-6">
+                <div>
+                  <h3 className="text-xl font-display font-bold text-slate-900">Recent Attendance Log</h3>
+                  <p className="text-sm text-slate-500 mt-1">Latest daily entries for this student.</p>
+                </div>
+                {totalClasses > 0 ? (
+                  <span className="rounded-full bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700">
+                    {recentAttendance.length} recent entries
+                  </span>
+                ) : null}
+              </div>
+
+              {recentAttendance.length > 0 ? (
+                <div className="space-y-3">
+                  {recentAttendance.map(entry => {
+                    const isPresent = entry.status === 'Present';
+                    const isHalfDay = entry.status === 'Half-Day';
+                    const statusClasses = isPresent
+                      ? 'bg-emerald-100 text-emerald-700'
+                      : isHalfDay
+                        ? 'bg-amber-100 text-amber-700'
+                        : 'bg-red-100 text-red-700';
+
+                    return (
+                      <div key={`${entry.date}-${entry.status}`} className="rounded-2xl border border-slate-100 bg-slate-50 px-5 py-4">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                          <div>
+                            <p className="text-base font-display font-bold text-slate-900">
+                              {new Date(entry.date).toLocaleDateString('en-US', {
+                                weekday: 'short',
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                              })}
+                            </p>
+                            <p className="mt-1 text-sm text-slate-500">{entry.remarks || 'No remarks added for this day.'}</p>
+                          </div>
+                          <span className={`inline-flex w-fit items-center gap-2 rounded-full px-3 py-1 text-sm font-bold ${statusClasses}`}>
+                            {isPresent || isHalfDay ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+                            {entry.status}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 py-10 text-center text-sm font-semibold text-slate-500">
+                  Attendance log entries will appear here once the class teacher updates attendance.
+                </div>
+              )}
+            </div>
+          </div>
         )}
 
         {/* ========== SECTION: NLITE SKILLS ========== */}
