@@ -261,13 +261,15 @@ router.get('/faculty', protect, adminOnly, async (req, res) => {
 // @desc    Update faculty assignment and/or password
 // @access  Private (Admin only)
 router.put('/faculty/:id', protect, adminOnly, async (req, res) => {
-  const { assignedGrade, assignedSection, maxStudents, handledClasses, password } = req.body;
+  const { name, mobileNumber, assignedGrade, assignedSection, maxStudents, handledClasses, password } = req.body;
   try {
     const faculty = await User.findById(req.params.id);
     if (!faculty || faculty.role !== 'faculty') {
       return res.status(404).json({ message: 'Faculty not found' });
     }
 
+    if (name !== undefined) faculty.name = String(name).trim();
+    if (mobileNumber !== undefined) faculty.mobileNumber = String(mobileNumber).trim();
     if (assignedGrade !== undefined) faculty.assignedGrade = assignedGrade;
     if (assignedSection !== undefined) faculty.assignedSection = assignedSection;
     if (maxStudents !== undefined) faculty.maxStudents = maxStudents;

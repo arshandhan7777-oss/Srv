@@ -48,8 +48,6 @@ export function AdminDashboard({ section = 'home' }) {
   const [studentMsg, setStudentMsg] = useState({ text: '', type: '' });
   const [editingSrvId, setEditingSrvId] = useState(null);
   const [editSrvValue, setEditSrvValue] = useState('');
-  const [editingFacultySrvId, setEditingFacultySrvId] = useState(null);
-  const [editFacultySrvValue, setEditFacultySrvValue] = useState('');
   const [editingStudentId, setEditingStudentId] = useState(null);
   const [editStudentForm, setEditStudentForm] = useState({ name: '', grade: '', section: '', group: '', motherName: '', fatherName: '', guardianName: '' });
   const [promoteFrom, setPromoteFrom] = useState('');
@@ -64,7 +62,7 @@ export function AdminDashboard({ section = 'home' }) {
   // Manage Faculty State
   const [faculties, setFaculties] = useState([]);
   const [editingFacultyId, setEditingFacultyId] = useState(null);
-  const [editFacultyForm, setEditFacultyForm] = useState({ assignedGrade: '', assignedSection: '', password: '' });
+  const [editFacultyForm, setEditFacultyForm] = useState({ facultyNumber: '', name: '', mobileNumber: '', assignedGrade: '', assignedSection: '', password: '' });
   const [manageFacultyMsg, setManageFacultyMsg] = useState({ text: '', type: '' });
 
   // Manage Students State
@@ -337,36 +335,57 @@ export function AdminDashboard({ section = 'home' }) {
   const handleUpdateFaculty = async (id) => {
     try {
       const token = localStorage.getItem('schoolToken');
-      await axios.put(`${API_URL}/api/admin/faculty/${id}`, editFacultyForm, {
+      const currentFaculty = faculties.find(faculty => faculty._id === id);
+      const nextFacultyNumber = String(editFacultyForm.facultyNumber || '').replace(/\D/g, '');
+      const currentFacultyNumber = String(currentFaculty?.srvNumber || '').replace(/\D/g, '');
+
+      if (!editFacultyForm.name.trim()) {
+        setManageFacultyMsg({ text: 'Faculty name is required', type: 'error' });
+        return;
+      }
+
+      if (nextFacultyNumber && nextFacultyNumber !== currentFacultyNumber) {
+        await axios.put(`${API_URL}/api/admin/faculty/${id}/srv`, { facultyNumber: nextFacultyNumber }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+
+      await axios.put(`${API_URL}/api/admin/faculty/${id}`, {
+        name: editFacultyForm.name,
+        mobileNumber: editFacultyForm.mobileNumber,
+        assignedGrade: editFacultyForm.assignedGrade,
+        assignedSection: editFacultyForm.assignedSection,
+        password: editFacultyForm.password
+      }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setManageFacultyMsg({ text: 'Faculty updated successfully', type: 'success' });
       setEditingFacultyId(null);
+      setEditFacultyForm({ facultyNumber: '', name: '', mobileNumber: '', assignedGrade: '', assignedSection: '', password: '' });
+      setManageFacultyMsg({ text: 'Faculty updated successfully', type: 'success' });
       fetchFaculties(token);
       setTimeout(() => setManageFacultyMsg({text:'', type:''}), 3000);
     } catch (err) {
-      setManageFacultyMsg({ text: 'Failed to update faculty', type: 'error' });
-    }
-  };
-
-  const handleUpdateFacultySrv = async (id) => {
-    try {
-      const token = localStorage.getItem('schoolToken');
-      await axios.put(`${API_URL}/api/admin/faculty/${id}/srv`, { facultyNumber: editFacultySrvValue }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      Swal.fire({toast: true, position: 'top-end', icon: 'success', title: 'FAC updated. Login ID changed, password unchanged.', showConfirmButton: false, timer: 2500});
-      setEditingFacultySrvId(null);
-      setEditFacultySrvValue('');
-      fetchFaculties(token);
-    } catch (err) {
-      Swal.fire('Error', err.response?.data?.message || 'Failed to update FAC number', 'error');
+      setManageFacultyMsg({ text: err.response?.data?.message || 'Failed to update faculty', type: 'error' });
     }
   };
 
   const startEditing = (faculty) => {
     setEditingFacultyId(faculty._id);
-    setEditFacultyForm({ assignedGrade: faculty.assignedGrade || '', assignedSection: faculty.assignedSection || '', password: '' });
+    setEditFacultyForm({
+      facultyNumber: String(faculty.srvNumber || '').replace(/\D/g, ''),
+      name: faculty.name || '',
+      mobileNumber: faculty.mobileNumber || '',
+      assignedGrade: faculty.assignedGrade || '',
+      assignedSection: faculty.assignedSection || '',
+      password: ''
+    });
+    setManageFacultyMsg({ text: '', type: '' });
+  };
+
+  const closeFacultyEditor = () => {
+    setEditingFacultyId(null);
+    setManageFacultyMsg({ text: '', type: '' });
+    setEditFacultyForm({ facultyNumber: '', name: '', mobileNumber: '', assignedGrade: '', assignedSection: '', password: '' });
   };
 
   const handleApprovePwReset = async () => {
@@ -1271,58 +1290,23 @@ export function AdminDashboard({ section = 'home' }) {
                 {faculties.map(faculty => (
                   <tr key={faculty._id} className="hover:bg-slate-50/50">
                     <td className="px-5 py-4 font-mono font-medium text-slate-600 border-b border-slate-50">
-                      {editingFacultySrvId === faculty._id ? (
-                        <div className="flex items-center gap-1">
-                          <span className="text-slate-400 text-xs">FAC</span>
-                          <input type="text" inputMode="numeric" value={editFacultySrvValue} onChange={e => setEditFacultySrvValue(e.target.value.replace(/\D/g, ''))} className="w-20 px-2 py-1 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-xs font-mono" autoFocus />
-                          <button onClick={() => handleUpdateFacultySrv(faculty._id)} className="p-1 bg-emerald-100 text-emerald-700 rounded hover:bg-emerald-200" title="Save"><Save size={12} /></button>
-                          <button onClick={() => { setEditingFacultySrvId(null); setEditFacultySrvValue(''); }} className="p-1 bg-slate-100 text-slate-600 rounded hover:bg-slate-200" title="Cancel"><X size={12} /></button>
-                        </div>
-                      ) : (
-                        <span className="cursor-pointer hover:text-blue-600" onClick={() => { setEditingFacultySrvId(faculty._id); setEditFacultySrvValue(faculty.srvNumber.replace(/\D/g, '')); }} title="Click to edit FAC number">
-                          {faculty.srvNumber}
-                        </span>
-                      )}
+                      {faculty.srvNumber}
                     </td>
                     <td className="px-5 py-4 font-semibold text-slate-900 border-b border-slate-50">{faculty.name}</td>
-                    
-                    {editingFacultyId === faculty._id ? (
-                      <>
-                        <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">{faculty.mobileNumber || '-'}</td>
-                        <td className="px-3 py-3 font-semibold text-slate-700 border-b border-slate-50">
-                          <input type="text" value={editFacultyForm.assignedGrade} onChange={e => setEditFacultyForm({...editFacultyForm, assignedGrade: e.target.value})} className="w-16 px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Grade" />
-                        </td>
-                        <td className="px-3 py-3 font-semibold text-slate-700 border-b border-slate-50 flex items-center gap-2">
-                          <input type="text" value={editFacultyForm.assignedSection} onChange={e => setEditFacultyForm({...editFacultyForm, assignedSection: e.target.value})} className="w-16 px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Sec" />
-                          <input type="text" value={editFacultyForm.password} onChange={e => setEditFacultyForm({...editFacultyForm, password: e.target.value})} className="w-24 px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-xs" placeholder="New Pass" />
-                        </td>
-                        <td className="px-5 py-3 flex items-center justify-center gap-2 border-b border-slate-50">
-                          <button onClick={() => handleUpdateFaculty(faculty._id)} className="p-2 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200" title="Save">
-                            <Save size={16} />
-                          </button>
-                          <button onClick={() => setEditingFacultyId(null)} className="p-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200" title="Cancel">
-                            <X size={16} />
-                          </button>
-                        </td>
-                      </>
-                    ) : (
-                      <>
-                        <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">{faculty.mobileNumber || '-'}</td>
-                        <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">{faculty.assignedGrade || '-'}</td>
-                        <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">{faculty.assignedSection || '-'}</td>
-                        <td className="px-5 py-4 flex items-center justify-center gap-3 border-b border-slate-50">
-                          <button onClick={() => openFacultyProfile(faculty)} className="text-emerald-600 hover:text-emerald-800 font-semibold text-xs hover:underline flex items-center gap-1" title="View Profile & Assign Students">
-                            Profile
-                          </button>
-                          <button onClick={() => startEditing(faculty)} className="text-blue-600 hover:text-blue-800 font-semibold text-xs hover:underline flex items-center gap-1" title="Edit and Reset Password">
-                            <Edit2 size={14} /> Edit
-                          </button>
-                          <button onClick={() => handleDeleteFaculty(faculty._id)} className="text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50" title="Delete">
-                            <Trash2 size={16} />
-                          </button>
-                        </td>
-                      </>
-                    )}
+                    <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">{faculty.mobileNumber || '-'}</td>
+                    <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">{faculty.assignedGrade || '-'}</td>
+                    <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">{faculty.assignedSection || '-'}</td>
+                    <td className="px-5 py-4 flex items-center justify-center gap-3 border-b border-slate-50">
+                      <button onClick={() => openFacultyProfile(faculty)} className="text-emerald-600 hover:text-emerald-800 font-semibold text-xs hover:underline flex items-center gap-1" title="View Profile & Assign Students">
+                        Profile
+                      </button>
+                      <button onClick={() => startEditing(faculty)} className="text-blue-600 hover:text-blue-800 font-semibold text-xs hover:underline flex items-center gap-1" title="Edit Faculty">
+                        <Edit2 size={14} /> Edit
+                      </button>
+                      <button onClick={() => handleDeleteFaculty(faculty._id)} className="text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50" title="Delete">
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
                   </tr>
                 ))}
                 {faculties.length === 0 && (
@@ -1533,6 +1517,121 @@ export function AdminDashboard({ section = 'home' }) {
             fetchStudents(token);
           }} 
         />
+      )}
+
+      {editingFacultyId && (
+        <div className="fixed inset-0 z-[55] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+          <div className="absolute inset-0" onClick={closeFacultyEditor} />
+          <div className="relative z-10 w-full max-w-5xl rounded-[2rem] border border-slate-200 bg-white p-6 shadow-2xl sm:p-8">
+            <div className="flex items-start justify-between gap-4 mb-6">
+              <div>
+                <h3 className="text-2xl font-display font-bold text-slate-900">Edit Faculty Profile</h3>
+                <p className="text-sm text-slate-500 mt-1">Update FAC number, faculty details, class assignment, and password.</p>
+              </div>
+              <button
+                type="button"
+                onClick={closeFacultyEditor}
+                className="rounded-xl px-3 py-2 text-sm font-bold text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+              >
+                Close
+              </button>
+            </div>
+
+            {manageFacultyMsg.text && (
+              <div className={`mb-4 rounded-xl px-4 py-3 text-sm font-semibold ${manageFacultyMsg.type === 'success' ? 'bg-blue-100 text-blue-800 border border-blue-200' : 'bg-red-100 text-red-800 border border-red-200'}`}>
+                {manageFacultyMsg.text}
+              </div>
+            )}
+
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                handleUpdateFaculty(editingFacultyId);
+              }}
+              className="space-y-5"
+            >
+              <div className="grid gap-4 md:grid-cols-3">
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">FAC Number</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">FAC</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={editFacultyForm.facultyNumber}
+                      onChange={e => setEditFacultyForm({ ...editFacultyForm, facultyNumber: e.target.value.replace(/\D/g, '') })}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-14 pr-4 outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="26001"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">Faculty Name</label>
+                  <input
+                    type="text"
+                    value={editFacultyForm.name}
+                    onChange={e => setEditFacultyForm({ ...editFacultyForm, name: e.target.value })}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Faculty name"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">Mobile Number</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={editFacultyForm.mobileNumber}
+                    onChange={e => setEditFacultyForm({ ...editFacultyForm, mobileNumber: e.target.value.replace(/\D/g, '') })}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Mobile number"
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-3">
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">Grade</label>
+                  <input
+                    type="text"
+                    value={editFacultyForm.assignedGrade}
+                    onChange={e => setEditFacultyForm({ ...editFacultyForm, assignedGrade: e.target.value })}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Grade"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">Section</label>
+                  <input
+                    type="text"
+                    value={editFacultyForm.assignedSection}
+                    onChange={e => setEditFacultyForm({ ...editFacultyForm, assignedSection: e.target.value })}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Section"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">New Password</label>
+                  <input
+                    type="text"
+                    value={editFacultyForm.password}
+                    onChange={e => setEditFacultyForm({ ...editFacultyForm, password: e.target.value })}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Leave empty to keep current password"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <button type="submit" className="rounded-xl bg-blue-600 px-6 py-3 font-bold text-white transition-colors hover:bg-blue-700">
+                  Save Faculty
+                </button>
+                <button type="button" onClick={closeFacultyEditor} className="rounded-xl bg-slate-100 px-6 py-3 font-bold text-slate-700 transition-colors hover:bg-slate-200">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       {selectedStudentForFees && (
