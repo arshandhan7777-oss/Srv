@@ -378,6 +378,11 @@ export function FacultyDashboard({ section = 'dashboard' }) {
     setProfileMsg({ text: '', type: '' });
   };
 
+  const closeStudentProfileEditor = () => {
+    setEditingStudentProfile(null);
+    setProfileMsg({ text: '', type: '' });
+  };
+
   const saveStudentProfile = async (e) => {
     e.preventDefault();
 
@@ -914,96 +919,6 @@ export function FacultyDashboard({ section = 'dashboard' }) {
                 </tbody>
               </table>
             </div>
-
-            {editingStudentProfile && (
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
-                <div className="flex justify-between items-center gap-4 mb-6">
-                  <div>
-                    <h3 className="text-xl font-display font-bold text-slate-900">Edit Student Profile</h3>
-                    <p className="text-sm text-slate-500 mt-1">{editingStudentProfile.name} ({editingStudentProfile.srvNumber})</p>
-                  </div>
-                  <button onClick={() => { setEditingStudentProfile(null); setProfileMsg({ text: '', type: '' }); }} className="text-slate-400 hover:text-slate-600 font-bold">Close</button>
-                </div>
-
-                {profileMsg.text && (
-                  <div className={`mb-4 px-4 py-3 rounded-lg text-sm font-semibold ${profileMsg.type === 'success' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
-                    {profileMsg.text}
-                  </div>
-                )}
-
-                <form onSubmit={saveStudentProfile} className="space-y-4">
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <input
-                      type="text"
-                      value={studentProfileForm.name}
-                      onChange={e => setStudentProfileForm({ ...studentProfileForm, name: e.target.value })}
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Student name"
-                    />
-                    <input
-                      type="text"
-                      value={studentProfileForm.grade}
-                      onChange={e => setStudentProfileForm({ ...studentProfileForm, grade: e.target.value, group: '' })}
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Grade"
-                    />
-                    <input
-                      type="text"
-                      value={studentProfileForm.section}
-                      onChange={e => setStudentProfileForm({ ...studentProfileForm, section: e.target.value })}
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Section"
-                    />
-                  </div>
-
-                  {isSeniorGrade(studentProfileForm.grade) && (
-                    <input
-                      type="text"
-                      value={studentProfileForm.group}
-                      onChange={e => setStudentProfileForm({ ...studentProfileForm, group: e.target.value })}
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Group"
-                    />
-                  )}
-
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <input
-                      type="text"
-                      value={studentProfileForm.motherName}
-                      onChange={e => setStudentProfileForm({ ...studentProfileForm, motherName: e.target.value })}
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Mother name"
-                    />
-                    <input
-                      type="text"
-                      value={studentProfileForm.fatherName}
-                      onChange={e => setStudentProfileForm({ ...studentProfileForm, fatherName: e.target.value })}
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Father name"
-                    />
-                  </div>
-
-                  <input
-                    type="text"
-                    value={studentProfileForm.guardianName}
-                    onChange={e => setStudentProfileForm({ ...studentProfileForm, guardianName: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Guardian name (if parent names are not available)"
-                  />
-
-                  <p className="text-xs text-slate-500">Enter mother and father names together, or fill only the guardian field.</p>
-
-                  <div className="flex items-center gap-3">
-                    <button type="submit" className="px-5 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors">
-                      Save Profile
-                    </button>
-                    <button type="button" onClick={() => { setEditingStudentProfile(null); setProfileMsg({ text: '', type: '' }); }} className="px-5 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors">
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </div>
-            )}
 
             {/* Grading Drawer / Panel */}
             {selectedStudent && (
@@ -1638,6 +1553,106 @@ export function FacultyDashboard({ section = 'dashboard' }) {
         {activeSection === 'polls' && <OpinionPollSection role="faculty" />}
         {activeSection === 'feedback' && <FeedbackInboxSection role="faculty" />}
       </div>
+
+      {editingStudentProfile && (
+        <div className="fixed inset-0 z-[55] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+          <div className="absolute inset-0" onClick={closeStudentProfileEditor} />
+          <div className="relative z-10 w-full max-w-5xl rounded-[2rem] border border-slate-200 bg-white p-6 shadow-2xl sm:p-8">
+            <div className="flex items-start justify-between gap-4 mb-6">
+              <div>
+                <h3 className="text-2xl font-display font-bold text-slate-900">Edit Student Profile</h3>
+                <p className="text-sm text-slate-500 mt-1">{editingStudentProfile.name} ({editingStudentProfile.srvNumber})</p>
+              </div>
+              <button
+                type="button"
+                onClick={closeStudentProfileEditor}
+                className="rounded-xl px-3 py-2 text-sm font-bold text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+              >
+                Close
+              </button>
+            </div>
+
+            {profileMsg.text && (
+              <div className={`mb-4 rounded-xl px-4 py-3 text-sm font-semibold ${profileMsg.type === 'success' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                {profileMsg.text}
+              </div>
+            )}
+
+            <form onSubmit={saveStudentProfile} className="space-y-5">
+              <div className="grid gap-4 md:grid-cols-3">
+                <input
+                  type="text"
+                  value={studentProfileForm.name}
+                  onChange={e => setStudentProfileForm({ ...studentProfileForm, name: e.target.value })}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Student name"
+                />
+                <input
+                  type="text"
+                  value={studentProfileForm.grade}
+                  onChange={e => setStudentProfileForm({ ...studentProfileForm, grade: e.target.value, group: '' })}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Grade"
+                />
+                <input
+                  type="text"
+                  value={studentProfileForm.section}
+                  onChange={e => setStudentProfileForm({ ...studentProfileForm, section: e.target.value })}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Section"
+                />
+              </div>
+
+              {isSeniorGrade(studentProfileForm.grade) && (
+                <input
+                  type="text"
+                  value={studentProfileForm.group}
+                  onChange={e => setStudentProfileForm({ ...studentProfileForm, group: e.target.value })}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Group"
+                />
+              )}
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <input
+                  type="text"
+                  value={studentProfileForm.motherName}
+                  onChange={e => setStudentProfileForm({ ...studentProfileForm, motherName: e.target.value })}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Mother name"
+                />
+                <input
+                  type="text"
+                  value={studentProfileForm.fatherName}
+                  onChange={e => setStudentProfileForm({ ...studentProfileForm, fatherName: e.target.value })}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Father name"
+                />
+              </div>
+
+              <input
+                type="text"
+                value={studentProfileForm.guardianName}
+                onChange={e => setStudentProfileForm({ ...studentProfileForm, guardianName: e.target.value })}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Guardian name (if parent names are not available)"
+              />
+
+              <p className="text-sm text-slate-500">Enter mother and father names together, or fill only the guardian field.</p>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <button type="submit" className="rounded-xl bg-blue-600 px-6 py-3 font-bold text-white transition-colors hover:bg-blue-700">
+                  Save Profile
+                </button>
+                <button type="button" onClick={closeStudentProfileEditor} className="rounded-xl bg-slate-100 px-6 py-3 font-bold text-slate-700 transition-colors hover:bg-slate-200">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Attendance Modal */}
       {showAttModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
