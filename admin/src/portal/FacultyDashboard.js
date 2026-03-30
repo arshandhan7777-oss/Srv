@@ -855,7 +855,7 @@ export function FacultyDashboard({ section = 'dashboard' }) {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
         {activeSection !== 'dashboard' && pageMeta[activeSection] && (
           <div className="mb-8 rounded-3xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
             <button onClick={() => navigateToSection('dashboard')} className="mb-4 flex items-center gap-2 text-slate-600 hover:text-slate-900 font-semibold transition-colors">
@@ -867,17 +867,53 @@ export function FacultyDashboard({ section = 'dashboard' }) {
           </div>
         )}
         
-        <div className={`${activeSection === 'homework' || activeSection === 'attendance' || activeSection === 'behavior' || activeSection === 'announcements' ? 'grid' : 'hidden'} ${activeSection === 'homework' ? 'lg:grid-cols-3' : 'max-w-xl mx-auto'} gap-8`}>
+        <div className={`${activeSection === 'homework' || activeSection === 'attendance' || activeSection === 'behavior' || activeSection === 'announcements' ? 'grid' : 'hidden'} ${activeSection === 'homework' ? 'lg:grid-cols-3' : 'max-w-xl mx-auto'} gap-6 sm:gap-8`}>
           {/* Main Content - Student List */}
           <div className={`${activeSection === 'homework' ? 'lg:col-span-2 space-y-6 block' : 'hidden'}`}>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-2xl font-display font-bold text-slate-900 flex items-center gap-2">
                 <Users className="text-emerald-600" /> My Students
               </h2>
-              <span className="bg-slate-200 text-slate-700 font-bold px-3 py-1 rounded-full text-sm">{students.length} Total</span>
+              <span className="w-fit bg-slate-200 text-slate-700 font-bold px-3 py-1 rounded-full text-sm">{students.length} Total</span>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="space-y-3 md:hidden">
+              {students.map(s => (
+                <div key={s._id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">SRV No.</p>
+                      <p className="mt-1 font-mono text-sm font-semibold text-slate-700">{s.srvNumber}</p>
+                    </div>
+                  </div>
+                  <h3 className="mt-4 text-lg font-display font-bold text-slate-900">{s.name}</h3>
+                  <p className={`mt-2 text-sm ${getFamilySummary(s) === 'Family details missing' ? 'text-red-500 font-semibold' : 'text-slate-500'}`}>
+                    {getFamilySummary(s)}
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <button
+                      onClick={() => { setSelectedStudent(s); setGradeMsg({text:'', type:''}); }}
+                      className="rounded-lg bg-emerald-100 px-3 py-2 text-xs font-bold text-emerald-700"
+                    >
+                      Evaluate Nlite & Marks
+                    </button>
+                    <button
+                      onClick={() => openStudentProfileEditor(s)}
+                      className="rounded-lg bg-blue-100 px-3 py-2 text-xs font-bold text-blue-700"
+                    >
+                      Edit Profile
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {students.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm font-semibold text-slate-500">
+                  No students assigned yet.
+                </div>
+              ) : null}
+            </div>
+
+            <div className="hidden overflow-hidden rounded-2xl bg-white shadow-sm border border-slate-100 md:block">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100 text-sm text-slate-500">
@@ -926,19 +962,19 @@ export function FacultyDashboard({ section = 'dashboard' }) {
             </div>
 
             {/* Homework Dashboard Weekly Calendar */}
-            <div className="bg-white rounded-3xl p-6 lg:p-8 shadow-sm border border-slate-100 mt-8 relative">
+            <div className="bg-white rounded-3xl p-5 sm:p-6 lg:p-8 shadow-sm border border-slate-100 mt-8 relative">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
                 <div className="flex items-center gap-3">
                   <BookOpen className="text-emerald-500" />
                   <h3 className="text-xl font-display font-bold text-slate-900">Daily Homework Dashboard</h3>
                 </div>
-                <div className="flex items-center gap-4 cursor-pointer">
+                <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center cursor-pointer">
                   <button onClick={fetchHomework} className="text-sm text-slate-500 font-semibold hover:text-emerald-600 transition-colors">
                     Refresh Data
                   </button>
-                  <div className="flex items-center gap-2 bg-slate-50 rounded-xl p-1 border border-slate-200">
+                  <div className="flex items-center justify-between gap-2 bg-slate-50 rounded-xl p-1 border border-slate-200">
                     <button onClick={prevWeek} className="p-1.5 hover:bg-white rounded-lg transition-colors"><ChevronLeft size={18} className="text-slate-600" /></button>
-                    <span className="text-sm font-bold text-slate-700 w-36 text-center">
+                    <span className="text-sm font-bold text-slate-700 text-center min-w-0 flex-1 px-2">
                       {days[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {days[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </span>
                     <button onClick={nextWeek} className="p-1.5 hover:bg-white rounded-lg transition-colors"><ChevronRight size={18} className="text-slate-600" /></button>
@@ -946,8 +982,8 @@ export function FacultyDashboard({ section = 'dashboard' }) {
                 </div>
               </div>
 
-              <div className="overflow-x-auto pb-4">
-                <div className="min-w-[1000px] grid grid-cols-7 gap-4">
+              <div className="overflow-x-auto pb-4 -mx-1 px-1">
+                <div className="grid grid-flow-col auto-cols-[78vw] gap-4 snap-x snap-mandatory md:min-w-[1000px] md:grid-flow-row md:grid-cols-7 md:auto-cols-fr">
                   {days.map((day, i) => {
                     const dayHomework = assignedHomework.filter(hw => isSameDay(hw.dueDate, day));
                     const isToday = isSameDay(day, new Date());
@@ -958,19 +994,19 @@ export function FacultyDashboard({ section = 'dashboard' }) {
                     return (
                       <div 
                         key={i} 
-                        className="relative perspective-1000 h-[420px] w-full group"
+                        className="relative perspective-1000 h-[320px] sm:h-[360px] md:h-[420px] w-full group snap-start"
                         onMouseEnter={() => setFlippedDay(i)}
                         onMouseLeave={() => setFlippedDay(null)}
                         onClick={() => setFlippedDay(isFlipped ? null : i)}
                       >
-                        <div className={`w-full h-full relative transition-transform duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : 'group-hover:[transform:rotateY(180deg)]'}`}>
+                        <div className={`w-full h-full relative transition-transform duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : 'md:group-hover:[transform:rotateY(180deg)]'}`}>
                           
                           {/* FRONT FACE */}
-                          <div className={`absolute w-full h-full backface-hidden rounded-[24px] border flex flex-col justify-center items-center p-6 cursor-pointer shadow-sm transition-colors ${isToday ? 'border-emerald-300 bg-emerald-50' : 'border-slate-100 bg-slate-50'}`}>
-                            <p className={`text-sm font-bold uppercase tracking-widest mb-3 ${isToday ? 'text-emerald-600' : 'text-slate-500'}`}>
+                          <div className={`absolute w-full h-full backface-hidden rounded-[24px] border flex flex-col justify-center items-center p-4 sm:p-6 cursor-pointer shadow-sm transition-colors ${isToday ? 'border-emerald-300 bg-emerald-50' : 'border-slate-100 bg-slate-50'}`}>
+                            <p className={`text-xs sm:text-sm font-bold uppercase tracking-widest mb-3 text-center ${isToday ? 'text-emerald-600' : 'text-slate-500'}`}>
                               {day.toLocaleDateString('en-US', { weekday: 'long' })}
                             </p>
-                            <p className={`text-6xl font-display font-black mb-4 ${isToday ? 'text-emerald-900' : 'text-slate-800'}`}>
+                            <p className={`text-5xl sm:text-6xl font-display font-black mb-4 ${isToday ? 'text-emerald-900' : 'text-slate-800'}`}>
                               {day.getDate()}
                             </p>
                             
@@ -1000,7 +1036,9 @@ export function FacultyDashboard({ section = 'dashboard' }) {
                               </div>
                             )}
                             <div className="mt-auto pt-4 text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1 opacity-50">
-                              Hover to flip <ChevronRight size={10} />
+                              <span className="hidden md:inline">Hover to flip</span>
+                              <span className="md:hidden">Tap to flip</span>
+                              <ChevronRight size={10} />
                             </div>
                           </div>
 

@@ -499,6 +499,11 @@ export function AdminDashboard({ section = 'home' }) {
 
   const activeSection = section || 'home';
   const recentAnnouncements = announcements.slice(0, 5);
+  const filteredStudents = allStudents.filter(student => {
+    if (studentListFilter.grade && student.grade.toLowerCase() !== studentListFilter.grade.toLowerCase()) return false;
+    if (studentListFilter.section && student.section.toLowerCase() !== studentListFilter.section.toLowerCase()) return false;
+    return true;
+  });
 
   const statCards = [
     { key: 'students', label: 'Total Students', value: stats.totalStudents, icon: Users, tone: 'bg-emerald-100 text-emerald-700' },
@@ -1291,7 +1296,7 @@ export function AdminDashboard({ section = 'home' }) {
           </div>
         </div>
         {/* Manage Faculty Panel */}
-        <div className={`${activeSection === 'faculty' ? 'block' : 'hidden'} mt-8 bg-white rounded-2xl shadow-sm border border-slate-100 p-8`}>
+        <div className={`${activeSection === 'faculty' ? 'block' : 'hidden'} mt-8 bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-8`}>
           <div className="flex items-center gap-3 mb-6">
             <Users className="text-blue-500" />
             <h2 className="text-xl font-display font-bold text-slate-900">Manage Faculty</h2>
@@ -1303,7 +1308,41 @@ export function AdminDashboard({ section = 'home' }) {
             </div>
           )}
 
-          <div className="overflow-x-auto rounded-xl border border-slate-200">
+          <div className="space-y-4 md:hidden">
+            {faculties.map(faculty => (
+              <div key={faculty._id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">FAC No</p>
+                    <p className="mt-1 font-mono text-sm font-semibold text-slate-700">{faculty.srvNumber}</p>
+                  </div>
+                  <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-600 shadow-sm">
+                    {faculty.assignedGrade || '-'} / {faculty.assignedSection || '-'}
+                  </span>
+                </div>
+                <h3 className="mt-4 text-lg font-display font-bold text-slate-900">{faculty.name}</h3>
+                <p className="mt-1 text-sm text-slate-500">{faculty.mobileNumber || 'Mobile number not added'}</p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button onClick={() => openFacultyProfile(faculty)} className="rounded-lg bg-emerald-100 px-3 py-2 text-xs font-bold text-emerald-700">
+                    Profile
+                  </button>
+                  <button onClick={() => startEditing(faculty)} className="rounded-lg bg-blue-100 px-3 py-2 text-xs font-bold text-blue-700">
+                    Edit
+                  </button>
+                  <button onClick={() => handleDeleteFaculty(faculty._id)} className="rounded-lg bg-red-100 px-3 py-2 text-xs font-bold text-red-700">
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+            {faculties.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm font-semibold text-slate-500">
+                No faculty members found.
+              </div>
+            ) : null}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-xl border border-slate-200 md:block">
             <table className="w-full text-left border-collapse min-w-[700px]">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-sm text-slate-500">
@@ -1349,15 +1388,15 @@ export function AdminDashboard({ section = 'home' }) {
         </div>
 
         {/* Manage Students Panel */}
-        <div className={`${activeSection === 'students' || activeSection === 'promote' ? 'block' : 'hidden'} mt-8 bg-white rounded-2xl shadow-sm border border-slate-100 p-8`}>
+        <div className={`${activeSection === 'students' || activeSection === 'promote' ? 'block' : 'hidden'} mt-8 bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-8`}>
           <div className={`flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 ${activeSection === 'promote' ? 'hidden' : 'flex'}`}>
             <div className="flex items-center gap-3">
               <Users className="text-purple-500" />
               <h2 className="text-xl font-display font-bold text-slate-900">View All Students</h2>
             </div>
-            <div className="flex gap-3">
-              <input type="text" placeholder="Filter Class (e.g. 10)" value={studentListFilter.grade} onChange={e => setStudentListFilter({...studentListFilter, grade: e.target.value})} className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-purple-500 w-40" />
-              <input type="text" placeholder="Filter Section (e.g. A)" value={studentListFilter.section} onChange={e => setStudentListFilter({...studentListFilter, section: e.target.value})} className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-purple-500 w-40" />
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+              <input type="text" placeholder="Filter Class (e.g. 10)" value={studentListFilter.grade} onChange={e => setStudentListFilter({...studentListFilter, grade: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-purple-500 sm:w-40" />
+              <input type="text" placeholder="Filter Section (e.g. A)" value={studentListFilter.section} onChange={e => setStudentListFilter({...studentListFilter, section: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-purple-500 sm:w-40" />
             </div>
           </div>
           
@@ -1367,7 +1406,49 @@ export function AdminDashboard({ section = 'home' }) {
             </div>
           )}
 
-          <div className={`${activeSection === 'students' ? 'block' : 'hidden'} overflow-x-auto rounded-xl border border-slate-200`}>
+          <div className={`${activeSection === 'students' ? 'block' : 'hidden'} space-y-4 md:hidden`}>
+            {filteredStudents.map(student => (
+              <div key={student._id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">SRV No</p>
+                    <p className="mt-1 font-mono text-sm font-semibold text-slate-700">{student.srvNumber}</p>
+                  </div>
+                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${student.fees?.overall === 'Paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
+                    {student.fees?.overall || 'Unpaid'}
+                  </span>
+                </div>
+                <h3 className="mt-4 text-lg font-display font-bold text-slate-900">{student.name}</h3>
+                <p className="mt-1 text-sm text-slate-500">
+                  Grade {student.grade}-{student.section}{student.group ? ` / ${student.group}` : ''}
+                </p>
+                <p className={`mt-3 text-sm ${getFamilySummary(student) === 'Missing family details' ? 'font-semibold text-red-500' : 'text-slate-600'}`}>
+                  {getFamilySummary(student)}
+                </p>
+                <p className="mt-2 text-sm text-slate-500">
+                  {student.facultyId ? `Class In-Charge: ${student.facultyId.name}` : 'Class In-Charge: Unassigned'}
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button onClick={() => openStudentEditor(student)} className="rounded-lg bg-blue-100 px-3 py-2 text-xs font-bold text-blue-700">
+                    Edit
+                  </button>
+                  <button onClick={() => setSelectedStudentForFees(student)} className="rounded-lg bg-purple-100 px-3 py-2 text-xs font-bold text-purple-700">
+                    Fees
+                  </button>
+                  <button onClick={() => handleDeleteStudent(student._id)} className="rounded-lg bg-red-100 px-3 py-2 text-xs font-bold text-red-700">
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+            {filteredStudents.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm font-semibold text-slate-500">
+                No students found.
+              </div>
+            ) : null}
+          </div>
+
+          <div className={`${activeSection === 'students' ? 'hidden md:block' : 'hidden'} overflow-x-auto rounded-xl border border-slate-200`}>
             <table className="w-full text-left border-collapse min-w-[980px]">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-sm text-slate-500">
@@ -1381,11 +1462,7 @@ export function AdminDashboard({ section = 'home' }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm">
-                {allStudents.filter(s => {
-                  if (studentListFilter.grade && s.grade.toLowerCase() !== studentListFilter.grade.toLowerCase()) return false;
-                  if (studentListFilter.section && s.section.toLowerCase() !== studentListFilter.section.toLowerCase()) return false;
-                  return true;
-                }).map(student => (
+                {filteredStudents.map(student => (
                   <tr key={student._id} className="hover:bg-slate-50/50">
                     <td className="px-5 py-4 font-mono font-medium text-slate-600 border-b border-slate-50">
                       {editingSrvId === student._id ? (
@@ -1449,7 +1526,7 @@ export function AdminDashboard({ section = 'home' }) {
                     </td>
                   </tr>
                 ))}
-                {allStudents.length === 0 && (
+                {filteredStudents.length === 0 && (
                   <tr>
                     <td colSpan="7" className="px-5 py-8 text-center text-slate-500 border-b border-slate-50">No students found.</td>
                   </tr>

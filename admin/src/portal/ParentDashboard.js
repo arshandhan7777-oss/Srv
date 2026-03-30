@@ -423,6 +423,11 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
     data.food &&
     [data.food.breakfast, data.food.lunch, data.food.snacks].some(item => String(item || '').trim())
   );
+  const feeRows = [
+    { id: 'term1', term: 'Term 1', desc: 'Tuition + Lab Fee', amount: term1Amt, paid: term1Paid, status: data.student?.fees?.term1 || 'Unpaid' },
+    { id: 'term2', term: 'Term 2', desc: 'Tuition + Activity Fee', amount: term2Amt, paid: term2Paid, status: data.student?.fees?.term2 || 'Unpaid' },
+    { id: 'term3', term: 'Term 3', desc: 'Tuition + Exam Fee', amount: term3Amt, paid: term3Paid, status: data.student?.fees?.term3 || 'Unpaid' }
+  ];
   const appItems = [
     {
       key: 'skills',
@@ -1478,7 +1483,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
             </div>
 
             {/* Weekly Homework Overview */}
-            <div className="bg-white rounded-3xl p-6 lg:p-8 shadow-sm border border-slate-100">
+            <div className="bg-white rounded-3xl p-5 sm:p-6 lg:p-8 shadow-sm border border-slate-100">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
                 <div className="flex items-center gap-3">
                   <div className="w-14 h-14 bg-emerald-100 rounded-xl flex items-center justify-center">
@@ -1489,17 +1494,17 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
                     <p className="text-sm text-slate-500 mt-1">View assignments by day</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 bg-slate-50 rounded-xl p-1 border border-slate-200">
+                <div className="flex w-full items-center justify-between gap-2 bg-slate-50 rounded-xl p-1 border border-slate-200 sm:w-auto">
                   <button onClick={prevWeek} className="p-1.5 hover:bg-white rounded-lg transition-colors"><ChevronLeft size={18} className="text-slate-600" /></button>
-                  <span className="text-sm font-bold text-slate-700 w-40 text-center">
+                  <span className="text-sm font-bold text-slate-700 text-center min-w-0 flex-1 px-2">
                     {days[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {days[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </span>
                   <button onClick={nextWeek} className="p-1.5 hover:bg-white rounded-lg transition-colors"><ChevronRight size={18} className="text-slate-600" /></button>
                 </div>
               </div>
 
-              <div className="overflow-x-auto pb-4">
-                <div className="min-w-[1000px] grid grid-cols-7 gap-4">
+              <div className="overflow-x-auto pb-4 -mx-1 px-1">
+                <div className="grid grid-flow-col auto-cols-[78vw] gap-4 snap-x snap-mandatory md:min-w-[1000px] md:grid-flow-row md:grid-cols-7 md:auto-cols-fr">
                   {days.map((day, i) => {
                     const dayHomework = weeklyHomework.filter(hw => isSameDay(hw.dueDate, day));
                     const isToday = isSameDay(day, new Date());
@@ -1510,12 +1515,12 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
                     return (
                       <div 
                         key={i} 
-                        className="relative perspective-1000 h-[320px] w-full group cursor-pointer"
+                        className="relative perspective-1000 h-[280px] sm:h-[320px] w-full group cursor-pointer snap-start"
                         onMouseEnter={() => setFlippedDay(i)}
                         onMouseLeave={() => setFlippedDay(null)}
                         onClick={() => setFlippedDay(isFlipped ? null : i)}
                       >
-                        <div className={`w-full h-full relative transition-transform duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : 'group-hover:[transform:rotateY(180deg)]'}`}>
+                        <div className={`w-full h-full relative transition-transform duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : 'md:group-hover:[transform:rotateY(180deg)]'}`}>
                           <div className={`absolute w-full h-full backface-hidden rounded-[24px] border flex flex-col justify-center items-center p-4 cursor-pointer shadow-sm transition-colors ${isToday ? 'border-emerald-300 bg-emerald-50' : 'border-slate-100 bg-slate-50'}`}>
                             <p className={`text-xs font-bold uppercase tracking-widest mb-2 ${isToday ? 'text-emerald-600' : 'text-slate-500'}`}>
                               {day.toLocaleDateString('en-US', { weekday: 'short' })}
@@ -1652,7 +1657,53 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
               </div>
 
               <h4 className="text-sm font-bold text-slate-700 uppercase tracking-widest mb-4">Term-wise Breakdown</h4>
-              <div className="overflow-x-auto rounded-2xl border border-slate-100">
+
+              <div className="space-y-4 md:hidden">
+                {feeRows.map((row) => (
+                  <div key={row.id} className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h5 className="text-base font-display font-bold text-slate-900">{row.term}</h5>
+                        <p className="mt-1 text-sm text-slate-500">{row.desc}</p>
+                      </div>
+                      <span className={`rounded-full px-3 py-1 text-xs font-bold ${row.status === 'Paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                        {row.status}
+                      </span>
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                      <div className="rounded-xl bg-white p-3">
+                        <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Total</p>
+                        <p className="mt-2 font-bold text-slate-900">Rs. {row.amount.toLocaleString()}</p>
+                      </div>
+                      <div className="rounded-xl bg-white p-3">
+                        <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Paid</p>
+                        <p className="mt-2 font-bold text-emerald-700">Rs. {row.paid.toLocaleString()}</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 rounded-xl bg-white p-3">
+                      <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Balance Due</p>
+                      <p className="mt-2 font-bold text-red-500">Rs. {(row.amount - row.paid).toLocaleString()}</p>
+                    </div>
+                    <div className="mt-4">
+                      {row.status === 'Paid' ? (
+                        <span className="flex items-center justify-center gap-1 text-emerald-600 font-bold text-xs bg-emerald-100 px-3 py-2 rounded-full w-full">
+                          <CheckCheck size={14} /> Paid
+                        </span>
+                      ) : data.settings?.isOnlineFeeEnabled ? (
+                        <button onClick={() => { setSelectedTerm({ id: row.id, name: row.term, amount: row.amount, balance: row.amount - row.paid }); setShowPayModal(true); }} className="w-full py-2 font-bold text-sm bg-emerald-100 text-emerald-700 hover:bg-emerald-600 hover:text-white rounded-xl transition-colors">
+                          Pay Now
+                        </button>
+                      ) : (
+                        <span className="flex items-center justify-center gap-1 text-slate-500 font-bold text-xs bg-slate-100 px-3 py-2 rounded-full w-full">
+                          Pay at Office
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="hidden overflow-x-auto rounded-2xl border border-slate-100 md:block">
                 <table className="w-full text-sm">
                   <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-xs">
                     <tr>
@@ -1664,11 +1715,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
-                    {[
-                      { id: 'term1', term: 'Term 1', desc: 'Tuition + Lab Fee', amount: term1Amt, paid: term1Paid, status: data.student?.fees?.term1 || 'Unpaid' },
-                      { id: 'term2', term: 'Term 2', desc: 'Tuition + Activity Fee', amount: term2Amt, paid: term2Paid, status: data.student?.fees?.term2 || 'Unpaid' },
-                      { id: 'term3', term: 'Term 3', desc: 'Tuition + Exam Fee', amount: term3Amt, paid: term3Paid, status: data.student?.fees?.term3 || 'Unpaid' },
-                    ].map((row) => (
+                    {feeRows.map((row) => (
                       <tr key={row.term} className="hover:bg-slate-50 transition-colors">
                         <td className="px-5 py-4 font-bold text-slate-800">{row.term}</td>
                         <td className="px-5 py-4 text-slate-600">{row.desc}</td>
