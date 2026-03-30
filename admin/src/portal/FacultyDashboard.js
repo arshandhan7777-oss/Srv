@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Users, LogOut, CheckSquare, BookOpen, AlertCircle, ChevronLeft, ChevronRight, Calendar as CalIcon, Clock, Edit2, Trash2, CalendarClock, X, Check, History, ArrowRight, Archive, ChevronDown, Megaphone, Bell, LayoutDashboard, ClipboardList, MessageSquareMore } from 'lucide-react';
+import { Users, LogOut, CheckSquare, BookOpen, AlertCircle, ChevronLeft, ChevronRight, Calendar as CalIcon, Clock, Edit2, Trash2, CalendarClock, X, Check, History, ArrowRight, Archive, ChevronDown, Megaphone, Bell, LayoutDashboard, ClipboardList, MessageSquareMore, Image as ImageIcon } from 'lucide-react';
 import API_URL from '../config/api.js';
 import { OpinionPollSection } from '../components/OpinionPollSection.js';
 import { FeedbackInboxSection } from '../components/FeedbackInboxSection.js';
@@ -9,6 +9,7 @@ import { UpcomingEventsSection } from '../components/UpcomingEventsSection.js';
 import { Logo } from '../components/Logo.js';
 import { PortalHeader } from '../components/PortalHeader.js';
 import { NotificationPanel } from '../components/NotificationPanel.js';
+import { MemoriesSection } from '../components/MemoriesSection.js';
 
 export function FacultyDashboard({ section = 'dashboard' }) {
   const hasValidFamilyDetails = (profile) => Boolean(
@@ -29,11 +30,18 @@ export function FacultyDashboard({ section = 'dashboard' }) {
   };
 
   const isSeniorGrade = (grade) => ['11', '12', 'XI', 'XII'].includes((grade || '').toUpperCase().trim());
+  const normalizeParentMobileInput = (value) => String(value || '').replace(/\D/g, '').slice(0, 15);
+  const hasParentMobile = (value) => Boolean(normalizeParentMobileInput(value));
+  const getParentMobileSummary = (student) => (
+    hasParentMobile(student?.parentMobileNumber)
+      ? `Parent Mobile: ${student.parentMobileNumber}`
+      : 'Parent mobile missing'
+  );
 
   const [students, setStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [editingStudentProfile, setEditingStudentProfile] = useState(null);
-  const [studentProfileForm, setStudentProfileForm] = useState({ name: '', grade: '', section: '', group: '', motherName: '', fatherName: '', guardianName: '' });
+  const [studentProfileForm, setStudentProfileForm] = useState({ name: '', grade: '', section: '', group: '', motherName: '', fatherName: '', guardianName: '', parentMobileNumber: '' });
   const [profileMsg, setProfileMsg] = useState({ text: '', type: '' });
   const [assignedHomework, setAssignedHomework] = useState([]);
   
@@ -184,6 +192,10 @@ export function FacultyDashboard({ section = 'dashboard' }) {
     feedback: {
       title: 'Feedback Inbox',
       description: 'Review parent feedback in a focused inbox.'
+    },
+    memories: {
+      title: 'View Memories',
+      description: 'Open student photos and videos shared by admin, then download them when needed.'
     }
   };
 
@@ -373,7 +385,8 @@ export function FacultyDashboard({ section = 'dashboard' }) {
       group: student.group || '',
       motherName: student.motherName || '',
       fatherName: student.fatherName || '',
-      guardianName: student.guardianName || ''
+      guardianName: student.guardianName || '',
+      parentMobileNumber: student.parentMobileNumber || ''
     });
     setProfileMsg({ text: '', type: '' });
   };
@@ -514,6 +527,7 @@ export function FacultyDashboard({ section = 'dashboard' }) {
     { key: 'attendance', title: 'Attendance', subtitle: 'Mark Attendance', icon: CheckSquare, badge: students.length, gradient: 'from-emerald-500 to-teal-500' },
     { key: 'behavior', title: 'Log Behavior', subtitle: 'Log Daily Behavior', icon: AlertCircle, badge: 'Daily', gradient: 'from-rose-500 to-orange-500' },
     { key: 'announcements', title: 'Announcement', subtitle: 'Send Announcement', icon: Megaphone, badge: recentAnnouncementCount, gradient: 'from-blue-500 to-cyan-500' },
+    { key: 'memories', title: 'View Memories', subtitle: 'Photos and Videos', icon: ImageIcon, badge: 'Media', gradient: 'from-sky-500 to-indigo-500' },
     { key: 'events', title: 'Events', subtitle: 'Upcoming Events, Event Acknowledgements', icon: CalIcon, badge: 'Live', gradient: 'from-fuchsia-500 to-pink-500' },
     { key: 'polls', title: 'Poll Center', subtitle: 'Opinion Poll Center, Poll Analytics', icon: ClipboardList, badge: 'Polls', gradient: 'from-violet-500 to-indigo-500' },
     { key: 'feedback', title: 'Feedback', subtitle: 'Parent Feedback Inbox', icon: MessageSquareMore, badge: unreadCount, gradient: 'from-slate-700 to-slate-900' }
@@ -890,6 +904,9 @@ export function FacultyDashboard({ section = 'dashboard' }) {
                   <p className={`mt-2 text-sm ${getFamilySummary(s) === 'Family details missing' ? 'text-red-500 font-semibold' : 'text-slate-500'}`}>
                     {getFamilySummary(s)}
                   </p>
+                  <p className={`mt-2 text-sm ${hasParentMobile(s.parentMobileNumber) ? 'text-slate-500' : 'font-semibold text-amber-600'}`}>
+                    {getParentMobileSummary(s)}
+                  </p>
                   <div className="mt-4 flex flex-wrap gap-2">
                     <button
                       onClick={() => { setSelectedStudent(s); setGradeMsg({text:'', type:''}); }}
@@ -930,6 +947,9 @@ export function FacultyDashboard({ section = 'dashboard' }) {
                         <p className="font-semibold text-slate-900">{s.name}</p>
                         <p className={`text-xs mt-1 ${getFamilySummary(s) === 'Family details missing' ? 'text-red-500 font-semibold' : 'text-slate-500'}`}>
                           {getFamilySummary(s)}
+                        </p>
+                        <p className={`mt-1 text-xs ${hasParentMobile(s.parentMobileNumber) ? 'text-slate-500' : 'font-semibold text-amber-600'}`}>
+                          {getParentMobileSummary(s)}
                         </p>
                       </td>
                       <td className="px-6 py-4">
@@ -1512,10 +1532,11 @@ export function FacultyDashboard({ section = 'dashboard' }) {
         </div>
 
       </div>
-      <div className={`${activeSection === 'events' || activeSection === 'polls' || activeSection === 'feedback' ? 'block' : 'hidden'} max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10`}>
+      <div className={`${activeSection === 'events' || activeSection === 'polls' || activeSection === 'feedback' || activeSection === 'memories' ? 'block' : 'hidden'} max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10`}>
         {activeSection === 'events' && <UpcomingEventsSection role="faculty" />}
         {activeSection === 'polls' && <OpinionPollSection role="faculty" />}
         {activeSection === 'feedback' && <FeedbackInboxSection role="faculty" />}
+        {activeSection === 'memories' && <MemoriesSection role="faculty" />}
       </div>
 
       {editingStudentProfile && (
@@ -1602,7 +1623,16 @@ export function FacultyDashboard({ section = 'dashboard' }) {
                 placeholder="Guardian name if parent names are unavailable"
               />
 
-              <p className="text-sm text-slate-500">Enter mother and father names together, or fill only the guardian field.</p>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={studentProfileForm.parentMobileNumber}
+                onChange={e => setStudentProfileForm({ ...studentProfileForm, parentMobileNumber: normalizeParentMobileInput(e.target.value) })}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Parent mobile number"
+              />
+
+              <p className="text-sm text-slate-500">Enter mother and father names together, or fill only the guardian field. Add the parent mobile here if it is still missing.</p>
 
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                 <button type="submit" className="w-full rounded-xl bg-blue-600 px-6 py-3 font-bold text-white transition-colors hover:bg-blue-700 sm:w-auto">

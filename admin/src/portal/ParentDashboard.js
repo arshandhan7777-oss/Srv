@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
-import { LogOut, Bell, Download, FileText, Calendar as CalIcon, TrendingUp, Sparkles, CheckCircle2, Coffee, CreditCard, AlertCircle, Clock, CheckCheck, BookOpen, ChevronLeft, ChevronRight, History, ArrowRight, Archive, X, BookMarked, AlertCircleIcon, Home, Zap, MessageSquareMore } from 'lucide-react';
+import { LogOut, Bell, Download, FileText, Calendar as CalIcon, TrendingUp, Sparkles, CheckCircle2, Coffee, CreditCard, AlertCircle, Clock, CheckCheck, BookOpen, ChevronLeft, ChevronRight, History, ArrowRight, Archive, X, BookMarked, AlertCircleIcon, Home, Zap, MessageSquareMore, Image as ImageIcon } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -13,6 +13,7 @@ import { ParentEventsSection } from '../components/ParentEventsSection.js';
 import { Logo } from '../components/Logo.js';
 import { PortalHeader } from '../components/PortalHeader.js';
 import { NotificationPanel } from '../components/NotificationPanel.js';
+import { MemoriesSection } from '../components/MemoriesSection.js';
 
 const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6'];
 
@@ -130,6 +131,10 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
     feedback: {
       title: 'Feedback and Concerns',
       description: 'Send concerns to school and review your feedback history.'
+    },
+    memories: {
+      title: 'View Memories',
+      description: 'Download student photos and videos shared by school from one clean gallery.'
     },
     fees: {
       title: 'Fee Payment',
@@ -470,6 +475,14 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
       gradient: 'from-rose-500 to-red-500'
     },
     {
+      key: 'memories',
+      title: 'View Memories',
+      description: 'Download shared student photos and videos',
+      icon: ImageIcon,
+      badge: 'Media',
+      gradient: 'from-sky-500 to-indigo-500'
+    },
+    {
       key: 'fees',
       title: 'Fees',
       description: 'Pending balance and secure fee payment',
@@ -573,6 +586,14 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
         icon: MessageSquareMore,
         badge: 'Inbox',
         gradient: 'from-rose-500 to-red-500'
+      },
+      {
+        key: 'memories',
+        title: 'View Memories',
+        description: 'Download shared student photos and videos',
+        icon: ImageIcon,
+        badge: 'Media',
+        gradient: 'from-sky-500 to-indigo-500'
       },
       {
         key: 'fees',
@@ -1615,6 +1636,19 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
               <ChevronLeft size={20} /> Back to Dashboard
             </button>
             <ParentFeedbackSection />
+          </>
+        )}
+
+        {/* ========== SECTION: MEMORIES ========== */}
+        {activeSection === 'memories' && (
+          <>
+            <button
+              onClick={() => navigateToSection('dashboard')}
+              className="hidden"
+            >
+              <ChevronLeft size={20} /> Back to Dashboard
+            </button>
+            <MemoriesSection role="parent" />
           </>
         )}
 

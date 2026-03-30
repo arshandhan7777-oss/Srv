@@ -14,6 +14,7 @@ import PollResponse from '../models/PollResponse.js';
 import Feedback from '../models/Feedback.js';
 import Event from '../models/Event.js';
 import EventRegistration from '../models/EventRegistration.js';
+import Memory from '../models/Memory.js';
 import { protect } from '../middleware/auth.js';
 import { archiveOldHomework } from '../utils/archiveHomework.js';
 import { buildHomeworkClassFilter } from '../utils/homeworkMatching.js';
@@ -163,6 +164,18 @@ router.get('/notifications', protect, parentOnly, async (req, res) => {
     res.json(notifications);
   } catch (error) {
     res.status(500).json({ message: 'Server error fetching notifications' });
+  }
+});
+
+// @route   GET /api/parent/memories
+// @desc    Get school memories for parent download/view access
+// @access  Private (Parent only)
+router.get('/memories', protect, parentOnly, async (req, res) => {
+  try {
+    const memories = await Memory.find().sort({ createdAt: -1 });
+    res.json(memories);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching memories' });
   }
 });
 

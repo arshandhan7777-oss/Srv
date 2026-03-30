@@ -12,6 +12,7 @@ import PollResponse from '../models/PollResponse.js';
 import Feedback from '../models/Feedback.js';
 import Event from '../models/Event.js';
 import EventRegistration from '../models/EventRegistration.js';
+import Memory from '../models/Memory.js';
 import { protect, adminOnly } from '../middleware/auth.js';
 import { hydratePolls } from '../utils/pollService.js';
 import { normalizeClassValue, validateAndNormalizeQuestions } from '../utils/pollUtils.js';
@@ -20,8 +21,11 @@ import { normalizeEventPayload } from '../utils/eventUtils.js';
 import { archivePastEvents } from '../utils/archiveEvents.js';
 import { applyStudentFamilyDetails, validateStudentFamilyDetails } from '../utils/studentFamilyDetails.js';
 import { buildParentDisplayName, enrichParentLinkedRecord, enrichParentLinkedRecords } from '../utils/parentProfile.js';
+import { hasParentMobileNumber, normalizeParentMobileNumber, syncParentAccountDetails } from '../utils/parentContact.js';
+import { buildCloudinaryUploadConfig, destroyCloudinaryAsset } from '../utils/cloudinary.js';
 
 const router = express.Router();
+const MAX_MEMORY_IMAGE_BYTES = 5 * 1024 * 1024;
 
 // Generate a random 4 digit string
 const generateRandomDigits = () => Math.floor(1000 + Math.random() * 9000).toString();
@@ -91,6 +95,8 @@ router.post('/student', protect, adminOnly, async (req, res) => {
       return res.status(400).json({ message: familyValidation.message });
     }
 
+    const parentMobileNumber = normalizeParentMobileNumber(req.body.parentMobileNumber);
+
     let srvNumber;
 
     if (admissionNumber && admissionNumber.toString().trim() !== '') {
@@ -132,6 +138,7 @@ router.post('/student', protect, adminOnly, async (req, res) => {
       section,
       group,
       ...familyValidation.familyDetails,
+      parentMobileNumber,
       dateOfBirth,
       contactNumber,
       address,
@@ -148,12 +155,14 @@ router.post('/student', protect, adminOnly, async (req, res) => {
       srvNumber: student.srvNumber,
       password: hashedPassword,
       role: 'parent',
-      studentId: student._id
+      studentId: student._id,
+      mobileNumber: parentMobileNumber
     });
 
     res.status(201).json({
       message: 'Student and Parent account created successfully',
       student,
+      parentMobileMissing: !hasParentMobileNumber(parentMobileNumber),
       parentLogin: {
         srvNumber: parentUser.srvNumber,
         defaultPassword
@@ -393,19 +402,130 @@ router.put('/student/:id', protect, adminOnly, async (req, res) => {
     if (grade !== undefined) student.grade = grade;
     if (section !== undefined) student.section = section;
     if (group !== undefined) student.group = group;
+    if (req.body.parentMobileNumber !== undefined) {
+      student.parentMobileNumber = normalizeParentMobileNumber(req.body.parentMobileNumber);
+    }
     applyStudentFamilyDetails(student, familyValidation.familyDetails);
 
     await student.save();
-
-    await User.updateOne(
-      { role: 'parent', studentId: student._id },
-      { $set: { name: buildParentDisplayName(student, `Parent of ${student.name}`) } }
-    );
+    await syncParentAccountDetails(student, `Parent of ${student.name}`);
 
     res.json({ message: 'Student updated successfully', student });
   } catch (error) {
     console.error('[Edit Student Error]', error);
     res.status(500).json({ message: 'Error updating student' });
+  }
+});
+
+// @route   GET /api/admin/memories
+// @desc    Get uploaded memories for admin management
+// @access  Private (Admin only)
+router.get('/memories', protect, adminOnly, async (req, res) => {
+  try {
+    const memories = await Memory.find().sort({ createdAt: -1 });
+    res.json(memories);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching memories' });
+  }
+});
+
+// @route   GET /api/admin/memories/upload-config
+// @desc    Get Cloudinary upload configuration for direct browser uploads
+// @access  Private (Admin only)
+router.get('/memories/upload-config', protect, adminOnly, async (req, res) => {
+  try {
+    res.json(buildCloudinaryUploadConfig());
+  } catch (error) {
+    res.status(500).json({ message: 'Error loading upload configuration' });
+  }
+});
+
+// @route   POST /api/admin/memories
+// @desc    Save uploaded memory metadata
+// @access  Private (Admin only)
+router.post('/memories', protect, adminOnly, async (req, res) => {
+  const {
+    title,
+    description,
+    secureUrl,
+    publicId,
+    resourceType,
+    bytes,
+    format,
+    originalFilename,
+    folder
+  } = req.body;
+
+  try {
+    const normalizedResourceType = String(resourceType || '').trim().toLowerCase();
+    const normalizedTitle = String(title || originalFilename || 'School Memory').trim();
+
+    if (!normalizedTitle) {
+      return res.status(400).json({ message: 'Memory title is required.' });
+    }
+
+    if (!secureUrl) {
+      return res.status(400).json({ message: 'Uploaded media URL is required.' });
+    }
+
+    if (!['image', 'video'].includes(normalizedResourceType)) {
+      return res.status(400).json({ message: 'Only images and videos are supported.' });
+    }
+
+    const fileBytes = Number(bytes) || 0;
+    if (normalizedResourceType === 'image' && fileBytes > MAX_MEMORY_IMAGE_BYTES) {
+      return res.status(400).json({ message: 'Photo uploads must be under 5 MB.' });
+    }
+
+    const memory = await Memory.create({
+      title: normalizedTitle,
+      description: String(description || '').trim(),
+      secureUrl: String(secureUrl).trim(),
+      publicId: String(publicId || '').trim(),
+      resourceType: normalizedResourceType,
+      bytes: fileBytes,
+      format: String(format || '').trim(),
+      originalFilename: String(originalFilename || '').trim(),
+      folder: String(folder || '').trim(),
+      uploadedBy: req.user.id,
+      createdByRole: 'admin'
+    });
+
+    res.status(201).json({ message: 'Memory saved successfully.', memory });
+  } catch (error) {
+    res.status(500).json({ message: 'Error saving memory.' });
+  }
+});
+
+// @route   DELETE /api/admin/memories/:id
+// @desc    Delete a memory from the portal and Cloudinary when fully configured
+// @access  Private (Admin only)
+router.delete('/memories/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const memory = await Memory.findById(req.params.id);
+    if (!memory) {
+      return res.status(404).json({ message: 'Memory not found.' });
+    }
+
+    let remoteDeleted = false;
+    try {
+      const remoteResult = await destroyCloudinaryAsset({
+        publicId: memory.publicId,
+        resourceType: memory.resourceType
+      });
+      remoteDeleted = Boolean(remoteResult?.ok);
+    } catch (cloudinaryError) {
+      console.warn('[Memory Delete] Cloudinary cleanup skipped:', cloudinaryError.message);
+    }
+
+    await Memory.findByIdAndDelete(req.params.id);
+
+    res.json({
+      message: 'Memory deleted successfully.',
+      remoteDeleted
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting memory.' });
   }
 });
 

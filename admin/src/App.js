@@ -35,6 +35,7 @@ export default function App() {
           <Route path="/admin/faculty" element={<AdminDashboard section="faculty" />} />
           <Route path="/admin/students" element={<AdminDashboard section="students" />} />
           <Route path="/admin/promote" element={<AdminDashboard section="promote" />} />
+          <Route path="/admin/memories" element={<AdminDashboard section="memories" />} />
           <Route path="/admin/events" element={<AdminDashboard section="events" />} />
           <Route path="/admin/polls" element={<AdminDashboard section="polls" />} />
           <Route path="/admin/feedback" element={<AdminDashboard section="feedback" />} />
@@ -49,6 +50,7 @@ export default function App() {
           <Route path="/faculty/attendance" element={<FacultyDashboard section="attendance" />} />
           <Route path="/faculty/behavior" element={<FacultyDashboard section="behavior" />} />
           <Route path="/faculty/announcements" element={<FacultyDashboard section="announcements" />} />
+          <Route path="/faculty/memories" element={<FacultyDashboard section="memories" />} />
           <Route path="/faculty/events" element={<FacultyDashboard section="events" />} />
           <Route path="/faculty/polls" element={<FacultyDashboard section="polls" />} />
           <Route path="/faculty/feedback" element={<FacultyDashboard section="feedback" />} />
@@ -65,6 +67,7 @@ export default function App() {
           <Route path="/parent/events" element={<ParentDashboard section="events" />} />
           <Route path="/parent/polls" element={<ParentDashboard section="polls" />} />
           <Route path="/parent/feedback" element={<ParentDashboard section="feedback" />} />
+          <Route path="/parent/memories" element={<ParentDashboard section="memories" />} />
           <Route path="/parent/fees" element={<ParentDashboard section="fees" />} />
         </Route>
 

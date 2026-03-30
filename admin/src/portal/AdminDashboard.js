@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Users, UserPlus, BookOpen, LogOut, CheckCircle2, Coffee, Trash2, Edit2, Save, X, Megaphone, GraduationCap, CalendarDays, ClipboardList, MessageSquareMore, BellRing, ArrowUpCircle, UtensilsCrossed, LayoutDashboard, ShieldAlert, ChevronLeft } from 'lucide-react';
+import { Users, UserPlus, BookOpen, LogOut, CheckCircle2, Coffee, Trash2, Edit2, Save, X, Megaphone, GraduationCap, CalendarDays, ClipboardList, MessageSquareMore, BellRing, ArrowUpCircle, UtensilsCrossed, LayoutDashboard, ShieldAlert, ChevronLeft, Image as ImageIcon } from 'lucide-react';
 import API_URL from '../config/api.js';
 import Swal from 'sweetalert2';
 import { OpinionPollSection } from '../components/OpinionPollSection.js';
@@ -9,6 +9,7 @@ import { FeedbackInboxSection } from '../components/FeedbackInboxSection.js';
 import { UpcomingEventsSection } from '../components/UpcomingEventsSection.js';
 import { PortalHeader } from '../components/PortalHeader.js';
 import { NotificationPanel } from '../components/NotificationPanel.js';
+import { MemoriesSection } from '../components/MemoriesSection.js';
 
 export function AdminDashboard({ section = 'home' }) {
   const hasValidFamilyDetails = (profile) => Boolean(
@@ -29,6 +30,13 @@ export function AdminDashboard({ section = 'home' }) {
   };
 
   const isSeniorGrade = (grade) => ['11', '12', 'XI', 'XII'].includes((grade || '').toUpperCase().trim());
+  const normalizeParentMobileInput = (value) => String(value || '').replace(/\D/g, '').slice(0, 15);
+  const hasParentMobile = (value) => Boolean(normalizeParentMobileInput(value));
+  const getParentMobileSummary = (student) => (
+    hasParentMobile(student?.parentMobileNumber)
+      ? `Parent Mobile: ${student.parentMobileNumber}`
+      : 'Parent mobile missing'
+  );
 
   const [stats, setStats] = useState({
     totalStudents: 0,
@@ -44,12 +52,12 @@ export function AdminDashboard({ section = 'home' }) {
   const [facultyMsg, setFacultyMsg] = useState({ text: '', type: '' });
 
   // Student Form State
-  const [studentForm, setStudentForm] = useState({ name: '', grade: '', section: '', group: '', dateOfBirth: '', admissionNumber: '', motherName: '', fatherName: '', guardianName: '' });
+  const [studentForm, setStudentForm] = useState({ name: '', grade: '', section: '', group: '', dateOfBirth: '', admissionNumber: '', motherName: '', fatherName: '', guardianName: '', parentMobileNumber: '' });
   const [studentMsg, setStudentMsg] = useState({ text: '', type: '' });
   const [editingSrvId, setEditingSrvId] = useState(null);
   const [editSrvValue, setEditSrvValue] = useState('');
   const [editingStudentId, setEditingStudentId] = useState(null);
-  const [editStudentForm, setEditStudentForm] = useState({ admissionNumber: '', name: '', grade: '', section: '', group: '', motherName: '', fatherName: '', guardianName: '' });
+  const [editStudentForm, setEditStudentForm] = useState({ admissionNumber: '', name: '', grade: '', section: '', group: '', motherName: '', fatherName: '', guardianName: '', parentMobileNumber: '' });
   const [promoteFrom, setPromoteFrom] = useState('');
   const [promoteTo, setPromoteTo] = useState('');
 
@@ -352,13 +360,14 @@ export function AdminDashboard({ section = 'home' }) {
       group: student.group || '',
       motherName: student.motherName || '',
       fatherName: student.fatherName || '',
-      guardianName: student.guardianName || ''
+      guardianName: student.guardianName || '',
+      parentMobileNumber: student.parentMobileNumber || ''
     });
   };
 
   const closeStudentEditor = () => {
     setEditingStudentId(null);
-    setEditStudentForm({ admissionNumber: '', name: '', grade: '', section: '', group: '', motherName: '', fatherName: '', guardianName: '' });
+    setEditStudentForm({ admissionNumber: '', name: '', grade: '', section: '', group: '', motherName: '', fatherName: '', guardianName: '', parentMobileNumber: '' });
   };
 
   const handleUpdateFaculty = async (id) => {
@@ -474,7 +483,17 @@ export function AdminDashboard({ section = 'home' }) {
         icon: 'success',
         confirmButtonColor: '#059669'
       });
-      setStudentForm({ name: '', grade: '', section: '', group: '', dateOfBirth: '', admissionNumber: '', motherName: '', fatherName: '', guardianName: '' });
+      if (res.data.parentMobileMissing) {
+        setTimeout(() => {
+          Swal.fire({
+            title: 'Parent mobile still missing',
+            text: 'The student profile was created, but the parent mobile number is empty. Please use Edit Student to add it.',
+            icon: 'warning',
+            confirmButtonColor: '#d97706'
+          });
+        }, 180);
+      }
+      setStudentForm({ name: '', grade: '', section: '', group: '', dateOfBirth: '', admissionNumber: '', motherName: '', fatherName: '', guardianName: '', parentMobileNumber: '' });
       setStats(prev => ({...prev, totalStudents: prev.totalStudents + 1}));
       fetchStudents(token); // dynamically refresh the table
     } catch (err) {
@@ -517,6 +536,7 @@ export function AdminDashboard({ section = 'home' }) {
   const appPages = [
     { key: 'faculty', title: 'Faculty', subtitle: 'Add Faculty, Manage Faculty', icon: BookOpen, badge: stats.totalFaculty, gradient: 'from-emerald-500 to-teal-500' },
     { key: 'students', title: 'Students', subtitle: 'Add Student, Manage Students', icon: GraduationCap, badge: stats.totalStudents, gradient: 'from-amber-500 to-orange-500' },
+    { key: 'memories', title: 'Memories', subtitle: 'Upload Photos and Videos', icon: ImageIcon, badge: 'Media', gradient: 'from-sky-500 to-indigo-500' },
     { key: 'promote', title: 'Promote', subtitle: 'Promote Students', icon: ArrowUpCircle, badge: 'Year', gradient: 'from-cyan-500 to-sky-500' },
     { key: 'events', title: 'Events', subtitle: 'Upcoming Events, Acknowledgements', icon: CalendarDays, badge: stats.totalEvents, gradient: 'from-fuchsia-500 to-pink-500' },
     { key: 'polls', title: 'Poll Center', subtitle: 'Opinion Polls, Analytics', icon: ClipboardList, badge: stats.totalPolls, gradient: 'from-violet-500 to-indigo-500' },
@@ -533,6 +553,10 @@ export function AdminDashboard({ section = 'home' }) {
     students: {
       title: 'Student Center',
       description: 'Admit new students, edit SRV numbers, and maintain family details and fee records.'
+    },
+    memories: {
+      title: 'Memories Gallery',
+      description: 'Upload student photos and videos, then manage the gallery from one admin page.'
     },
     promote: {
       title: 'Academic Promotion',
@@ -998,6 +1022,14 @@ export function AdminDashboard({ section = 'home' }) {
                 onChange={e => setStudentForm({...studentForm, guardianName: e.target.value})}
                 className="w-full min-w-0 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-500" 
               />
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="Parent Mobile Number (optional, add later with Edit if unavailable)"
+                value={studentForm.parentMobileNumber}
+                onChange={e => setStudentForm({ ...studentForm, parentMobileNumber: normalizeParentMobileInput(e.target.value) })}
+                className="w-full min-w-0 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
               {isSeniorGrade(studentForm.grade) && (
                 <input 
                   type="text" 
@@ -1012,7 +1044,7 @@ export function AdminDashboard({ section = 'home' }) {
                 Admit Student & Generate Parent Login
               </button>
               <p className="mt-2 flex items-center justify-center gap-1 text-center text-xs text-slate-500">
-                <CheckCircle2 size={12} className="text-emerald-500" /> Enter mother and father names, or add a guardian. SRV prefix auto-added if you leave admission # blank.
+                <CheckCircle2 size={12} className="text-emerald-500" /> Enter mother and father names, or add a guardian. Add the parent mobile now or update it later from Edit Student. SRV prefix auto-added if you leave admission # blank.
               </p>
             </form>
           </div>
@@ -1434,6 +1466,9 @@ export function AdminDashboard({ section = 'home' }) {
                 <p className={`mt-3 text-sm ${getFamilySummary(student) === 'Missing family details' ? 'font-semibold text-red-500' : 'text-slate-600'}`}>
                   {getFamilySummary(student)}
                 </p>
+                <p className={`mt-2 text-sm ${hasParentMobile(student.parentMobileNumber) ? 'text-slate-500' : 'font-semibold text-amber-600'}`}>
+                  {getParentMobileSummary(student)}
+                </p>
                 <p className="mt-2 text-sm text-slate-500">
                   {student.facultyId ? `Class In-Charge: ${student.facultyId.name}` : 'Class In-Charge: Unassigned'}
                 </p>
@@ -1513,6 +1548,9 @@ export function AdminDashboard({ section = 'home' }) {
                       <div className={getFamilySummary(student) === 'Missing family details' ? 'font-semibold text-red-500' : 'text-xs leading-5'}>
                         {getFamilySummary(student)}
                       </div>
+                      <div className={`mt-2 text-xs leading-5 ${hasParentMobile(student.parentMobileNumber) ? 'text-slate-500' : 'font-semibold text-amber-600'}`}>
+                        {getParentMobileSummary(student)}
+                      </div>
                     </td>
                     <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">
                       {student.facultyId ? student.facultyId.name : <span className="text-slate-400 italic">Unassigned</span>}
@@ -1575,10 +1613,11 @@ export function AdminDashboard({ section = 'home' }) {
 
       </div>
 
-      <div className={`${activeSection === 'events' || activeSection === 'polls' || activeSection === 'feedback' ? 'block' : 'hidden'} mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8`}>
+      <div className={`${activeSection === 'events' || activeSection === 'polls' || activeSection === 'feedback' || activeSection === 'memories' ? 'block' : 'hidden'} mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8`}>
         {activeSection === 'events' && <UpcomingEventsSection role="admin" />}
         {activeSection === 'polls' && <OpinionPollSection role="admin" />}
         {activeSection === 'feedback' && <FeedbackInboxSection role="admin" />}
+        {activeSection === 'memories' && <MemoriesSection role="admin" />}
       </div>
       
       {selectedFacultyProfile && (
@@ -1713,7 +1752,19 @@ export function AdminDashboard({ section = 'home' }) {
                 />
               </div>
 
-              <p className="text-sm text-slate-500">Enter mother and father names together, or fill only the guardian field.</p>
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">Parent Mobile Number</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={editStudentForm.parentMobileNumber}
+                  onChange={e => setEditStudentForm({ ...editStudentForm, parentMobileNumber: normalizeParentMobileInput(e.target.value) })}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Enter parent mobile number"
+                />
+              </div>
+
+              <p className="text-sm text-slate-500">Enter mother and father names together, or fill only the guardian field. Add the parent mobile here if it was missing during admission.</p>
 
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                 <button type="submit" className="w-full rounded-xl bg-purple-600 px-6 py-3 font-bold text-white transition-colors hover:bg-purple-700 sm:w-auto">

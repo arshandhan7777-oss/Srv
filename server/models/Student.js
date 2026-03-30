@@ -8,6 +8,7 @@ const studentSchema = new mongoose.Schema({
   motherName: { type: String, trim: true, default: '' },
   fatherName: { type: String, trim: true, default: '' },
   guardianName: { type: String, trim: true, default: '' },
+  parentMobileNumber: { type: String, trim: true, default: '' },
   dateOfBirth: { type: Date },
   contactNumber: { type: String },
   address: { type: String },

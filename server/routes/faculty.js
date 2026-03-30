@@ -12,6 +12,7 @@ import PollResponse from '../models/PollResponse.js';
 import Feedback from '../models/Feedback.js';
 import Event from '../models/Event.js';
 import EventRegistration from '../models/EventRegistration.js';
+import Memory from '../models/Memory.js';
 import { protect, facultyOrAdmin } from '../middleware/auth.js';
 import { archiveOldHomework } from '../utils/archiveHomework.js';
 import { buildHomeworkClassFilter, resolveHomeworkAudience } from '../utils/homeworkMatching.js';
@@ -22,6 +23,7 @@ import { normalizeEventPayload } from '../utils/eventUtils.js';
 import { archivePastEvents } from '../utils/archiveEvents.js';
 import { applyStudentFamilyDetails, validateStudentFamilyDetails } from '../utils/studentFamilyDetails.js';
 import { buildParentDisplayName, enrichParentLinkedRecord, enrichParentLinkedRecords } from '../utils/parentProfile.js';
+import { normalizeParentMobileNumber, syncParentAccountDetails } from '../utils/parentContact.js';
 
 const router = express.Router();
 
@@ -88,18 +90,30 @@ router.put('/student/:id', protect, facultyOrAdmin, async (req, res) => {
     if (grade !== undefined) student.grade = grade;
     if (section !== undefined) student.section = section;
     if (group !== undefined) student.group = group;
+    if (req.body.parentMobileNumber !== undefined) {
+      student.parentMobileNumber = normalizeParentMobileNumber(req.body.parentMobileNumber);
+    }
     applyStudentFamilyDetails(student, familyValidation.familyDetails);
 
     await student.save();
-    await User.updateOne(
-      { role: 'parent', studentId: student._id },
-      { $set: { name: buildParentDisplayName(student, `Parent of ${student.name}`) } }
-    );
+    await syncParentAccountDetails(student, `Parent of ${student.name}`);
 
     res.json({ message: 'Student profile updated successfully', student });
   } catch (error) {
     console.error('[Faculty Edit Student Error]', error);
     res.status(500).json({ message: 'Error updating student profile' });
+  }
+});
+
+// @route   GET /api/faculty/memories
+// @desc    Get school memories for faculty download/view access
+// @access  Private (Faculty/Admin)
+router.get('/memories', protect, facultyOrAdmin, async (req, res) => {
+  try {
+    const memories = await Memory.find().sort({ createdAt: -1 });
+    res.json(memories);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching memories' });
   }
 });
 
