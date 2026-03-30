@@ -242,9 +242,9 @@ export function UpcomingEventsSection({ role }) {
         </form>
       </div>
 
-      <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
-        <div className="flex items-center justify-between gap-4 mb-6">
-          <div>
+      <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-8">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
             <h3 className="text-xl font-display font-bold text-slate-900">Event Acknowledgements</h3>
             <p className="text-sm text-slate-500">Review who acknowledged each event and the participant names they shared.</p>
           </div>
@@ -267,7 +267,7 @@ export function UpcomingEventsSection({ role }) {
             {orderedEvents.map((item) => {
               const canManage = role === 'admin' || item.createdByRole === role;
               return (
-                <div key={item._id} className="border border-slate-200 rounded-3xl p-6">
+                <div key={item._id} className="rounded-3xl border border-slate-200 p-5 sm:p-6">
                   <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-5">
                     <div>
                       <div className="flex flex-wrap items-center gap-2 mb-2">

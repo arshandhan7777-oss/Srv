@@ -372,7 +372,7 @@ export function OpinionPollSection({ role }) {
         ) : (
           <div className="space-y-6">
             {polls.map((poll) => (
-              <div key={poll._id} className="border border-slate-200 rounded-3xl p-6">
+              <div key={poll._id} className="rounded-3xl border border-slate-200 p-5 sm:p-6">
                 {(() => {
                   const canManage = role === 'admin' || poll.createdByRole === role;
                   return (
@@ -401,7 +401,7 @@ export function OpinionPollSection({ role }) {
                   </div>
 
                   {canManage ? (
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                       {poll.status === 'ACTIVE' ? (
                         <button
                           onClick={() => updatePollStatus(poll._id, 'CLOSED')}

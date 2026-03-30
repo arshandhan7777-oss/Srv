@@ -861,13 +861,16 @@ export function AdminDashboard({ section = 'home' }) {
         </div>
 
         {/* Action Panels */}
-        <div className={`${activeSection === 'faculty' || activeSection === 'students' ? 'grid' : 'hidden'} md:grid-cols-2 gap-8`}>
+        <div className={`${activeSection === 'faculty' || activeSection === 'students' ? 'grid' : 'hidden'} items-start gap-8 lg:grid-cols-2`}>
           
           {/* Add Faculty */}
-          <div className={`${activeSection === 'faculty' ? 'block' : 'hidden'} bg-white rounded-2xl shadow-sm border border-slate-100 p-8`}>
-            <div className="flex items-center gap-3 mb-6">
-              <UserPlus className="text-emerald-600" />
-              <h2 className="text-xl font-display font-bold text-slate-900">Add New Faculty</h2>
+          <div className={`${activeSection === 'faculty' ? 'block' : 'hidden'} rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-8`}>
+            <div className="mb-6 flex items-start gap-3">
+              <UserPlus className="mt-0.5 text-emerald-600" />
+              <div>
+                <h2 className="text-xl font-display font-bold text-slate-900">Add New Faculty</h2>
+                <p className="mt-1 text-sm text-slate-500">Create a faculty account with class ownership, section, and mobile details in one place.</p>
+              </div>
             </div>
             {facultyMsg.text && (
               <div className={`mb-4 px-4 py-3 rounded-lg text-sm font-semibold ${facultyMsg.type === 'success' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-red-100 text-red-800 border border-red-200'}`}>
@@ -881,16 +884,16 @@ export function AdminDashboard({ section = 'home' }) {
                 required
                 value={facultyForm.name}
                 onChange={e => setFacultyForm({...facultyForm, name: e.target.value})}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" 
+                className="w-full min-w-0 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500" 
               />
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <input 
                   type="text" 
                   placeholder="Grade" 
                   required
                   value={facultyForm.assignedGrade}
                   onChange={e => setFacultyForm({...facultyForm, assignedGrade: e.target.value})}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" 
+                  className="w-full min-w-0 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500" 
                 />
                 <input 
                   type="text" 
@@ -898,7 +901,7 @@ export function AdminDashboard({ section = 'home' }) {
                   required
                   value={facultyForm.assignedSection}
                   onChange={e => setFacultyForm({...facultyForm, assignedSection: e.target.value})}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" 
+                  className="w-full min-w-0 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500" 
                 />
                 <input 
                   type="text" 
@@ -906,20 +909,23 @@ export function AdminDashboard({ section = 'home' }) {
                   required
                   value={facultyForm.mobileNumber}
                   onChange={e => setFacultyForm({...facultyForm, mobileNumber: e.target.value})}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" 
+                  className="w-full min-w-0 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500" 
                 />
               </div>
-              <button type="submit" className="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors">
+              <button type="submit" className="flex w-full items-center justify-center rounded-2xl bg-emerald-600 py-3 font-bold text-white transition-colors hover:bg-emerald-700">
                 Create Faculty Account
               </button>
             </form>
           </div>
 
           {/* Add Student */}
-          <div className={`${activeSection === 'students' ? 'block' : 'hidden'} bg-white rounded-2xl shadow-sm border border-slate-100 p-8`}>
-            <div className="flex items-center gap-3 mb-6">
-              <UserPlus className="text-amber-500" />
-              <h2 className="text-xl font-display font-bold text-slate-900">Admit New Student</h2>
+          <div className={`${activeSection === 'students' ? 'block' : 'hidden'} rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-8`}>
+            <div className="mb-6 flex items-start gap-3">
+              <UserPlus className="mt-0.5 text-amber-500" />
+              <div>
+                <h2 className="text-xl font-display font-bold text-slate-900">Admit New Student</h2>
+                <p className="mt-1 text-sm text-slate-500">Add student details, admission info, and family contacts without squeezing the form.</p>
+              </div>
             </div>
             {studentMsg.text && (
               <div className={`mb-4 px-4 py-3 rounded-lg text-sm font-semibold ${studentMsg.type === 'success' ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-red-100 text-red-800 border border-red-200'}`}>
@@ -933,7 +939,7 @@ export function AdminDashboard({ section = 'home' }) {
                 required
                 value={studentForm.name}
                 onChange={e => setStudentForm({...studentForm, name: e.target.value})}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500" 
+                className="w-full min-w-0 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-500" 
               />
               <input 
                 type="text" 
@@ -941,16 +947,16 @@ export function AdminDashboard({ section = 'home' }) {
                 placeholder="Admission Number (e.g., 1695) — leave empty for auto" 
                 value={studentForm.admissionNumber}
                 onChange={e => { const v = e.target.value.replace(/\D/g, ''); setStudentForm({...studentForm, admissionNumber: v}); }}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono" 
+                className="w-full min-w-0 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-mono focus:outline-none focus:ring-2 focus:ring-amber-500" 
               />
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <input 
                   type="text" 
                   placeholder="Grade" 
                   required
                   value={studentForm.grade}
                   onChange={e => setStudentForm({...studentForm, grade: e.target.value, group: ''})}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500" 
+                  className="w-full min-w-0 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-500" 
                 />
                 <input 
                   type="text" 
@@ -958,7 +964,7 @@ export function AdminDashboard({ section = 'home' }) {
                   required
                   value={studentForm.section}
                   onChange={e => setStudentForm({...studentForm, section: e.target.value})}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500" 
+                  className="w-full min-w-0 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-500" 
                 />
                 <input 
                   type="text" 
@@ -966,31 +972,31 @@ export function AdminDashboard({ section = 'home' }) {
                   required
                   value={studentForm.dateOfBirth}
                   onChange={e => setStudentForm({...studentForm, dateOfBirth: e.target.value})}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500" 
+                  className="w-full min-w-0 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-500" 
                 />
               </div>
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid gap-4 md:grid-cols-2">
                 <input 
                   type="text" 
                   placeholder="Mother Name" 
                   value={studentForm.motherName}
                   onChange={e => setStudentForm({...studentForm, motherName: e.target.value})}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500" 
+                  className="w-full min-w-0 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-500" 
                 />
                 <input 
                   type="text" 
                   placeholder="Father Name" 
                   value={studentForm.fatherName}
                   onChange={e => setStudentForm({...studentForm, fatherName: e.target.value})}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500" 
+                  className="w-full min-w-0 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-500" 
                 />
               </div>
               <input 
                 type="text" 
-                placeholder="Guardian Name (if parent names are not available)" 
+                placeholder="Guardian Name (optional if parent names are unavailable)" 
                 value={studentForm.guardianName}
                 onChange={e => setStudentForm({...studentForm, guardianName: e.target.value})}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500" 
+                className="w-full min-w-0 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-500" 
               />
               {isSeniorGrade(studentForm.grade) && (
                 <input 
@@ -999,13 +1005,13 @@ export function AdminDashboard({ section = 'home' }) {
                   required
                   value={studentForm.group}
                   onChange={e => setStudentForm({...studentForm, group: e.target.value})}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500" 
+                  className="w-full min-w-0 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-500" 
                 />
               )}
-              <button type="submit" className="w-full py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors">
+              <button type="submit" className="flex w-full items-center justify-center rounded-2xl bg-amber-500 py-3 font-bold text-white transition-colors hover:bg-amber-600">
                 Admit Student & Generate Parent Login
               </button>
-              <p className="text-xs text-slate-500 text-center mt-2 flex items-center justify-center gap-1">
+              <p className="mt-2 flex items-center justify-center gap-1 text-center text-xs text-slate-500">
                 <CheckCircle2 size={12} className="text-emerald-500" /> Enter mother and father names, or add a guardian. SRV prefix auto-added if you leave admission # blank.
               </p>
             </form>
@@ -1086,10 +1092,13 @@ export function AdminDashboard({ section = 'home' }) {
           </div>
 
           {/* Announcement Maker */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 mt-8 md:col-span-3">
-            <div className="flex items-center gap-3 mb-6">
-              <Megaphone className="text-blue-600" />
-              <h2 className="text-xl font-display font-bold text-slate-900">Broadcast Announcement</h2>
+          <div className="mt-8 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm md:col-span-3 sm:p-8">
+            <div className="mb-6 flex items-start gap-3">
+              <Megaphone className="mt-0.5 text-blue-600" />
+              <div>
+                <h2 className="text-xl font-display font-bold text-slate-900">Broadcast Announcement</h2>
+                <p className="mt-1 text-sm text-slate-500">Send polished updates to all students, a specific class, or selected faculty members.</p>
+              </div>
             </div>
             
             {announcementMsg.text && (
@@ -1106,7 +1115,7 @@ export function AdminDashboard({ section = 'home' }) {
                   placeholder="e.g., School Assembly Cancelled"
                   value={announcementForm.title}
                   onChange={e => setAnnouncementForm({...announcementForm, title: e.target.value})}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               
@@ -1117,17 +1126,17 @@ export function AdminDashboard({ section = 'home' }) {
                   rows="4"
                   value={announcementForm.message}
                   onChange={e => setAnnouncementForm({...announcementForm, message: e.target.value})}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 ></textarea>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Priority</label>
                   <select 
                     value={announcementForm.priority}
                     onChange={e => setAnnouncementForm({...announcementForm, priority: e.target.value})}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="LOW">Low</option>
                     <option value="MEDIUM">Medium</option>
@@ -1143,7 +1152,7 @@ export function AdminDashboard({ section = 'home' }) {
                       setAnnouncementForm({...announcementForm, targetType: e.target.value, targetGrade: '', targetSection: ''});
                       setSelectedAnnouncementFaculties([]);
                     }}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="students">All Students</option>
                     <option value="class">Specific Grade & Section</option>
@@ -1153,30 +1162,30 @@ export function AdminDashboard({ section = 'home' }) {
               </div>
 
               {announcementForm.targetType === 'class' && (
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid gap-4 md:grid-cols-2">
                   <input 
                     type="text" 
                     placeholder="Grade (e.g., 10)"
                     value={announcementForm.targetGrade}
                     onChange={e => setAnnouncementForm({...announcementForm, targetGrade: e.target.value})}
-                    className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <input 
                     type="text" 
                     placeholder="Section (e.g., A)"
                     value={announcementForm.targetSection}
                     onChange={e => setAnnouncementForm({...announcementForm, targetSection: e.target.value})}
-                    className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               )}
 
               {announcementForm.targetType === 'faculty' && (
-                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
                   <label className="block text-sm font-semibold text-slate-700 mb-3">Select Faculty Members</label>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                  <div className="no-scrollbar max-h-56 space-y-2 overflow-y-auto pr-1">
                     {faculties.length > 0 ? faculties.map(faculty => (
-                      <label key={faculty._id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white transition-colors cursor-pointer">
+                      <label key={faculty._id} className="flex cursor-pointer items-center gap-3 rounded-2xl p-3 transition-colors hover:bg-white">
                         <input 
                           type="checkbox" 
                           checked={selectedAnnouncementFaculties.includes(faculty._id)}
@@ -1191,10 +1200,10 @@ export function AdminDashboard({ section = 'home' }) {
                         />
                         <div className="flex-1">
                           <p className="text-sm font-semibold text-slate-900">{faculty.name}</p>
-                          <p className="text-xs text-slate-500">{faculty.srvNumber} · Grade {faculty.assignedGrade} - {faculty.assignedSection}</p>
+                          <p className="text-xs text-slate-500">{faculty.srvNumber} - Grade {faculty.assignedGrade} - {faculty.assignedSection}</p>
                         </div>
                         {selectedAnnouncementFaculties.includes(faculty._id) && (
-                          <span className="text-blue-600 font-bold text-sm">✓</span>
+                          <span className="text-blue-600 font-bold text-sm">Selected</span>
                         )}
                       </label>
                     )) : (
@@ -1207,24 +1216,24 @@ export function AdminDashboard({ section = 'home' }) {
                 </div>
               )}
 
-              <button type="submit" className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors">
-                📢 Publish Announcement
+              <button type="submit" className="flex w-full items-center justify-center rounded-2xl bg-blue-600 py-3 font-bold text-white transition-colors hover:bg-blue-700">
+                Publish Announcement
               </button>
             </form>
 
             {/* Recent Announcements */}
             <div className="border-t border-slate-200 pt-6">
               <h3 className="font-bold text-slate-900 mb-4">Recent Announcements ({announcements.length})</h3>
-              <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
+              <div className="no-scrollbar max-h-64 space-y-3 overflow-y-auto pr-1">
                 {announcements.length > 0 ? announcements.slice(0, 5).map(ann => (
-                  <div key={ann._id} className={`p-3 rounded-xl border-l-4 ${ann.priority === 'HIGH' ? 'bg-red-50 border-l-red-500' : ann.priority === 'MEDIUM' ? 'bg-amber-50 border-l-amber-500' : 'bg-slate-50 border-l-slate-500'}`}>
-                    <div className="flex items-start justify-between gap-2">
+                  <div key={ann._id} className={`rounded-2xl border-l-4 p-4 ${ann.priority === 'HIGH' ? 'bg-red-50 border-l-red-500' : ann.priority === 'MEDIUM' ? 'bg-amber-50 border-l-amber-500' : 'bg-slate-50 border-l-slate-500'}`}>
+                    <div className="flex items-start justify-between gap-3">
                       <div className="flex-1">
                         <p className="font-bold text-sm text-slate-900">{ann.title}</p>
                         <p className="text-xs text-slate-600 line-clamp-1">{ann.message}</p>
-                        <p className="text-[10px] text-slate-500 mt-1">{new Date(ann.createdAt).toLocaleDateString()} · {ann.type === 'CLASS' ? `Grade ${ann.targetGrade} - ${ann.targetSection}` : 'All Students'}</p>
+                        <p className="text-[10px] text-slate-500 mt-1">{new Date(ann.createdAt).toLocaleDateString()} - {ann.type === 'CLASS' ? `Grade ${ann.targetGrade} - ${ann.targetSection}` : 'All Students'}</p>
                       </div>
-                      <button onClick={() => deleteAnnouncement(ann._id)} className="text-red-500 hover:text-red-700 p-1"><Trash2 size={16} /></button>
+                      <button onClick={() => deleteAnnouncement(ann._id)} className="rounded-xl p-2 text-red-500 hover:bg-white hover:text-red-700"><Trash2 size={16} /></button>
                     </div>
                   </div>
                 )) : (
@@ -1236,7 +1245,7 @@ export function AdminDashboard({ section = 'home' }) {
         </div>
 
         {/* Cafeteria Menu Panel */}
-        <div className={`${activeSection === 'cafeteria' ? 'block' : 'hidden'} mt-8 bg-white rounded-2xl shadow-sm border border-slate-100 p-8`}>
+        <div className={`${activeSection === 'cafeteria' ? 'block' : 'hidden'} mt-8 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-8`}>
           <div className="flex items-center gap-3 mb-6">
             <Coffee className="text-orange-500" />
             <h2 className="text-xl font-display font-bold text-slate-900">Manage Cafeteria Menu</h2>

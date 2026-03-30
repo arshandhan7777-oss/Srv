@@ -101,7 +101,7 @@ export function FeedbackInboxSection({ role }) {
           {feedback.map((item) => {
             const draft = drafts[item._id] || { status: item.status, staffNote: item.staffNote || '' };
             return (
-              <div key={item._id} className="border border-slate-200 rounded-3xl p-6">
+              <div key={item._id} className="rounded-3xl border border-slate-200 p-5 sm:p-6">
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
                   <div>
                     <div className="flex flex-wrap items-center gap-2 mb-2">
