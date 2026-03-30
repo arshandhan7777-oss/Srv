@@ -383,6 +383,11 @@ export function FacultyDashboard({ section = 'dashboard' }) {
     setProfileMsg({ text: '', type: '' });
   };
 
+  const closeStudentEvaluation = () => {
+    setSelectedStudent(null);
+    setGradeMsg({ text: '', type: '' });
+  };
+
   const saveStudentProfile = async (e) => {
     e.preventDefault();
 
@@ -919,85 +924,6 @@ export function FacultyDashboard({ section = 'dashboard' }) {
                 </tbody>
               </table>
             </div>
-
-            {/* Grading Drawer / Panel */}
-            {selectedStudent && (
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 mt-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-xl font-display font-bold text-slate-900 flex items-center gap-2">
-                    Evaluating: <span className="text-emerald-600">{selectedStudent.name}</span>
-                  </h3>
-                  <button onClick={() => setSelectedStudent(null)} className="text-slate-400 hover:text-slate-600 font-bold">Cancel</button>
-                </div>
-                
-                {gradeMsg.text && (
-                  <div className={`mb-4 px-4 py-3 rounded-lg text-sm font-semibold ${gradeMsg.type === 'success' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
-                    {gradeMsg.text}
-                  </div>
-                )}
-
-                <form onSubmit={submitGrades} className="space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="gradeForm-term" className="block text-xs font-bold text-slate-500 mb-1">Term</label>
-                      <select id="gradeForm-term" name="term" value={gradeForm.term} onChange={e => setGradeForm({...gradeForm, term: e.target.value})} className="w-full px-4 py-2 border rounded-xl">
-                        <option>Term 1</option>
-                        <option>Mid-Terms</option>
-                        <option>Term 2</option>
-                        <option>Finals</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label htmlFor="gradeForm-behaviour" className="block text-xs font-bold text-slate-500 mb-1">Behaviour</label>
-                      <select id="gradeForm-behaviour" name="behaviour" value={gradeForm.behaviour} onChange={e => setGradeForm({...gradeForm, behaviour: e.target.value})} className="w-full px-4 py-2 border rounded-xl">
-                        <option>Excellent</option>
-                        <option>Good</option>
-                        <option>Needs Improvement</option>
-                        <option>Poor</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Nlite Academy Skills */}
-                  <div>
-                    <h4 className="font-bold text-slate-700 border-b pb-2 mb-3">Nlite 21st-Century Skills (0-5)</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {Object.keys(gradeForm.nliteSkills).map(skillName => (
-                        <div key={skillName}>
-                          <label htmlFor={`nliteSkill-${skillName}`} className="block text-xs font-bold text-slate-500 mb-1 capitalize">{skillName.replace(/([A-Z])/g, ' $1')}</label>
-                          <input id={`nliteSkill-${skillName}`} name={`nliteSkill-${skillName}`} type="number" min="0" max="5" required
-                            value={gradeForm.nliteSkills[skillName]} 
-                            onChange={e => setGradeForm({...gradeForm, nliteSkills: {...gradeForm.nliteSkills, [skillName]: Number(e.target.value)}})}
-                            className="w-full px-3 py-2 border rounded-xl bg-amber-50"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Marks */}
-                  <div>
-                    <h4 className="font-bold text-slate-700 border-b pb-2 mb-3">Academic Marks (Out of 100)</h4>
-                    <div className="grid grid-cols-3 gap-4">
-                      {Object.keys(gradeForm.marks).map(subject => (
-                        <div key={subject}>
-                          <label htmlFor={`marks-${subject}`} className="block text-xs font-bold text-slate-500 mb-1 capitalize">{subject}</label>
-                          <input id={`marks-${subject}`} name={`marks-${subject}`} type="number" min="0" max="100" required
-                            value={gradeForm.marks[subject]} 
-                            onChange={e => setGradeForm({...gradeForm, marks: {...gradeForm.marks, [subject]: Number(e.target.value)}})}
-                            className="w-full px-3 py-2 border rounded-xl bg-slate-50"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <button type="submit" className="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors">
-                    Save Evaluation & Notify Parents
-                  </button>
-                </form>
-              </div>
-            )}
 
             {/* Homework Dashboard Weekly Calendar */}
             <div className="bg-white rounded-3xl p-6 lg:p-8 shadow-sm border border-slate-100 mt-8 relative">
@@ -1753,6 +1679,99 @@ export function FacultyDashboard({ section = 'dashboard' }) {
 
               <button type="submit" className="w-full py-3.5 mt-auto shrink-0 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors shadow-lg">
                 Publish Behavior Logs
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {selectedStudent && (
+        <div className="fixed inset-0 z-[58] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+          <div className="absolute inset-0" onClick={closeStudentEvaluation} />
+          <div className="relative z-10 w-full max-w-6xl rounded-[2rem] border border-slate-200 bg-white p-6 shadow-2xl sm:p-8 max-h-[90vh] overflow-y-auto">
+            <div className="mb-6 flex items-center justify-between gap-4">
+              <h3 className="text-xl font-display font-bold text-slate-900 flex items-center gap-2">
+                Evaluating: <span className="text-emerald-600">{selectedStudent.name}</span>
+              </h3>
+              <button type="button" onClick={closeStudentEvaluation} className="text-slate-400 hover:text-slate-600 font-bold">
+                Cancel
+              </button>
+            </div>
+
+            {gradeMsg.text && (
+              <div className={`mb-4 rounded-lg px-4 py-3 text-sm font-semibold ${gradeMsg.type === 'success' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                {gradeMsg.text}
+              </div>
+            )}
+
+            <form onSubmit={submitGrades} className="space-y-6">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <label htmlFor="gradeForm-term" className="block text-xs font-bold text-slate-500 mb-1">Term</label>
+                  <select id="gradeForm-term" name="term" value={gradeForm.term} onChange={e => setGradeForm({...gradeForm, term: e.target.value})} className="w-full px-4 py-2 border rounded-xl">
+                    <option>Term 1</option>
+                    <option>Mid-Terms</option>
+                    <option>Term 2</option>
+                    <option>Finals</option>
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="gradeForm-behaviour" className="block text-xs font-bold text-slate-500 mb-1">Behaviour</label>
+                  <select id="gradeForm-behaviour" name="behaviour" value={gradeForm.behaviour} onChange={e => setGradeForm({...gradeForm, behaviour: e.target.value})} className="w-full px-4 py-2 border rounded-xl">
+                    <option>Excellent</option>
+                    <option>Good</option>
+                    <option>Needs Improvement</option>
+                    <option>Poor</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-slate-700 border-b pb-2 mb-3">Nlite 21st-Century Skills (0-5)</h4>
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                  {Object.keys(gradeForm.nliteSkills).map(skillName => (
+                    <div key={skillName}>
+                      <label htmlFor={`nliteSkill-${skillName}`} className="block text-xs font-bold text-slate-500 mb-1 capitalize">{skillName.replace(/([A-Z])/g, ' $1')}</label>
+                      <input
+                        id={`nliteSkill-${skillName}`}
+                        name={`nliteSkill-${skillName}`}
+                        type="number"
+                        min="0"
+                        max="5"
+                        required
+                        value={gradeForm.nliteSkills[skillName]}
+                        onChange={e => setGradeForm({...gradeForm, nliteSkills: {...gradeForm.nliteSkills, [skillName]: Number(e.target.value)}})}
+                        className="w-full px-3 py-2 border rounded-xl bg-amber-50"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-slate-700 border-b pb-2 mb-3">Academic Marks (Out of 100)</h4>
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                  {Object.keys(gradeForm.marks).map(subject => (
+                    <div key={subject}>
+                      <label htmlFor={`marks-${subject}`} className="block text-xs font-bold text-slate-500 mb-1 capitalize">{subject}</label>
+                      <input
+                        id={`marks-${subject}`}
+                        name={`marks-${subject}`}
+                        type="number"
+                        min="0"
+                        max="100"
+                        required
+                        value={gradeForm.marks[subject]}
+                        onChange={e => setGradeForm({...gradeForm, marks: {...gradeForm.marks, [subject]: Number(e.target.value)}})}
+                        className="w-full px-3 py-2 border rounded-xl bg-slate-50"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <button type="submit" className="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors">
+                Save Evaluation & Notify Parents
               </button>
             </form>
           </div>
