@@ -332,6 +332,24 @@ export function AdminDashboard({ section = 'home' }) {
     }
   };
 
+  const openStudentEditor = (student) => {
+    setEditingStudentId(student._id);
+    setEditStudentForm({
+      name: student.name,
+      grade: student.grade,
+      section: student.section,
+      group: student.group || '',
+      motherName: student.motherName || '',
+      fatherName: student.fatherName || '',
+      guardianName: student.guardianName || ''
+    });
+  };
+
+  const closeStudentEditor = () => {
+    setEditingStudentId(null);
+    setEditStudentForm({ name: '', grade: '', section: '', group: '', motherName: '', fatherName: '', guardianName: '' });
+  };
+
   const handleUpdateFaculty = async (id) => {
     try {
       const token = localStorage.getItem('schoolToken');
@@ -1389,75 +1407,35 @@ export function AdminDashboard({ section = 'home' }) {
                         </span>
                       )}
                     </td>
-                    {editingStudentId === student._id ? (
-                      <>
-                        <td className="px-3 py-3 border-b border-slate-50">
-                          <input type="text" value={editStudentForm.name} onChange={e => setEditStudentForm({...editStudentForm, name: e.target.value})} className="w-full px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-xs" placeholder="Name" />
-                        </td>
-                        <td className="px-3 py-3 border-b border-slate-50">
-                          <div className="space-y-2">
-                            <div className="flex gap-1">
-                              <input type="text" value={editStudentForm.grade} onChange={e => setEditStudentForm({...editStudentForm, grade: e.target.value, group: ''})} className="w-12 px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-xs" placeholder="Gr" />
-                              <input type="text" value={editStudentForm.section} onChange={e => setEditStudentForm({...editStudentForm, section: e.target.value})} className="w-12 px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-xs" placeholder="Sec" />
-                            </div>
-                            {isSeniorGrade(editStudentForm.grade) && (
-                              <input type="text" value={editStudentForm.group} onChange={e => setEditStudentForm({...editStudentForm, group: e.target.value})} className="w-full px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-xs" placeholder="Group" />
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-3 py-3 border-b border-slate-50">
-                          <div className="space-y-2 min-w-[240px]">
-                            <input type="text" value={editStudentForm.motherName} onChange={e => setEditStudentForm({...editStudentForm, motherName: e.target.value})} className="w-full px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-xs" placeholder="Mother name" />
-                            <input type="text" value={editStudentForm.fatherName} onChange={e => setEditStudentForm({...editStudentForm, fatherName: e.target.value})} className="w-full px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-xs" placeholder="Father name" />
-                            <input type="text" value={editStudentForm.guardianName} onChange={e => setEditStudentForm({...editStudentForm, guardianName: e.target.value})} className="w-full px-2 py-1.5 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-xs" placeholder="Guardian name" />
-                          </div>
-                        </td>
-                        <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">
-                          {student.facultyId ? student.facultyId.name : <span className="text-slate-400 italic">Unassigned</span>}
-                        </td>
-                        <td className="px-5 py-4 text-center border-b border-slate-50">
-                          <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${student.fees?.overall === 'Paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
-                            {student.fees?.overall || 'Unpaid'}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3 flex items-center justify-center gap-2 border-b border-slate-50">
-                          <button onClick={() => handleUpdateStudent(student._id)} className="p-2 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200" title="Save"><Save size={14}/></button>
-                          <button onClick={() => setEditingStudentId(null)} className="p-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200" title="Cancel"><X size={14}/></button>
-                        </td>
-                      </>
-                    ) : (
-                      <>
-                        <td className="px-5 py-4 font-semibold text-slate-900 border-b border-slate-50">{student.name}</td>
-                        <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">
-                          <div>{student.grade}-{student.section}</div>
-                          {student.group && <div className="text-xs text-slate-400 mt-1">{student.group}</div>}
-                        </td>
-                        <td className="px-5 py-4 text-slate-700 border-b border-slate-50">
-                          <div className={getFamilySummary(student) === 'Missing family details' ? 'font-semibold text-red-500' : 'text-xs leading-5'}>
-                            {getFamilySummary(student)}
-                          </div>
-                        </td>
-                        <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">
-                          {student.facultyId ? student.facultyId.name : <span className="text-slate-400 italic">Unassigned</span>}
-                        </td>
-                        <td className="px-5 py-4 text-center border-b border-slate-50">
-                          <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${student.fees?.overall === 'Paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
-                            {student.fees?.overall || 'Unpaid'}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4 flex items-center justify-center gap-2 border-b border-slate-50">
-                          <button onClick={() => { setEditingStudentId(student._id); setEditStudentForm({ name: student.name, grade: student.grade, section: student.section, group: student.group || '', motherName: student.motherName || '', fatherName: student.fatherName || '', guardianName: student.guardianName || '' }); }} className="text-blue-600 hover:text-blue-800 font-semibold text-xs hover:underline flex items-center gap-1" title="Edit Student">
-                            <Edit2 size={12}/> Edit
-                          </button>
-                          <button onClick={() => setSelectedStudentForFees(student)} className="text-purple-600 hover:text-purple-800 font-semibold text-xs hover:underline" title="Manage Fees">
-                            Fees
-                          </button>
-                          <button onClick={() => handleDeleteStudent(student._id)} className="text-red-500 hover:text-red-700 p-1 rounded-lg hover:bg-red-50 shrink-0" title="Delete">
-                            <Trash2 size={14}/>
-                          </button>
-                        </td>
-                      </>
-                    )}
+                    <td className="px-5 py-4 font-semibold text-slate-900 border-b border-slate-50">{student.name}</td>
+                    <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">
+                      <div>{student.grade}-{student.section}</div>
+                      {student.group && <div className="text-xs text-slate-400 mt-1">{student.group}</div>}
+                    </td>
+                    <td className="px-5 py-4 text-slate-700 border-b border-slate-50">
+                      <div className={getFamilySummary(student) === 'Missing family details' ? 'font-semibold text-red-500' : 'text-xs leading-5'}>
+                        {getFamilySummary(student)}
+                      </div>
+                    </td>
+                    <td className="px-5 py-4 font-semibold text-slate-700 border-b border-slate-50">
+                      {student.facultyId ? student.facultyId.name : <span className="text-slate-400 italic">Unassigned</span>}
+                    </td>
+                    <td className="px-5 py-4 text-center border-b border-slate-50">
+                      <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${student.fees?.overall === 'Paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                        {student.fees?.overall || 'Unpaid'}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 flex items-center justify-center gap-2 border-b border-slate-50">
+                      <button onClick={() => openStudentEditor(student)} className="text-blue-600 hover:text-blue-800 font-semibold text-xs hover:underline flex items-center gap-1" title="Edit Student">
+                        <Edit2 size={12}/> Edit
+                      </button>
+                      <button onClick={() => setSelectedStudentForFees(student)} className="text-purple-600 hover:text-purple-800 font-semibold text-xs hover:underline" title="Manage Fees">
+                        Fees
+                      </button>
+                      <button onClick={() => handleDeleteStudent(student._id)} className="text-red-500 hover:text-red-700 p-1 rounded-lg hover:bg-red-50 shrink-0" title="Delete">
+                        <Trash2 size={14}/>
+                      </button>
+                    </td>
                   </tr>
                 ))}
                 {allStudents.length === 0 && (
@@ -1517,6 +1495,126 @@ export function AdminDashboard({ section = 'home' }) {
             fetchStudents(token);
           }} 
         />
+      )}
+
+      {editingStudentId && (
+        <div className="fixed inset-0 z-[56] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+          <div className="absolute inset-0" onClick={closeStudentEditor} />
+          <div className="relative z-10 w-full max-w-5xl rounded-[2rem] border border-slate-200 bg-white p-6 shadow-2xl sm:p-8">
+            <div className="flex items-start justify-between gap-4 mb-6">
+              <div>
+                <h3 className="text-2xl font-display font-bold text-slate-900">Edit Student Profile</h3>
+                <p className="text-sm text-slate-500 mt-1">Update student information and family details from one popup.</p>
+              </div>
+              <button
+                type="button"
+                onClick={closeStudentEditor}
+                className="rounded-xl px-3 py-2 text-sm font-bold text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+              >
+                Close
+              </button>
+            </div>
+
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                handleUpdateStudent(editingStudentId);
+              }}
+              className="space-y-5"
+            >
+              <div className="grid gap-4 md:grid-cols-3">
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">Student Name</label>
+                  <input
+                    type="text"
+                    value={editStudentForm.name}
+                    onChange={e => setEditStudentForm({ ...editStudentForm, name: e.target.value })}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Student name"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">Grade</label>
+                  <input
+                    type="text"
+                    value={editStudentForm.grade}
+                    onChange={e => setEditStudentForm({ ...editStudentForm, grade: e.target.value, group: '' })}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Grade"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">Section</label>
+                  <input
+                    type="text"
+                    value={editStudentForm.section}
+                    onChange={e => setEditStudentForm({ ...editStudentForm, section: e.target.value })}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Section"
+                  />
+                </div>
+              </div>
+
+              {isSeniorGrade(editStudentForm.grade) && (
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">Group</label>
+                  <input
+                    type="text"
+                    value={editStudentForm.group}
+                    onChange={e => setEditStudentForm({ ...editStudentForm, group: e.target.value })}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Group"
+                  />
+                </div>
+              )}
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">Mother Name</label>
+                  <input
+                    type="text"
+                    value={editStudentForm.motherName}
+                    onChange={e => setEditStudentForm({ ...editStudentForm, motherName: e.target.value })}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Mother name"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">Father Name</label>
+                  <input
+                    type="text"
+                    value={editStudentForm.fatherName}
+                    onChange={e => setEditStudentForm({ ...editStudentForm, fatherName: e.target.value })}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Father name"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">Guardian Name</label>
+                <input
+                  type="text"
+                  value={editStudentForm.guardianName}
+                  onChange={e => setEditStudentForm({ ...editStudentForm, guardianName: e.target.value })}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Guardian name (if parent names are not available)"
+                />
+              </div>
+
+              <p className="text-sm text-slate-500">Enter mother and father names together, or fill only the guardian field.</p>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <button type="submit" className="rounded-xl bg-purple-600 px-6 py-3 font-bold text-white transition-colors hover:bg-purple-700">
+                  Save Student
+                </button>
+                <button type="button" onClick={closeStudentEditor} className="rounded-xl bg-slate-100 px-6 py-3 font-bold text-slate-700 transition-colors hover:bg-slate-200">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       {editingFacultyId && (
