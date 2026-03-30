@@ -128,7 +128,7 @@ export function OpinionPollSection({ role }) {
 
   return (
     <div className="mt-8 space-y-6">
-      <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+      <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-8">
         <div className="flex items-center gap-3 mb-6">
           <ClipboardList className="text-emerald-600" />
           <div>
@@ -152,7 +152,7 @@ export function OpinionPollSection({ role }) {
         )}
 
         <form onSubmit={submitPoll} className="space-y-5">
-          <div className="grid lg:grid-cols-2 gap-4">
+          <div className="grid gap-4 lg:grid-cols-2">
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Poll Title</label>
               <input
@@ -187,7 +187,7 @@ export function OpinionPollSection({ role }) {
           </div>
 
           {role === 'admin' && (
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid gap-4 md:grid-cols-3">
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">Audience</label>
                 <select
@@ -235,8 +235,8 @@ export function OpinionPollSection({ role }) {
 
           <div className="space-y-4">
             {form.questions.map((question, questionIndex) => (
-              <div key={questionIndex} className="border border-slate-200 rounded-3xl p-5 bg-slate-50">
-                <div className="flex items-center justify-between mb-4">
+              <div key={questionIndex} className="rounded-3xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+                <div className="mb-4 flex items-center justify-between gap-3">
                   <h4 className="font-bold text-slate-900">Question {questionIndex + 1}</h4>
                   {form.questions.length > 1 && (
                     <button
@@ -264,7 +264,7 @@ export function OpinionPollSection({ role }) {
                     className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500"
                   />
 
-                  <div className="grid md:grid-cols-2 gap-3">
+                  <div className="grid gap-3 md:grid-cols-2">
                     {question.options.map((option, optionIndex) => (
                       <div key={optionIndex} className="flex gap-2">
                         <input
@@ -325,11 +325,11 @@ export function OpinionPollSection({ role }) {
             ))}
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <button
               type="button"
               onClick={() => setForm({ ...form, questions: [...form.questions, createQuestion()] })}
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-100 px-5 py-3 font-semibold text-slate-700 hover:bg-slate-200 sm:w-auto"
             >
               <Plus size={18} /> Add Question
             </button>
@@ -337,7 +337,7 @@ export function OpinionPollSection({ role }) {
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 disabled:opacity-60"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-6 py-3 font-bold text-white hover:bg-emerald-700 disabled:opacity-60 sm:w-auto"
             >
               <CheckCircle2 size={18} /> {saving ? 'Publishing...' : 'Publish Poll'}
             </button>
@@ -345,8 +345,8 @@ export function OpinionPollSection({ role }) {
         </form>
       </div>
 
-      <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
-        <div className="flex items-center justify-between gap-4 mb-6">
+      <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-8">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <BarChart3 className="text-blue-600" />
             <div>

@@ -1566,7 +1566,7 @@ export function AdminDashboard({ section = 'home' }) {
 
       </div>
 
-      <div className={`${activeSection === 'events' || activeSection === 'polls' || activeSection === 'feedback' ? 'block' : 'hidden'} max-w-7xl mx-auto px-6 pb-10`}>
+      <div className={`${activeSection === 'events' || activeSection === 'polls' || activeSection === 'feedback' ? 'block' : 'hidden'} mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8`}>
         {activeSection === 'events' && <UpcomingEventsSection role="admin" />}
         {activeSection === 'polls' && <OpinionPollSection role="admin" />}
         {activeSection === 'feedback' && <FeedbackInboxSection role="admin" />}
@@ -1586,10 +1586,10 @@ export function AdminDashboard({ section = 'home' }) {
       )}
 
       {editingStudentId && (
-        <div className="fixed inset-0 z-[56] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[56] flex items-start justify-center overflow-y-auto bg-slate-900/60 p-3 backdrop-blur-sm sm:items-center sm:p-4">
           <div className="absolute inset-0" onClick={closeStudentEditor} />
-          <div className="relative z-10 w-full max-w-5xl rounded-[2rem] border border-slate-200 bg-white p-6 shadow-2xl sm:p-8">
-            <div className="flex items-start justify-between gap-4 mb-6">
+          <div className="relative z-10 mx-auto my-3 w-full max-w-5xl overflow-y-auto rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-2xl max-h-[calc(100vh-1.5rem)] sm:my-8 sm:max-h-[90vh] sm:p-8">
+            <div className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <h3 className="text-2xl font-display font-bold text-slate-900">Edit Student Profile</h3>
                 <p className="text-sm text-slate-500 mt-1">Update student information and family details from one popup.</p>
@@ -1597,7 +1597,7 @@ export function AdminDashboard({ section = 'home' }) {
               <button
                 type="button"
                 onClick={closeStudentEditor}
-                className="rounded-xl px-3 py-2 text-sm font-bold text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                className="self-start rounded-xl px-3 py-2 text-sm font-bold text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 sm:self-auto"
               >
                 Close
               </button>
@@ -1608,7 +1608,7 @@ export function AdminDashboard({ section = 'home' }) {
                 event.preventDefault();
                 handleUpdateStudent(editingStudentId);
               }}
-              className="space-y-5"
+              className="space-y-4 sm:space-y-5"
             >
               <div className="grid gap-4 md:grid-cols-3">
                 <div>
@@ -1700,17 +1700,17 @@ export function AdminDashboard({ section = 'home' }) {
                   value={editStudentForm.guardianName}
                   onChange={e => setEditStudentForm({ ...editStudentForm, guardianName: e.target.value })}
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Guardian name (if parent names are not available)"
+                  placeholder="Guardian name if parent names are unavailable"
                 />
               </div>
 
               <p className="text-sm text-slate-500">Enter mother and father names together, or fill only the guardian field.</p>
 
-              <div className="flex flex-wrap items-center gap-3">
-                <button type="submit" className="rounded-xl bg-purple-600 px-6 py-3 font-bold text-white transition-colors hover:bg-purple-700">
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+                <button type="submit" className="w-full rounded-xl bg-purple-600 px-6 py-3 font-bold text-white transition-colors hover:bg-purple-700 sm:w-auto">
                   Save Student
                 </button>
-                <button type="button" onClick={closeStudentEditor} className="rounded-xl bg-slate-100 px-6 py-3 font-bold text-slate-700 transition-colors hover:bg-slate-200">
+                <button type="button" onClick={closeStudentEditor} className="w-full rounded-xl bg-slate-100 px-6 py-3 font-bold text-slate-700 transition-colors hover:bg-slate-200 sm:w-auto">
                   Cancel
                 </button>
               </div>
@@ -1720,10 +1720,10 @@ export function AdminDashboard({ section = 'home' }) {
       )}
 
       {editingFacultyId && (
-        <div className="fixed inset-0 z-[55] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[55] flex items-start justify-center overflow-y-auto bg-slate-900/60 p-3 backdrop-blur-sm sm:items-center sm:p-4">
           <div className="absolute inset-0" onClick={closeFacultyEditor} />
-          <div className="relative z-10 w-full max-w-5xl rounded-[2rem] border border-slate-200 bg-white p-6 shadow-2xl sm:p-8">
-            <div className="flex items-start justify-between gap-4 mb-6">
+          <div className="relative z-10 mx-auto my-3 w-full max-w-5xl overflow-y-auto rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-2xl max-h-[calc(100vh-1.5rem)] sm:my-8 sm:max-h-[90vh] sm:p-8">
+            <div className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <h3 className="text-2xl font-display font-bold text-slate-900">Edit Faculty Profile</h3>
                 <p className="text-sm text-slate-500 mt-1">Update FAC number, faculty details, class assignment, and password.</p>
@@ -1731,7 +1731,7 @@ export function AdminDashboard({ section = 'home' }) {
               <button
                 type="button"
                 onClick={closeFacultyEditor}
-                className="rounded-xl px-3 py-2 text-sm font-bold text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                className="self-start rounded-xl px-3 py-2 text-sm font-bold text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 sm:self-auto"
               >
                 Close
               </button>
@@ -1748,7 +1748,7 @@ export function AdminDashboard({ section = 'home' }) {
                 event.preventDefault();
                 handleUpdateFaculty(editingFacultyId);
               }}
-              className="space-y-5"
+              className="space-y-4 sm:space-y-5"
             >
               <div className="grid gap-4 md:grid-cols-3">
                 <div>
@@ -1816,16 +1816,16 @@ export function AdminDashboard({ section = 'home' }) {
                     value={editFacultyForm.password}
                     onChange={e => setEditFacultyForm({ ...editFacultyForm, password: e.target.value })}
                     className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Leave empty to keep current password"
-                  />
-                </div>
+                      placeholder="Leave blank to keep current password"
+                    />
+                  </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3">
-                <button type="submit" className="rounded-xl bg-blue-600 px-6 py-3 font-bold text-white transition-colors hover:bg-blue-700">
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+                <button type="submit" className="w-full rounded-xl bg-blue-600 px-6 py-3 font-bold text-white transition-colors hover:bg-blue-700 sm:w-auto">
                   Save Faculty
                 </button>
-                <button type="button" onClick={closeFacultyEditor} className="rounded-xl bg-slate-100 px-6 py-3 font-bold text-slate-700 transition-colors hover:bg-slate-200">
+                <button type="button" onClick={closeFacultyEditor} className="w-full rounded-xl bg-slate-100 px-6 py-3 font-bold text-slate-700 transition-colors hover:bg-slate-200 sm:w-auto">
                   Cancel
                 </button>
               </div>
@@ -1902,11 +1902,11 @@ function FacultyProfileModal({ faculty, allStudents, onClose, onUpdate }) {
   });
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden my-8">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/60 p-3 backdrop-blur-sm sm:items-center sm:p-4">
+      <div className="mx-auto my-3 w-full max-w-4xl overflow-hidden rounded-[1.75rem] bg-white shadow-2xl sm:my-8">
         
         {/* Header */}
-        <div className="bg-slate-900 px-6 py-4 flex justify-between items-center text-white">
+        <div className="flex items-start justify-between gap-3 bg-slate-900 px-5 py-4 text-white sm:px-6">
           <div>
             <h2 className="text-xl font-bold font-display">Faculty Profile: {faculty.name}</h2>
             <p className="text-sm text-slate-300">Class Incharge: {faculty.assignedGrade || '-'}-{faculty.assignedSection || '-'}</p>
@@ -1914,7 +1914,7 @@ function FacultyProfileModal({ faculty, allStudents, onClose, onUpdate }) {
           <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg"><X size={20} /></button>
         </div>
 
-        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-6 p-5 sm:gap-8 sm:p-6 md:grid-cols-2">
           
           {/* Left Column: Config */}
           <div className="space-y-6">
@@ -1933,9 +1933,9 @@ function FacultyProfileModal({ faculty, allStudents, onClose, onUpdate }) {
               </h3>
               <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
                 {handledClasses.map((hc, idx) => (
-                  <div key={idx} className="flex gap-2 p-2 bg-slate-50 rounded-xl border border-slate-100 items-center">
-                    <input type="text" placeholder="Grade" value={hc.grade} onChange={e => { const newHc = [...handledClasses]; newHc[idx].grade = e.target.value; setHandledClasses(newHc); }} className="w-16 px-2 py-1 border rounded text-sm" />
-                    <input type="text" placeholder="Sec" value={hc.section} onChange={e => { const newHc = [...handledClasses]; newHc[idx].section = e.target.value; setHandledClasses(newHc); }} className="w-16 px-2 py-1 border rounded text-sm" />
+                  <div key={idx} className="flex flex-col gap-2 rounded-xl border border-slate-100 bg-slate-50 p-2 sm:flex-row sm:items-center">
+                    <input type="text" placeholder="Grade" value={hc.grade} onChange={e => { const newHc = [...handledClasses]; newHc[idx].grade = e.target.value; setHandledClasses(newHc); }} className="w-full rounded border px-2 py-1 text-sm sm:w-16" />
+                    <input type="text" placeholder="Sec" value={hc.section} onChange={e => { const newHc = [...handledClasses]; newHc[idx].section = e.target.value; setHandledClasses(newHc); }} className="w-full rounded border px-2 py-1 text-sm sm:w-16" />
                     <input type="text" placeholder="Subject" value={hc.subject} onChange={e => { const newHc = [...handledClasses]; newHc[idx].subject = e.target.value; setHandledClasses(newHc); }} className="flex-1 px-2 py-1 border rounded text-sm min-w-0" />
                     <button onClick={() => setHandledClasses(handledClasses.filter((_, i) => i !== idx))} className="text-red-400 hover:text-red-600"><X size={16}/></button>
                   </div>
@@ -1946,14 +1946,14 @@ function FacultyProfileModal({ faculty, allStudents, onClose, onUpdate }) {
           </div>
 
           {/* Right Column: Assign Students */}
-          <div className="flex flex-col h-[500px]">
+          <div className="flex min-h-[320px] flex-col md:h-[500px]">
              <h3 className="font-bold text-slate-800 mb-2 border-b pb-2 flex justify-between">
                 <span>Assign Tracking Students</span>
                 <span className={`text-sm ${assignedIds.length > maxStudents ? 'text-red-500' : 'text-emerald-600'}`}>{assignedIds.length} / {maxStudents}</span>
              </h3>
-             <div className="flex gap-2 mb-3">
-               <input type="text" placeholder="Filter Grade" value={studentFilter.grade} onChange={e => setStudentFilter({...studentFilter, grade: e.target.value})} className="w-1/2 px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
-               <input type="text" placeholder="Filter Sec" value={studentFilter.section} onChange={e => setStudentFilter({...studentFilter, section: e.target.value})} className="w-1/2 px-3 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+             <div className="mb-3 flex flex-col gap-2 sm:flex-row">
+               <input type="text" placeholder="Filter Grade" value={studentFilter.grade} onChange={e => setStudentFilter({...studentFilter, grade: e.target.value})} className="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500 sm:w-1/2" />
+               <input type="text" placeholder="Filter Sec" value={studentFilter.section} onChange={e => setStudentFilter({...studentFilter, section: e.target.value})} className="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500 sm:w-1/2" />
              </div>
              <div className="flex-1 overflow-y-auto border rounded-xl bg-slate-50 p-2 space-y-1">
                 {filteredStudents.map(s => {
@@ -1961,7 +1961,7 @@ function FacultyProfileModal({ faculty, allStudents, onClose, onUpdate }) {
                   const isAssignedToOther = !isAssignedToMe && s.facultyId && s.facultyId._id !== faculty._id;
                   
                   return (
-                    <div key={s._id} className={`flex items-center justify-between p-2 rounded-lg text-sm border bg-white ${isAssignedToMe ? 'border-emerald-300 ring-1 ring-emerald-300' : 'border-slate-200'}`}>
+                    <div key={s._id} className={`flex flex-col gap-3 rounded-lg border bg-white p-3 text-sm sm:flex-row sm:items-center sm:justify-between ${isAssignedToMe ? 'border-emerald-300 ring-1 ring-emerald-300' : 'border-slate-200'}`}>
                       <div>
                         <p className="font-bold text-slate-800">{s.name} <span className="text-xs font-normal text-slate-500 ml-1">({s.srvNumber})</span></p>
                         <p className="text-xs flex gap-2">
@@ -1986,9 +1986,9 @@ function FacultyProfileModal({ faculty, allStudents, onClose, onUpdate }) {
         </div>
 
         {/* Footer */}
-        <div className="bg-slate-50 p-4 border-t flex justify-end gap-3">
-          <button onClick={onClose} className="px-5 py-2 text-slate-600 font-bold hover:bg-slate-200 rounded-xl">Cancel</button>
-          <button onClick={handleSave} disabled={saving} className="px-5 py-2 bg-emerald-600 text-white font-bold hover:bg-emerald-700 rounded-xl disabled:opacity-50">
+        <div className="flex flex-col-reverse gap-3 border-t bg-slate-50 p-4 sm:flex-row sm:justify-end">
+          <button onClick={onClose} className="w-full rounded-xl px-5 py-2 font-bold text-slate-600 hover:bg-slate-200 sm:w-auto">Cancel</button>
+          <button onClick={handleSave} disabled={saving} className="w-full rounded-xl bg-emerald-600 px-5 py-2 font-bold text-white hover:bg-emerald-700 disabled:opacity-50 sm:w-auto">
             {saving ? 'Saving...' : 'Save Profile & Assignments'}
           </button>
         </div>
@@ -2031,9 +2031,9 @@ function StudentFeeModal({ student, onClose, onUpdate }) {
   };
 
   const FeeRow = ({ label, value, amount, paid, onValueChange, onAmountChange, onPaidChange }) => (
-    <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl mb-3">
-      <span className="font-semibold text-sm text-slate-700 w-20">{label}</span>
-      <div className="flex items-center gap-2">
+    <div className="mb-3 flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-between">
+      <span className="w-auto font-semibold text-sm text-slate-700 sm:w-20">{label}</span>
+      <div className="flex flex-wrap items-center gap-2">
         <div className="relative" title="Total Due">
           <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
           <input 
@@ -2067,10 +2067,10 @@ function StudentFeeModal({ student, onClose, onUpdate }) {
   );
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4 backdrop-blur-sm overflow-y-auto w-full">
-      <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden my-8">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/60 p-3 backdrop-blur-sm sm:items-center sm:p-4">
+      <div className="mx-auto my-3 w-full max-w-lg overflow-hidden rounded-[1.75rem] bg-white shadow-2xl sm:my-8">
         
-        <div className="bg-slate-900 px-6 py-4 flex justify-between items-center text-white">
+        <div className="flex items-start justify-between gap-3 bg-slate-900 px-5 py-4 text-white sm:px-6">
           <div>
             <h2 className="text-xl font-bold font-display">Manage Fees</h2>
             <p className="text-sm text-slate-300">{student.name} ({student.srvNumber})</p>
@@ -2078,13 +2078,13 @@ function StudentFeeModal({ student, onClose, onUpdate }) {
           <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg"><X size={20} /></button>
         </div>
 
-        <div className="p-6">
+        <div className="p-5 sm:p-6">
           <FeeRow label="Term 1" value={fees.term1} amount={fees.term1Amount} paid={fees.term1Paid} onValueChange={v => setFees({...fees, term1: v})} onAmountChange={a => setFees({...fees, term1Amount: a})} onPaidChange={p => setFees({...fees, term1Paid: p})} />
           <FeeRow label="Term 2" value={fees.term2} amount={fees.term2Amount} paid={fees.term2Paid} onValueChange={v => setFees({...fees, term2: v})} onAmountChange={a => setFees({...fees, term2Amount: a})} onPaidChange={p => setFees({...fees, term2Paid: p})} />
           <FeeRow label="Term 3" value={fees.term3} amount={fees.term3Amount} paid={fees.term3Paid} onValueChange={v => setFees({...fees, term3: v})} onAmountChange={a => setFees({...fees, term3Amount: a})} onPaidChange={p => setFees({...fees, term3Paid: p})} />
           
           <div className="pt-4 border-t border-slate-100 mt-2">
-            <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
+            <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-between">
               <span className="font-semibold text-sm text-slate-700">Overall Core Fees</span>
               <select 
                 value={fees.overall} 
@@ -2100,7 +2100,7 @@ function StudentFeeModal({ student, onClose, onUpdate }) {
 
           <div className="pt-4 border-t border-slate-100 mt-4">
             <label className="block font-semibold text-sm text-slate-700 mb-2">Additional Fees / Uniform / Transport</label>
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row">
               <div className="relative flex-1" title="Total Due">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">₹</span>
                 <input 
@@ -2125,9 +2125,9 @@ function StudentFeeModal({ student, onClose, onUpdate }) {
           </div>
         </div>
 
-        <div className="bg-slate-50 p-4 border-t flex justify-end gap-3">
-          <button onClick={onClose} className="px-5 py-2 text-slate-600 font-bold hover:bg-slate-200 rounded-xl">Cancel</button>
-          <button onClick={handleSave} disabled={saving} className="px-5 py-2 bg-purple-600 text-white font-bold hover:bg-purple-700 rounded-xl flex items-center gap-2 disabled:opacity-50">
+        <div className="flex flex-col-reverse gap-3 border-t bg-slate-50 p-4 sm:flex-row sm:justify-end">
+          <button onClick={onClose} className="w-full rounded-xl px-5 py-2 font-bold text-slate-600 hover:bg-slate-200 sm:w-auto">Cancel</button>
+          <button onClick={handleSave} disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-xl bg-purple-600 px-5 py-2 font-bold text-white hover:bg-purple-700 disabled:opacity-50 sm:w-auto">
             <CheckCircle2 size={18} /> {saving ? 'Saving...' : 'Save Fees'}
           </button>
         </div>

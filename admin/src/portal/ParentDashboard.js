@@ -846,7 +846,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
         )}
         
         {/* ========== STUDENT HEADER ========== */}
-        <div className="bg-white rounded-3xl p-8 mb-8 shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden">
+        <div className="relative mb-8 flex flex-col gap-6 overflow-hidden rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-8 md:flex-row md:items-center md:justify-between">
           <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50 rounded-full blur-3xl -z-0"></div>
           
           <div className="flex items-center gap-6 relative z-10 w-full">
@@ -934,7 +934,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
             </div>
 
             {/* DASHBOARD: App-Style Icon Grid */}
-            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 mb-8">
+            <div className="mb-8 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-8">
               <h2 className="text-2xl font-display font-bold text-slate-900 mb-8">Quick Access</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-4 sm:gap-6">
                 {/* Nlite Skills */}
@@ -1022,7 +1022,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
         {/* ========== SECTION: ACADEMICS ========== */}
         {activeSection === 'academics' && (
           <div className="grid gap-6 xl:grid-cols-[1.2fr,0.8fr]">
-            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+            <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-8">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-14 h-14 bg-emerald-100 rounded-xl flex items-center justify-center">
@@ -1095,7 +1095,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
             </div>
 
             <div className="space-y-6">
-              <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+              <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
                     <Zap className="text-blue-600" size={24} />
@@ -1125,7 +1125,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
                 )}
               </div>
 
-              <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+              <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-8">
                 <h3 className="text-xl font-display font-bold text-slate-900">Latest Record</h3>
                 {latestRecord ? (
                   <div className="mt-6 space-y-4">
@@ -1163,7 +1163,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
         {activeSection === 'attendance' && (
           <div className="grid gap-6 xl:grid-cols-[0.85fr,1.15fr]">
             <div className="space-y-6">
-              <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+              <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center">
                     <CalIcon className="text-blue-600" size={28} />
@@ -1229,7 +1229,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
               </div>
             </div>
 
-            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+            <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-8">
               <div className="flex items-center justify-between gap-3 mb-6">
                 <div>
                   <h3 className="text-xl font-display font-bold text-slate-900">Recent Attendance Log</h3>
@@ -1294,7 +1294,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
             >
               <ChevronLeft size={20} /> Back to Dashboard
             </button>
-            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+            <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-8">
               <div className="flex items-center gap-3 mb-8">
                 <div className="w-14 h-14 bg-amber-100 rounded-xl flex items-center justify-center">
                   <Sparkles className="text-amber-600" size={28} />
@@ -1353,7 +1353,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
               <ChevronLeft size={20} /> Back to Dashboard
             </button>
             {/* Today's Homework */}
-            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 mb-8">
+            <div className="mb-8 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-8">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center">
                   <FileText className="text-blue-600" size={28} />
@@ -1627,7 +1627,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
             >
               <ChevronLeft size={20} /> Back to Dashboard
             </button>
-            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+            <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-8">
               <div className="flex items-center gap-3 mb-8">
                 <div className="w-14 h-14 bg-emerald-100 rounded-xl flex items-center justify-center">
                   <CreditCard className="text-emerald-600" size={28} />
@@ -1752,8 +1752,8 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
 
         {/* ========== PAY MODAL ========== */}
         {showPayModal && (
-          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
+          <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/60 p-3 backdrop-blur-sm sm:items-center sm:p-4">
+            <div className="mx-auto my-3 w-full max-w-md rounded-3xl bg-white p-5 shadow-2xl sm:my-8 sm:p-8">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-display font-bold text-slate-900">Complete Payment</h3>
                 <button onClick={() => setShowPayModal(false)} className="text-slate-400 hover:text-slate-700 transition-colors">✕</button>

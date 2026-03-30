@@ -60,7 +60,7 @@ export function ParentEventsSection() {
   };
 
   return (
-    <div className="mt-8 bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+    <div className="mt-8 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-8">
       <div className="flex items-center gap-3 mb-6">
         <CalendarDays className="text-orange-500" />
         <div>
@@ -90,7 +90,7 @@ export function ParentEventsSection() {
           {events.map((event) => {
             const draft = drafts[event._id] || { participantNames: '', note: '' };
             return (
-              <div key={event._id} className="border border-slate-200 rounded-3xl p-6 bg-gradient-to-br from-white via-white to-orange-50/40">
+              <div key={event._id} className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-white to-orange-50/40 p-5 sm:p-6">
                 <div className="flex flex-wrap items-center gap-2 mb-3">
                   <span className="px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700">
                     {event.myRegistration ? 'Acknowledged' : 'Awaiting acknowledgement'}
@@ -107,7 +107,7 @@ export function ParentEventsSection() {
                 </div>
                 <p className="text-sm text-slate-600 mt-3">{event.description}</p>
 
-                <div className="grid lg:grid-cols-[1fr,1fr,180px] gap-4 mt-5">
+                <div className="mt-5 grid gap-4 lg:grid-cols-[1fr,1fr,180px]">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">Participant Name List</label>
                     <input

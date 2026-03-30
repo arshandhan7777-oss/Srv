@@ -93,7 +93,7 @@ export function ParentPollsSection() {
   };
 
   return (
-    <div className="mt-8 bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+    <div className="mt-8 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-8">
       <div className="flex items-center gap-3 mb-6">
         <ClipboardList className="text-emerald-600" />
         <div>
@@ -121,7 +121,7 @@ export function ParentPollsSection() {
       ) : (
         <div className="space-y-6">
           {polls.map((poll) => (
-            <div key={poll._id} className="border border-slate-200 rounded-3xl p-6 bg-gradient-to-br from-white via-white to-emerald-50/40">
+            <div key={poll._id} className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-white to-emerald-50/40 p-5 sm:p-6">
               <div className="flex flex-wrap items-center gap-2 mb-3">
                 <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">
                   {poll.myResponse ? 'Response Saved' : 'Awaiting Response'}
@@ -146,7 +146,7 @@ export function ParentPollsSection() {
                     <div key={question._id} className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
                       <h5 className="text-base font-bold text-slate-900 mb-4">{index + 1}. {question.prompt}</h5>
 
-                      <div className="grid md:grid-cols-2 gap-3">
+                      <div className="grid gap-3 md:grid-cols-2">
                         {question.options.map((option) => (
                           <label
                             key={option}
@@ -200,11 +200,11 @@ export function ParentPollsSection() {
                 })}
               </div>
 
-              <div className="mt-5 flex justify-end">
+              <div className="mt-5 flex justify-stretch sm:justify-end">
                 <button
                   onClick={() => submitPoll(poll)}
                   disabled={submittingId === poll._id}
-                  className="px-6 py-3 rounded-2xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 disabled:opacity-60"
+                  className="w-full rounded-2xl bg-emerald-600 px-6 py-3 font-bold text-white hover:bg-emerald-700 disabled:opacity-60 sm:w-auto"
                 >
                   {submittingId === poll._id ? 'Submitting...' : poll.myResponse ? 'Update Response' : 'Submit Poll'}
                 </button>

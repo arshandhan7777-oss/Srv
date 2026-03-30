@@ -110,7 +110,7 @@ export function UpcomingEventsSection({ role }) {
 
   return (
     <div className="mt-8 space-y-6">
-      <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+      <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-8">
         <div className="flex items-center gap-3 mb-6">
           <CalendarDays className="text-orange-500" />
           <div>
@@ -134,7 +134,7 @@ export function UpcomingEventsSection({ role }) {
         )}
 
         <form onSubmit={submitEvent} className="space-y-4">
-          <div className="grid lg:grid-cols-2 gap-4">
+          <div className="grid gap-4 lg:grid-cols-2">
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Event Title</label>
               <input
@@ -157,7 +157,7 @@ export function UpcomingEventsSection({ role }) {
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-4">
+          <div className="grid gap-4 lg:grid-cols-2">
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Venue</label>
               <input
@@ -170,7 +170,7 @@ export function UpcomingEventsSection({ role }) {
             </div>
 
             {role === 'admin' ? (
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid gap-3 sm:grid-cols-3">
                 <div className="col-span-1">
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Audience</label>
                   <select
@@ -230,11 +230,11 @@ export function UpcomingEventsSection({ role }) {
             />
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex justify-stretch sm:justify-end">
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-orange-500 text-white font-bold hover:bg-orange-600 disabled:opacity-60"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 px-6 py-3 font-bold text-white hover:bg-orange-600 disabled:opacity-60 sm:w-auto"
             >
               <CheckCircle2 size={18} /> {saving ? 'Publishing...' : 'Publish Event'}
             </button>

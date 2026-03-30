@@ -62,7 +62,7 @@ export function ParentFeedbackSection() {
   };
 
   return (
-    <div className="mt-8 bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+    <div className="mt-8 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-8">
       <div className="flex items-center gap-3 mb-6">
         <MessageCircleWarning className="text-orange-500" />
         <div>
@@ -81,7 +81,7 @@ export function ParentFeedbackSection() {
         </div>
       )}
 
-      <form onSubmit={submitFeedback} className="grid lg:grid-cols-[220px,1fr,160px] gap-4 mb-8">
+      <form onSubmit={submitFeedback} className="mb-8 grid gap-4 lg:grid-cols-[220px,1fr,160px]">
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-2">Category</label>
           <select

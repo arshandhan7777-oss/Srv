@@ -1317,7 +1317,7 @@ export function FacultyDashboard({ section = 'dashboard' }) {
           {/* Sidebar Actions */}
           <div className={`${activeSection === 'homework' || activeSection === 'attendance' || activeSection === 'behavior' || activeSection === 'announcements' ? 'space-y-6 block' : 'hidden'}`}>
             {/* Upload Homework */}
-            <div className={`${activeSection === 'homework' ? 'block' : 'hidden'} bg-white rounded-2xl shadow-sm border border-slate-100 p-6`}>
+            <div className={`${activeSection === 'homework' ? 'block' : 'hidden'} rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:p-6`}>
               <div className="flex items-center gap-3 mb-5">
                 <BookOpen className="text-amber-500" />
                 <h3 className="text-lg font-display font-bold text-slate-900">Assign Homework</h3>
@@ -1360,7 +1360,7 @@ export function FacultyDashboard({ section = 'dashboard' }) {
             </div>
 
             {/* Quick Actions */}
-            <div className={`${activeSection === 'attendance' || activeSection === 'behavior' || activeSection === 'homework' ? 'block' : 'hidden'} bg-white rounded-2xl shadow-sm border border-slate-100 p-6`}>
+            <div className={`${activeSection === 'attendance' || activeSection === 'behavior' || activeSection === 'homework' ? 'block' : 'hidden'} rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:p-6`}>
               <h3 className="text-lg font-display font-bold text-slate-900 mb-4">
                 {activeSection === 'attendance' ? 'Mark Attendance' : activeSection === 'behavior' ? 'Log Daily Behavior' : 'Quick Actions'}
               </h3>
@@ -1383,7 +1383,7 @@ export function FacultyDashboard({ section = 'dashboard' }) {
             </div>
 
             {/* Send Announcement */}
-            <div className={`${activeSection === 'announcements' ? 'block' : 'hidden'} bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mt-6`}>
+            <div className={`${activeSection === 'announcements' ? 'block' : 'hidden'} mt-6 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:p-6`}>
               <div className="flex items-center gap-3 mb-4">
                 <Megaphone className="text-blue-600" size={20} />
                 <h3 className="text-lg font-display font-bold text-slate-900">Send Announcement</h3>
@@ -1519,10 +1519,10 @@ export function FacultyDashboard({ section = 'dashboard' }) {
       </div>
 
       {editingStudentProfile && (
-        <div className="fixed inset-0 z-[55] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[55] flex items-start justify-center overflow-y-auto bg-slate-900/60 p-3 backdrop-blur-sm sm:items-center sm:p-4">
           <div className="absolute inset-0" onClick={closeStudentProfileEditor} />
-          <div className="relative z-10 w-full max-w-5xl rounded-[2rem] border border-slate-200 bg-white p-6 shadow-2xl sm:p-8">
-            <div className="flex items-start justify-between gap-4 mb-6">
+          <div className="relative z-10 mx-auto my-3 w-full max-w-5xl overflow-y-auto rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-2xl max-h-[calc(100vh-1.5rem)] sm:my-8 sm:max-h-[90vh] sm:p-8">
+            <div className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <h3 className="text-2xl font-display font-bold text-slate-900">Edit Student Profile</h3>
                 <p className="text-sm text-slate-500 mt-1">{editingStudentProfile.name} ({editingStudentProfile.srvNumber})</p>
@@ -1530,7 +1530,7 @@ export function FacultyDashboard({ section = 'dashboard' }) {
               <button
                 type="button"
                 onClick={closeStudentProfileEditor}
-                className="rounded-xl px-3 py-2 text-sm font-bold text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                className="self-start rounded-xl px-3 py-2 text-sm font-bold text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 sm:self-auto"
               >
                 Close
               </button>
@@ -1599,16 +1599,16 @@ export function FacultyDashboard({ section = 'dashboard' }) {
                 value={studentProfileForm.guardianName}
                 onChange={e => setStudentProfileForm({ ...studentProfileForm, guardianName: e.target.value })}
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Guardian name (if parent names are not available)"
+                placeholder="Guardian name if parent names are unavailable"
               />
 
               <p className="text-sm text-slate-500">Enter mother and father names together, or fill only the guardian field.</p>
 
-              <div className="flex flex-wrap items-center gap-3">
-                <button type="submit" className="rounded-xl bg-blue-600 px-6 py-3 font-bold text-white transition-colors hover:bg-blue-700">
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+                <button type="submit" className="w-full rounded-xl bg-blue-600 px-6 py-3 font-bold text-white transition-colors hover:bg-blue-700 sm:w-auto">
                   Save Profile
                 </button>
-                <button type="button" onClick={closeStudentProfileEditor} className="rounded-xl bg-slate-100 px-6 py-3 font-bold text-slate-700 transition-colors hover:bg-slate-200">
+                <button type="button" onClick={closeStudentProfileEditor} className="w-full rounded-xl bg-slate-100 px-6 py-3 font-bold text-slate-700 transition-colors hover:bg-slate-200 sm:w-auto">
                   Cancel
                 </button>
               </div>
@@ -1619,10 +1619,10 @@ export function FacultyDashboard({ section = 'dashboard' }) {
 
       {/* Attendance Modal */}
       {showAttModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl relative max-h-[90vh] flex flex-col">
-            <button onClick={() => setShowAttModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 font-bold z-10">✕</button>
-            <h3 className="text-2xl font-display font-bold text-slate-900 mb-6 shrink-0">Daily Register</h3>
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/60 p-3 backdrop-blur-sm sm:items-center sm:p-4">
+          <div className="relative mx-auto my-3 flex max-h-[calc(100vh-1.5rem)] w-full max-w-lg flex-col rounded-3xl bg-white p-5 shadow-2xl sm:my-8 sm:max-h-[90vh] sm:p-8">
+            <button onClick={() => setShowAttModal(false)} className="absolute right-5 top-5 z-10 font-bold text-slate-400 hover:text-slate-700 sm:right-6 sm:top-6">✕</button>
+            <h3 className="mb-6 shrink-0 pr-10 text-2xl font-display font-bold text-slate-900">Daily Register</h3>
             
             {attMsg.text && (
               <div className={`mb-4 px-4 py-3 shrink-0 rounded-xl text-sm font-semibold ${attMsg.type === 'success' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
@@ -1667,10 +1667,10 @@ export function FacultyDashboard({ section = 'dashboard' }) {
 
       {/* Behavior Modal */}
       {showBhvModal && (
-        <div className="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-2xl w-full shadow-2xl relative max-h-[90vh] flex flex-col">
-            <button onClick={() => setShowBhvModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 font-bold z-10">✕</button>
-            <h3 className="text-2xl font-display font-bold text-slate-900 mb-6 shrink-0 flex items-center gap-3"><AlertCircle className="text-amber-500" /> Daily Behavior Log</h3>
+        <div className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-slate-900/60 p-3 backdrop-blur-sm sm:items-center sm:p-4">
+          <div className="relative mx-auto my-3 flex max-h-[calc(100vh-1.5rem)] w-full max-w-2xl flex-col rounded-3xl bg-white p-5 shadow-2xl sm:my-8 sm:max-h-[90vh] sm:p-8">
+            <button onClick={() => setShowBhvModal(false)} className="absolute right-5 top-5 z-10 font-bold text-slate-400 hover:text-slate-700 sm:right-6 sm:top-6">✕</button>
+            <h3 className="mb-6 flex shrink-0 items-center gap-3 pr-10 text-2xl font-display font-bold text-slate-900"><AlertCircle className="text-amber-500" /> Daily Behavior Log</h3>
             
             {bhvMsg.text && (
               <div className={`mb-4 px-4 py-3 shrink-0 rounded-xl text-sm font-semibold ${bhvMsg.type === 'success' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
@@ -1724,14 +1724,14 @@ export function FacultyDashboard({ section = 'dashboard' }) {
       )}
 
       {selectedStudent && (
-        <div className="fixed inset-0 z-[58] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[58] flex items-start justify-center overflow-y-auto bg-slate-900/60 p-3 backdrop-blur-sm sm:items-center sm:p-4">
           <div className="absolute inset-0" onClick={closeStudentEvaluation} />
-          <div className="relative z-10 w-full max-w-6xl rounded-[2rem] border border-slate-200 bg-white p-6 shadow-2xl sm:p-8 max-h-[90vh] overflow-y-auto">
-            <div className="mb-6 flex items-center justify-between gap-4">
-              <h3 className="text-xl font-display font-bold text-slate-900 flex items-center gap-2">
+          <div className="relative z-10 mx-auto my-3 w-full max-w-6xl overflow-y-auto rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-2xl max-h-[calc(100vh-1.5rem)] sm:my-8 sm:max-h-[90vh] sm:p-8">
+            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <h3 className="flex items-center gap-2 text-xl font-display font-bold text-slate-900">
                 Evaluating: <span className="text-emerald-600">{selectedStudent.name}</span>
               </h3>
-              <button type="button" onClick={closeStudentEvaluation} className="text-slate-400 hover:text-slate-600 font-bold">
+              <button type="button" onClick={closeStudentEvaluation} className="self-start font-bold text-slate-400 hover:text-slate-600 sm:self-auto">
                 Cancel
               </button>
             </div>
@@ -1766,7 +1766,7 @@ export function FacultyDashboard({ section = 'dashboard' }) {
 
               <div>
                 <h4 className="font-bold text-slate-700 border-b pb-2 mb-3">Nlite 21st-Century Skills (0-5)</h4>
-                <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
                   {Object.keys(gradeForm.nliteSkills).map(skillName => (
                     <div key={skillName}>
                       <label htmlFor={`nliteSkill-${skillName}`} className="block text-xs font-bold text-slate-500 mb-1 capitalize">{skillName.replace(/([A-Z])/g, ' $1')}</label>
@@ -1788,7 +1788,7 @@ export function FacultyDashboard({ section = 'dashboard' }) {
 
               <div>
                 <h4 className="font-bold text-slate-700 border-b pb-2 mb-3">Academic Marks (Out of 100)</h4>
-                <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
                   {Object.keys(gradeForm.marks).map(subject => (
                     <div key={subject}>
                       <label htmlFor={`marks-${subject}`} className="block text-xs font-bold text-slate-500 mb-1 capitalize">{subject}</label>

@@ -60,8 +60,8 @@ export function FeedbackInboxSection({ role }) {
   };
 
   return (
-    <div className="mt-8 bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
-      <div className="flex items-center justify-between gap-4 mb-6">
+    <div className="mt-8 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-8">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <MessageSquareMore className="text-orange-500" />
           <div>
@@ -130,7 +130,7 @@ export function FeedbackInboxSection({ role }) {
                   {item.message}
                 </div>
 
-                <div className="grid lg:grid-cols-[220px,1fr,140px] gap-4">
+                <div className="grid gap-4 lg:grid-cols-[220px,1fr,140px]">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">Status</label>
                     <select

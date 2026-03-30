@@ -12,7 +12,7 @@ export function PortalHeader({
 }) {
   return (
     <div className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex min-h-16 w-full max-w-7xl flex-nowrap items-center justify-between gap-3 px-3 py-2.5 sm:px-6 sm:py-3 lg:px-8">
+      <div className="mx-auto flex min-h-16 w-full max-w-7xl flex-wrap items-start justify-between gap-3 px-3 py-2.5 sm:flex-nowrap sm:items-center sm:px-6 sm:py-3 lg:px-8">
         <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-4">
           <Logo className="shrink-0" />
           <div className="flex min-w-0 flex-col overflow-hidden leading-tight">
@@ -22,7 +22,7 @@ export function PortalHeader({
           </div>
         </div>
 
-        <div className="flex flex-shrink-0 items-center gap-2">
+        <div className="flex w-full flex-shrink-0 items-center justify-end gap-2 sm:w-auto">
           {onBack ? (
             <button
               type="button"
