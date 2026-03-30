@@ -580,7 +580,7 @@ export function FacultyDashboard({ section = 'dashboard' }) {
         </div>
       </div>
 
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         <div className="space-y-8">
           <section className="overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-700 p-6 text-white shadow-xl shadow-slate-900/10 sm:p-8">
             <div className="grid gap-6 lg:grid-cols-[1.35fr,0.85fr]">
@@ -674,7 +674,7 @@ export function FacultyDashboard({ section = 'dashboard' }) {
         {notificationAction}
       </PortalHeader>
 
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         <div className="space-y-8">
           <section className="overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-700 p-6 text-white shadow-xl shadow-slate-900/10 sm:p-8">
             <div className="grid gap-6 lg:grid-cols-[1.35fr,0.85fr]">
@@ -855,7 +855,7 @@ export function FacultyDashboard({ section = 'dashboard' }) {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+      <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
         {activeSection !== 'dashboard' && pageMeta[activeSection] && (
           <div className="mb-8 rounded-3xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
             <button onClick={() => navigateToSection('dashboard')} className="mb-4 flex items-center gap-2 text-slate-600 hover:text-slate-900 font-semibold transition-colors">
@@ -867,9 +867,9 @@ export function FacultyDashboard({ section = 'dashboard' }) {
           </div>
         )}
         
-        <div className={`${activeSection === 'homework' || activeSection === 'attendance' || activeSection === 'behavior' || activeSection === 'announcements' ? 'grid' : 'hidden'} ${activeSection === 'homework' ? 'lg:grid-cols-3' : 'max-w-xl mx-auto'} gap-6 sm:gap-8`}>
+        <div className={`${activeSection === 'homework' || activeSection === 'attendance' || activeSection === 'behavior' || activeSection === 'announcements' ? 'grid' : 'hidden'} ${activeSection === 'homework' ? 'items-start gap-6 lg:grid-cols-[minmax(0,1.8fr)_minmax(320px,0.95fr)]' : 'mx-auto max-w-xl gap-6'} sm:gap-8`}>
           {/* Main Content - Student List */}
-          <div className={`${activeSection === 'homework' ? 'lg:col-span-2 space-y-6 block' : 'hidden'}`}>
+          <div className={`${activeSection === 'homework' ? 'block min-w-0 space-y-6' : 'hidden'}`}>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-2xl font-display font-bold text-slate-900 flex items-center gap-2">
                 <Users className="text-emerald-600" /> My Students
@@ -962,17 +962,17 @@ export function FacultyDashboard({ section = 'dashboard' }) {
             </div>
 
             {/* Homework Dashboard Weekly Calendar */}
-            <div className="bg-white rounded-3xl p-5 sm:p-6 lg:p-8 shadow-sm border border-slate-100 mt-8 relative">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+            <div className="relative mt-8 overflow-hidden rounded-3xl border border-slate-100 bg-white p-4 shadow-sm sm:p-6 lg:p-8">
+              <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex items-center gap-3">
                   <BookOpen className="text-emerald-500" />
                   <h3 className="text-xl font-display font-bold text-slate-900">Daily Homework Dashboard</h3>
                 </div>
-                <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center cursor-pointer">
-                  <button onClick={fetchHomework} className="text-sm text-slate-500 font-semibold hover:text-emerald-600 transition-colors">
+                <div className="flex w-full flex-col gap-3 lg:w-auto lg:min-w-[320px]">
+                  <button onClick={fetchHomework} className="self-start text-sm font-semibold text-slate-500 transition-colors hover:text-emerald-600">
                     Refresh Data
                   </button>
-                  <div className="flex items-center justify-between gap-2 bg-slate-50 rounded-xl p-1 border border-slate-200">
+                  <div className="flex w-full items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 p-1">
                     <button onClick={prevWeek} className="p-1.5 hover:bg-white rounded-lg transition-colors"><ChevronLeft size={18} className="text-slate-600" /></button>
                     <span className="text-sm font-bold text-slate-700 text-center min-w-0 flex-1 px-2">
                       {days[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {days[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
@@ -982,8 +982,8 @@ export function FacultyDashboard({ section = 'dashboard' }) {
                 </div>
               </div>
 
-              <div className="overflow-x-auto pb-4 -mx-1 px-1">
-                <div className="grid grid-flow-col auto-cols-[78vw] gap-4 snap-x snap-mandatory md:min-w-[1000px] md:grid-flow-row md:grid-cols-7 md:auto-cols-fr">
+              <div className="-mx-4 overflow-x-auto overflow-y-hidden px-4 pb-4 sm:mx-0 sm:px-0">
+                <div className="grid grid-flow-col auto-cols-[minmax(250px,86vw)] gap-4 snap-x snap-mandatory md:auto-cols-[minmax(280px,320px)] xl:grid-flow-row xl:grid-cols-7 xl:auto-cols-fr">
                   {days.map((day, i) => {
                     const dayHomework = assignedHomework.filter(hw => isSameDay(hw.dueDate, day));
                     const isToday = isSameDay(day, new Date());
@@ -994,7 +994,7 @@ export function FacultyDashboard({ section = 'dashboard' }) {
                     return (
                       <div 
                         key={i} 
-                        className="relative perspective-1000 h-[320px] sm:h-[360px] md:h-[420px] w-full group snap-start"
+                        className="group relative h-[300px] w-full snap-start perspective-1000 sm:h-[340px] xl:h-[420px]"
                         onMouseEnter={() => setFlippedDay(i)}
                         onMouseLeave={() => setFlippedDay(null)}
                         onClick={() => setFlippedDay(isFlipped ? null : i)}
@@ -1002,7 +1002,7 @@ export function FacultyDashboard({ section = 'dashboard' }) {
                         <div className={`w-full h-full relative transition-transform duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : 'md:group-hover:[transform:rotateY(180deg)]'}`}>
                           
                           {/* FRONT FACE */}
-                          <div className={`absolute w-full h-full backface-hidden rounded-[24px] border flex flex-col justify-center items-center p-4 sm:p-6 cursor-pointer shadow-sm transition-colors ${isToday ? 'border-emerald-300 bg-emerald-50' : 'border-slate-100 bg-slate-50'}`}>
+                          <div className={`absolute flex h-full w-full flex-col items-center justify-center rounded-[24px] border p-4 text-center shadow-sm transition-colors sm:p-6 ${isToday ? 'border-emerald-300 bg-emerald-50' : 'border-slate-100 bg-slate-50'}`}>
                             <p className={`text-xs sm:text-sm font-bold uppercase tracking-widest mb-3 text-center ${isToday ? 'text-emerald-600' : 'text-slate-500'}`}>
                               {day.toLocaleDateString('en-US', { weekday: 'long' })}
                             </p>
@@ -1043,7 +1043,7 @@ export function FacultyDashboard({ section = 'dashboard' }) {
                           </div>
 
                           {/* BACK FACE — Grouped by Subject */}
-                          <div className={`absolute w-full h-full backface-hidden rotate-y-180 rounded-[24px] border flex flex-col overflow-hidden bg-slate-900 border-slate-800 shadow-xl cursor-default`}>
+                          <div className="absolute flex h-full w-full flex-col overflow-hidden rounded-[24px] border border-slate-800 bg-slate-900 shadow-xl cursor-default backface-hidden rotate-y-180">
                             <div className="p-3 bg-slate-800/80 border-b border-slate-700/50 text-center shrink-0 flex justify-between items-center px-4">
                               <span className="text-emerald-400 font-bold text-[10px] tracking-wider uppercase">
                                 {day.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
@@ -1053,7 +1053,7 @@ export function FacultyDashboard({ section = 'dashboard' }) {
                               </span>
                             </div>
                             
-                            <div className="p-3 flex-1 flex flex-col gap-2.5 overflow-y-auto no-scrollbar" onClick={e => e.stopPropagation()}>
+                            <div className="flex flex-1 flex-col gap-2.5 overflow-y-auto p-3 no-scrollbar" onClick={e => e.stopPropagation()}>
                               {subjectKeys.length > 0 ? subjectKeys.map(subject => {
                                 const color = getSubjectColor(subject);
                                 const subjectHw = grouped[subject];
@@ -1315,9 +1315,9 @@ export function FacultyDashboard({ section = 'dashboard' }) {
           </div>
 
           {/* Sidebar Actions */}
-          <div className={`${activeSection === 'homework' || activeSection === 'attendance' || activeSection === 'behavior' || activeSection === 'announcements' ? 'space-y-6 block' : 'hidden'}`}>
+          <div className={`${activeSection === 'homework' || activeSection === 'attendance' || activeSection === 'behavior' || activeSection === 'announcements' ? 'block min-w-0 space-y-6' : 'hidden'}`}>
             {/* Upload Homework */}
-            <div className={`${activeSection === 'homework' ? 'block' : 'hidden'} rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:p-6`}>
+            <div className={`${activeSection === 'homework' ? 'block' : 'hidden'} w-full min-w-0 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:p-6`}>
               <div className="flex items-center gap-3 mb-5">
                 <BookOpen className="text-amber-500" />
                 <h3 className="text-lg font-display font-bold text-slate-900">Assign Homework</h3>
@@ -1330,7 +1330,7 @@ export function FacultyDashboard({ section = 'dashboard' }) {
               <form onSubmit={submitHomework} className="space-y-3">
                 <div>
                   <label htmlFor="hwForm-subject" className="block text-sm font-semibold text-slate-700 mb-1.5">Subject</label>
-                  <select id="hwForm-subject" name="hwForm-subject" required value={hwForm.subject} onChange={e => setHwForm({...hwForm, subject: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                  <select id="hwForm-subject" name="hwForm-subject" required value={hwForm.subject} onChange={e => setHwForm({...hwForm, subject: e.target.value})} className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
                     <option value="" disabled>Select Subject</option>
                     <option value="English">English</option>
                     <option value="Tamil">Tamil</option>
@@ -1343,38 +1343,38 @@ export function FacultyDashboard({ section = 'dashboard' }) {
                 </div>
                 <div>
                   <label htmlFor="hwForm-title" className="block text-sm font-semibold text-slate-700 mb-1.5">Topic</label>
-                  <input id="hwForm-title" name="hwForm-title" type="text" placeholder="Topic" required value={hwForm.title} onChange={e => setHwForm({...hwForm, title: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+                  <input id="hwForm-title" name="hwForm-title" type="text" placeholder="Topic" required value={hwForm.title} onChange={e => setHwForm({...hwForm, title: e.target.value})} className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
                 </div>
                 <div>
                   <label htmlFor="hwForm-description" className="block text-sm font-semibold text-slate-700 mb-1.5">Description</label>
-                  <textarea id="hwForm-description" name="hwForm-description" placeholder="Description..." rows="3" required value={hwForm.description} onChange={e => setHwForm({...hwForm, description: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+                  <textarea id="hwForm-description" name="hwForm-description" placeholder="Description..." rows="4" required value={hwForm.description} onChange={e => setHwForm({...hwForm, description: e.target.value})} className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
                 </div>
                 <div>
                   <label htmlFor="hwForm-dueDate" className="block text-sm font-semibold text-slate-700 mb-1.5">Due Date</label>
-                  <input id="hwForm-dueDate" name="hwForm-dueDate" type="date" required value={hwForm.dueDate} onChange={e => setHwForm({...hwForm, dueDate: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+                  <input id="hwForm-dueDate" name="hwForm-dueDate" type="date" required value={hwForm.dueDate} onChange={e => setHwForm({...hwForm, dueDate: e.target.value})} className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
                 </div>
-                <button type="submit" className="w-full py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors text-sm">
+                <button type="submit" className="flex w-full items-center justify-center rounded-xl bg-amber-500 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-amber-600">
                   Publish & Notify Parents
                 </button>
               </form>
             </div>
 
             {/* Quick Actions */}
-            <div className={`${activeSection === 'attendance' || activeSection === 'behavior' || activeSection === 'homework' ? 'block' : 'hidden'} rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:p-6`}>
+            <div className={`${activeSection === 'attendance' || activeSection === 'behavior' || activeSection === 'homework' ? 'block' : 'hidden'} w-full min-w-0 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:p-6`}>
               <h3 className="text-lg font-display font-bold text-slate-900 mb-4">
                 {activeSection === 'attendance' ? 'Mark Attendance' : activeSection === 'behavior' ? 'Log Daily Behavior' : 'Quick Actions'}
               </h3>
               <div className="space-y-3">
-                <button onClick={openAttendanceModal} className={`${activeSection === 'behavior' ? 'hidden' : 'w-full flex'} items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 transition-colors text-left`}>
+                <button onClick={openAttendanceModal} className={`${activeSection === 'behavior' ? 'hidden' : 'flex w-full'} items-start gap-3 rounded-xl border border-slate-200 p-3 text-left transition-colors hover:border-emerald-500 hover:bg-emerald-50 sm:items-center`}>
                   <CheckSquare className="text-emerald-600" size={20} />
-                  <div>
+                  <div className="min-w-0">
                     <p className="font-semibold text-sm text-slate-900">Mark Attendance</p>
                     <p className="text-xs text-slate-500">Select student to record attendance</p>
                   </div>
                 </button>
-                <button onClick={openBehaviorModal} className={`${activeSection === 'attendance' ? 'hidden' : 'w-full flex'} items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-amber-500 hover:bg-amber-50 transition-colors text-left`}>
+                <button onClick={openBehaviorModal} className={`${activeSection === 'attendance' ? 'hidden' : 'flex w-full'} items-start gap-3 rounded-xl border border-slate-200 p-3 text-left transition-colors hover:border-amber-500 hover:bg-amber-50 sm:items-center`}>
                   <AlertCircle className="text-amber-600" size={20} />
-                  <div>
+                  <div className="min-w-0">
                     <p className="font-semibold text-sm text-slate-900">Log Daily Behavior</p>
                     <p className="text-xs text-slate-500">Assign points and add daily remarks</p>
                   </div>

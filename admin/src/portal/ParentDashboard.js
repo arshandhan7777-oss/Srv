@@ -590,7 +590,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
           {notificationAction}
         </PortalHeader>
 
-        <main ref={reportRef} className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <main ref={reportRef} className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           <div className="space-y-8">
             <section className="overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-700 p-6 text-white shadow-xl shadow-slate-900/10 sm:p-8">
               <div className="grid gap-6 lg:grid-cols-[1.35fr,0.85fr]">
@@ -830,7 +830,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
       </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" ref={reportRef}>
+      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8" ref={reportRef}>
         {activeSection !== 'dashboard' && pageMeta[activeSection] && (
           <div className="bg-white rounded-3xl p-6 mb-8 shadow-sm border border-slate-100">
             <button 
@@ -1503,8 +1503,8 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
                 </div>
               </div>
 
-              <div className="overflow-x-auto pb-4 -mx-1 px-1">
-                <div className="grid grid-flow-col auto-cols-[78vw] gap-4 snap-x snap-mandatory md:min-w-[1000px] md:grid-flow-row md:grid-cols-7 md:auto-cols-fr">
+              <div className="-mx-4 overflow-x-auto overflow-y-hidden px-4 pb-4 sm:mx-0 sm:px-0">
+                <div className="grid grid-flow-col auto-cols-[minmax(250px,86vw)] gap-4 snap-x snap-mandatory md:auto-cols-[minmax(280px,320px)] xl:grid-flow-row xl:grid-cols-7 xl:auto-cols-fr">
                   {days.map((day, i) => {
                     const dayHomework = weeklyHomework.filter(hw => isSameDay(hw.dueDate, day));
                     const isToday = isSameDay(day, new Date());

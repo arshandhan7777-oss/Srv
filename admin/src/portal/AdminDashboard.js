@@ -636,7 +636,7 @@ export function AdminDashboard({ section = 'home' }) {
         {notificationAction}
       </PortalHeader>
 
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         <div className="space-y-8">
           <section className="overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-950 via-emerald-900 to-teal-700 p-6 text-white shadow-xl shadow-emerald-950/10 sm:p-8">
             <div className="grid gap-6 lg:grid-cols-[1.35fr,0.85fr]">
@@ -828,7 +828,7 @@ export function AdminDashboard({ section = 'home' }) {
         {notificationAction}
       </PortalHeader>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         {activeSection !== 'home' && pageMeta[activeSection] && (
           <div className="mb-8 rounded-3xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Admin Apps</p>

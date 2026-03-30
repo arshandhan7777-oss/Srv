@@ -22,11 +22,17 @@ body {
   background-color: var(--color-bg);
   color: var(--color-primary);
   -webkit-font-smoothing: antialiased;
+  margin: 0;
 }
 
 html, body {
   overflow-x: hidden;
   width: 100%;
+}
+
+html {
+  overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 
 html, body, #root {
@@ -37,6 +43,9 @@ html, body, #root {
 
 #root {
   flex-grow: 1;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -97,6 +106,32 @@ h1, h2, h3, h4, h5, h6 {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 116, 139, 0.55) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.55);
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(71, 85, 105, 0.72);
+  background-clip: padding-box;
 }
 
 /* Slide-in animation for history panel */
