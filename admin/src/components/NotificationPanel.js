@@ -18,11 +18,11 @@ export function NotificationPanel({ open, onClose, title, subtitle, children }) 
         }
       `}</style>
       <div
-        className="fixed inset-0 z-[999] flex items-start justify-center overflow-y-auto bg-slate-950/40 px-3 py-4 sm:items-center sm:px-6"
+        className="fixed inset-0 z-[1200] flex items-start justify-center overflow-y-auto bg-slate-950/45 px-3 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-[2px] sm:items-center sm:px-6 sm:py-6"
         onClick={onClose}
       >
         <div
-          className="relative my-auto w-full max-w-[420px] overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.2)] sm:max-w-[460px]"
+          className="relative mt-2 w-full max-w-[420px] overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.2)] sm:mt-0 sm:my-auto sm:max-w-[460px] sm:rounded-[1.75rem]"
           style={{ animation: 'srvModalScaleIn 0.2s ease' }}
           onClick={(event) => event.stopPropagation()}
         >
@@ -40,7 +40,7 @@ export function NotificationPanel({ open, onClose, title, subtitle, children }) 
               <X size={18} />
             </button>
           </div>
-          <div className="max-h-[min(70vh,560px)] overflow-y-auto px-4 pb-5 pt-4 text-sm text-slate-600 sm:px-5">
+          <div className="max-h-[min(72dvh,560px)] overflow-y-auto overscroll-contain px-4 pb-5 pt-4 text-sm text-slate-600 sm:px-5">
             {children}
           </div>
         </div>
