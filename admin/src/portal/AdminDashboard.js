@@ -49,7 +49,7 @@ export function AdminDashboard({ section = 'home' }) {
   const [editingSrvId, setEditingSrvId] = useState(null);
   const [editSrvValue, setEditSrvValue] = useState('');
   const [editingStudentId, setEditingStudentId] = useState(null);
-  const [editStudentForm, setEditStudentForm] = useState({ name: '', grade: '', section: '', group: '', motherName: '', fatherName: '', guardianName: '' });
+  const [editStudentForm, setEditStudentForm] = useState({ admissionNumber: '', name: '', grade: '', section: '', group: '', motherName: '', fatherName: '', guardianName: '' });
   const [promoteFrom, setPromoteFrom] = useState('');
   const [promoteTo, setPromoteTo] = useState('');
 
@@ -292,11 +292,21 @@ export function AdminDashboard({ section = 'home' }) {
     }
     try {
       const token = localStorage.getItem('schoolToken');
+      const currentStudent = allStudents.find(student => student._id === id);
+      const nextAdmissionNumber = String(editStudentForm.admissionNumber || '').replace(/\D/g, '');
+      const currentAdmissionNumber = String(currentStudent?.srvNumber || '').replace(/\D/g, '');
+
+      if (nextAdmissionNumber && nextAdmissionNumber !== currentAdmissionNumber) {
+        await axios.put(`${API_URL}/api/admin/student/${id}/srv`, { admissionNumber: nextAdmissionNumber }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+
       await axios.put(`${API_URL}/api/admin/student/${id}`, editStudentForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
       Swal.fire({toast: true, position: 'top-end', icon: 'success', title: 'Student updated!', showConfirmButton: false, timer: 2000});
-      setEditingStudentId(null);
+      closeStudentEditor();
       fetchStudents(token);
     } catch (err) {
       Swal.fire('Error', err.response?.data?.message || 'Failed to update student', 'error');
@@ -335,6 +345,7 @@ export function AdminDashboard({ section = 'home' }) {
   const openStudentEditor = (student) => {
     setEditingStudentId(student._id);
     setEditStudentForm({
+      admissionNumber: String(student.srvNumber || '').replace(/\D/g, ''),
       name: student.name,
       grade: student.grade,
       section: student.section,
@@ -347,7 +358,7 @@ export function AdminDashboard({ section = 'home' }) {
 
   const closeStudentEditor = () => {
     setEditingStudentId(null);
-    setEditStudentForm({ name: '', grade: '', section: '', group: '', motherName: '', fatherName: '', guardianName: '' });
+    setEditStudentForm({ admissionNumber: '', name: '', grade: '', section: '', group: '', motherName: '', fatherName: '', guardianName: '' });
   };
 
   const handleUpdateFaculty = async (id) => {
@@ -1523,6 +1534,20 @@ export function AdminDashboard({ section = 'home' }) {
               className="space-y-5"
             >
               <div className="grid gap-4 md:grid-cols-3">
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">SRV Number</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">SRV</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={editStudentForm.admissionNumber}
+                      onChange={e => setEditStudentForm({ ...editStudentForm, admissionNumber: e.target.value.replace(/\D/g, '') })}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-14 pr-4 outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="26001"
+                    />
+                  </div>
+                </div>
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-700">Student Name</label>
                   <input
