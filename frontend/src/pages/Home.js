@@ -179,50 +179,54 @@ export function Home() {
         </div>
 
         <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-            className="flex flex-col items-center"
-          >
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-[68px] font-display font-semibold text-white leading-tight mb-6 drop-shadow-lg tracking-wide luxurious-roman-regular"
-            >
-              SRV Matriculation School
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.5 }}
-              className="text-lg md:text-2xl text-white/90 mb-12 max-w-3xl leading-relaxed drop-shadow-md font-light"
-            >
-              Empowering minds, shaping the future, and achieving excellence.
-            </motion.p>
-
+          <AnimatePresence mode="wait">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.7 }}
-              className="flex justify-center flex-col sm:flex-row items-center gap-6"
+              key={currentMediaIndex}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              className="flex flex-col items-center"
             >
-              <Link
-                to="/about"
-                className="px-8 py-3.5 bg-white/10 backdrop-blur-md border border-white/40 text-white rounded-full font-medium hover:bg-white/20 transition-all duration-300 min-w-[180px]"
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                className="text-4xl sm:text-5xl md:text-6xl lg:text-[68px] font-display font-semibold text-white leading-tight mb-6 drop-shadow-lg tracking-wide luxurious-roman-regular"
               >
-                Know More
-              </Link>
-              <Link
-                to="/contact"
-                className="px-8 py-3.5 bg-white text-slate-900 rounded-full font-medium hover:bg-green-100 transition-all duration-300 min-w-[180px] hover:border-2 hover:border-green-300"
+                SRV Matriculation School
+              </motion.h1>
+
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                className="text-lg md:text-2xl text-white/90 mb-12 max-w-3xl leading-relaxed drop-shadow-md font-light"
               >
-                Contact Us
-              </Link>
+                Empowering minds, shaping the future, and achieving excellence.
+              </motion.p>
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8, delay: 0.5 }}
+                className="flex justify-center flex-col sm:flex-row items-center gap-6"
+              >
+                <Link
+                  to="/about"
+                  className="px-8 py-3.5 bg-white/10 backdrop-blur-md border border-white/40 text-white rounded-full font-medium hover:bg-white/20 transition-all duration-300 min-w-[180px]"
+                >
+                  Know More
+                </Link>
+                <Link
+                  to="/contact"
+                  className="px-8 py-3.5 bg-white text-slate-900 rounded-full font-medium hover:bg-green-100 transition-all duration-300 min-w-[180px] hover:border-2 hover:border-green-300"
+                >
+                  Contact Us
+                </Link>
+              </motion.div>
             </motion.div>
-          </motion.div>
+          </AnimatePresence>
         </div>
       </section>
 
