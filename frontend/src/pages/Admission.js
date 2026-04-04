@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { CheckCircle2, CalendarCheck, Phone, ArrowRight } from 'lucide-react';
 import { PageHero } from '../components/PageHero';
 import { StatsCtaBanner } from '../components/StatsCtaBanner';
+import { admissionsImages, getPageImage } from '../config/pageImages';
 
 const whyChoose = [
   {
@@ -158,7 +159,7 @@ export function Admission() {
             
             <div className="relative w-full h-full min-h-[250px] lg:min-h-full rounded-2xl overflow-hidden shadow-2xl hidden md:block border border-white/10">
               <img 
-                src="https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=2940&auto=format&fit=crop" 
+                src={getPageImage(admissionsImages, 0, "https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=2940&auto=format&fit=crop")} 
                 alt="Students" 
                 className="absolute inset-0 w-full h-full object-cover"
               />

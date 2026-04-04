@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { Music, Activity, Users, BookOpen, ChevronRight } from 'lucide-react';
 import { PageHero } from '../components/PageHero';
 import { StatsCtaBanner } from '../components/StatsCtaBanner';
+import { coCurricularImages, getPageImage } from '../config/pageImages';
 
 const activities = [
   {
@@ -67,7 +68,7 @@ export function CoCurricular() {
             className="group relative md:col-span-2 lg:col-span-2 bg-slate-900 rounded-3xl overflow-hidden shadow-2xl isolate h-[350px] sm:h-[400px]"
           >
             <img 
-              src="https://images.unsplash.com/photo-1526676037777-05a232554f77?q=80&w=2940&auto=format&fit=crop" 
+              src={getPageImage(coCurricularImages, 0, "https://images.unsplash.com/photo-1526676037777-05a232554f77?q=80&w=2940&auto=format&fit=crop")} 
               alt="Sports"
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
@@ -128,7 +129,7 @@ export function CoCurricular() {
             className="group relative md:col-span-2 lg:col-span-2 bg-slate-900 rounded-3xl overflow-hidden shadow-2xl isolate h-[350px]"
           >
             <img 
-              src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=2940&auto=format&fit=crop" 
+              src={getPageImage(coCurricularImages, 1, "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=2940&auto=format&fit=crop")} 
               alt="Literary"
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />

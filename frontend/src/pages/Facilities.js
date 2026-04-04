@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { PageHero } from '../components/PageHero';
 import { StatsCtaBanner } from '../components/StatsCtaBanner';
 import { Building2, Volleyball, Microscope, Monitor, Tv, BookOpen, Trophy, Users } from 'lucide-react';
+import { facilitiesImages, getPageImage } from '../config/pageImages';
 
 const infrastructureItems = [
   { icon: Microscope, label: 'Science Labs', color: 'emerald' },
@@ -56,7 +57,7 @@ export function Facilities() {
               {/* Center Diamond */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 rotate-45 rounded-[2.5rem] overflow-hidden border-8 border-white shadow-2xl z-20">
                 <img
-                  src="https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=2940&auto=format&fit=crop"
+                  src={getPageImage(facilitiesImages, 0, "https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=2940&auto=format&fit=crop")}
                   className="-rotate-45 scale-[1.35] object-cover w-full h-full"
                   alt="Students on Campus"
                   referrerPolicy="no-referrer"
@@ -65,7 +66,7 @@ export function Facilities() {
               {/* Top Right */}
               <div className="absolute top-4 right-4 w-44 h-44 rotate-45 rounded-3xl overflow-hidden border-8 border-white shadow-xl z-10">
                 <img
-                  src="https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=2940&auto=format&fit=crop"
+                  src={getPageImage(facilitiesImages, 1, "https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=2940&auto=format&fit=crop")}
                   className="-rotate-45 scale-150 object-cover w-full h-full"
                   alt="Science Lab"
                   referrerPolicy="no-referrer"
@@ -74,7 +75,7 @@ export function Facilities() {
               {/* Bottom Left */}
               <div className="absolute bottom-4 left-4 w-44 h-44 rotate-45 rounded-3xl overflow-hidden border-8 border-white shadow-xl z-10">
                 <img
-                  src="https://images.unsplash.com/photo-1511629091441-ee46146481b6?q=80&w=2940&auto=format&fit=crop"
+                  src={getPageImage(facilitiesImages, 2, "https://images.unsplash.com/photo-1511629091441-ee46146481b6?q=80&w=2940&auto=format&fit=crop")}
                   className="-rotate-45 scale-150 object-cover w-full h-full"
                   alt="Sports Ground"
                   referrerPolicy="no-referrer"
@@ -186,12 +187,12 @@ export function Facilities() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {[
-            { img: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=2000&auto=format&fit=crop', label: 'Smart Classrooms', desc: 'Equipped with LCD projectors and interactive boards for immersive learning.' },
-            { img: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=2940&auto=format&fit=crop', label: 'Science Laboratories', desc: 'Fully equipped labs for Physics, Chemistry, and Biology experiments.' },
-            { img: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2940&auto=format&fit=crop', label: 'Computer Labs', desc: 'Modern computer labs for digital skills and software learning.' },
-            { img: 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=2942&auto=format&fit=crop', label: 'Resource Room', desc: 'A dedicated space to facilitate research, self-study, and collaborative work.' },
-            { img: 'https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=2940&auto=format&fit=crop', label: 'Sports Ground', desc: 'Volleyball, cricket, football and basketball facilities for physical fitness.' },
-            { img: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=2940&auto=format&fit=crop', label: 'Auditorium', desc: 'A spacious auditorium for cultural events, competitions, and assemblies.' },
+            { img: getPageImage(facilitiesImages, 3, 'https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=2000&auto=format&fit=crop'), label: 'Smart Classrooms', desc: 'Equipped with LCD projectors and interactive boards for immersive learning.' },
+            { img: getPageImage(facilitiesImages, 4, 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=2940&auto=format&fit=crop'), label: 'Science Laboratories', desc: 'Fully equipped labs for Physics, Chemistry, and Biology experiments.' },
+            { img: getPageImage(facilitiesImages, 5, 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2940&auto=format&fit=crop'), label: 'Computer Labs', desc: 'Modern computer labs for digital skills and software learning.' },
+            { img: getPageImage(facilitiesImages, 6, 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=2942&auto=format&fit=crop'), label: 'Resource Room', desc: 'A dedicated space to facilitate research, self-study, and collaborative work.' },
+            { img: getPageImage(facilitiesImages, 7, 'https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=2940&auto=format&fit=crop'), label: 'Sports Ground', desc: 'Volleyball, cricket, football and basketball facilities for physical fitness.' },
+            { img: getPageImage(facilitiesImages, 8, 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=2940&auto=format&fit=crop'), label: 'Auditorium', desc: 'A spacious auditorium for cultural events, competitions, and assemblies.' },
           ].map((item, i) => (
             <motion.div
               key={item.label}

@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { Calendar, ArrowRight, User } from 'lucide-react';
 import { PageHero } from '../components/PageHero';
 import { StatsCtaBanner } from '../components/StatsCtaBanner';
+import { newsMediaImages, getPageImage } from '../config/pageImages';
 
 const newsItems = [
   {
@@ -10,7 +11,7 @@ const newsItems = [
     author: 'Admin',
     category: 'Academics',
     color: 'amber',
-    image: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=2940&auto=format&fit=crop',
+    image: getPageImage(newsMediaImages, 0, 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=2940&auto=format&fit=crop'),
     excerpt: 'Congratulations to our brilliant students who showcased highly innovative projects and groundbreaking research at this year\'s regional science fair.',
   },
   {
@@ -19,7 +20,7 @@ const newsItems = [
     author: 'Principal Desk',
     category: 'Campus News',
     color: 'emerald',
-    image: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?q=80&w=2940&auto=format&fit=crop',
+    image: getPageImage(newsMediaImages, 1, 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?q=80&w=2940&auto=format&fit=crop'),
     excerpt: 'State-of-the-art robotics facility officially opens its doors today, providing students with unparalleled hands-on experience in AI and automation.',
   },
   {
@@ -28,7 +29,7 @@ const newsItems = [
     author: 'Arts Dept',
     category: 'Arts & Culture',
     color: 'blue',
-    image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=2874&auto=format&fit=crop',
+    image: getPageImage(newsMediaImages, 2, 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=2874&auto=format&fit=crop'),
     excerpt: 'Our extraordinary senior choir brought home the gold medal from the highly competitive National High School Choral Competition in New Delhi.',
   }
 ];

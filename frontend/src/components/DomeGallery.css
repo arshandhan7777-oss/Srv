@@ -1,0 +1,158 @@
+.dg-scroll-lock {
+  overflow: hidden !important;
+}
+
+.sphere-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  --radius: 600px;
+  perspective: 1500px;
+}
+
+.sphere-main {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  touch-action: none;
+}
+
+.stage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  transform: translateZ(var(--radius));
+}
+
+.sphere {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-style: preserve-3d;
+  width: 0;
+  height: 0;
+}
+
+.item__image {
+  position: absolute;
+  cursor: pointer;
+  transform-origin: center center;
+  transform-style: preserve-3d;
+  background-color: #111;
+  border-radius: var(--tile-radius, 1rem);
+  overflow: hidden;
+  filter: var(--image-filter, none);
+  transition: opacity 0.3s ease;
+  left: calc(var(--item-size-x) * var(--radius) * -0.05);
+  top: calc(var(--item-size-y) * var(--radius) * -0.05);
+  width: calc(var(--item-size-x) * var(--radius) * 0.1);
+  height: calc(var(--item-size-y) * var(--radius) * 0.1);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.item__image[data-focused="true"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.item__image:hover {
+  filter: none;
+}
+
+.item__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.overlay--blur {
+  backdrop-filter: blur(2px);
+  background: var(--overlay-blur-color, transparent);
+  opacity: 0.1;
+}
+
+.edge-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 20%;
+  pointer-events: none;
+}
+
+.edge-fade--top {
+  top: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+}
+
+.edge-fade--bottom {
+  bottom: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+}
+
+.viewer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--viewer-pad, 20px);
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.sphere-root[data-enlarging="true"] .scrim {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: 1200px;
+  max-height: 800px;
+  pointer-events: none;
+}
+
+.enlarge {
+  pointer-events: auto;
+  border-radius: var(--enlarge-radius, 2rem);
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+.enlarge-closing {
+  pointer-events: none;
+}

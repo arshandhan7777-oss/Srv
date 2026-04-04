@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { MessageCircle, Users, Sparkles, Briefcase, Heart, Globe, ArrowRight, CheckCircle2, Phone } from 'lucide-react';
 import { PageHero } from '../components/PageHero';
 import { StatsCtaBanner } from '../components/StatsCtaBanner';
+import { skillDevelopmentImages, getPageImage } from '../config/pageImages';
 
 const skills = [
   {
@@ -100,7 +101,7 @@ export function SkillDevelopment() {
             >
               <div className="w-72 h-72 md:w-80 md:h-80 rounded-full overflow-hidden border-8 border-white shadow-2xl ring-4 ring-amber-200 ring-offset-4">
                 <img
-                  src="https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=2000&auto=format&fit=crop"
+                  src={getPageImage(skillDevelopmentImages, 0, "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=2000&auto=format&fit=crop")}
                   alt="Skill Development"
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"

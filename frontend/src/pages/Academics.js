@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { BookOpen, Globe, Users, Lightbulb, CheckCircle2 } from 'lucide-react';
 import { PageHero } from '../components/PageHero';
 import { StatsCtaBanner } from '../components/StatsCtaBanner';
+import { academicImages, getPageImage } from '../config/pageImages';
 
 const coCurricularActivities = [
   'Dance', 'Drama', 'Singing', 'Debates', 'Elocution', 'Yoga',
@@ -42,7 +43,7 @@ export function Academics() {
               {/* Center Diamond */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 rotate-45 rounded-[2.5rem] overflow-hidden border-8 border-white shadow-2xl z-20">
                 <img
-                  src="https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=2942&auto=format&fit=crop"
+                  src={getPageImage(academicImages, 0, "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=2942&auto=format&fit=crop")}
                   className="-rotate-45 scale-[1.35] object-cover w-full h-full"
                   alt="Student"
                   referrerPolicy="no-referrer"
@@ -51,7 +52,7 @@ export function Academics() {
               {/* Top Right */}
               <div className="absolute top-4 right-4 w-44 h-44 rotate-45 rounded-3xl overflow-hidden border-8 border-white shadow-xl z-10">
                 <img
-                  src="https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=2000&auto=format&fit=crop"
+                  src={getPageImage(academicImages, 1, "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=2000&auto=format&fit=crop")}
                   className="-rotate-45 scale-150 object-cover w-full h-full"
                   alt="Classroom"
                   referrerPolicy="no-referrer"
@@ -60,7 +61,7 @@ export function Academics() {
               {/* Bottom Left */}
               <div className="absolute bottom-4 left-4 w-44 h-44 rotate-45 rounded-3xl overflow-hidden border-8 border-white shadow-xl z-10">
                 <img
-                  src="https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=2940&auto=format&fit=crop"
+                  src={getPageImage(academicImages, 2, "https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=2940&auto=format&fit=crop")}
                   className="-rotate-45 scale-150 object-cover w-full h-full"
                   alt="Science"
                   referrerPolicy="no-referrer"
