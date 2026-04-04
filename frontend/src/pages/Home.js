@@ -1,7 +1,23 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, Building, Monitor, FlaskConical, Trophy, Video, BookOpen, Palette, Bus, MessageSquare, ChevronRight, CheckCircle2, Calendar, Award, Shield, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+import heroVideo from '../assest/home/srv_revison4_60_fps.webm';
+import heroImg1 from '../assest/home/home.webp';
+import heroImg2 from '../assest/home/WhatsApp Image 2026-04-04 at 2.48.55 PM.webp';
+import heroImg3 from '../assest/home/DSC08819.webp';
+import heroImg4 from '../assest/home/DSC08691.webp';
+import heroImg5 from '../assest/home/DSC08736.webp';
+
+const mediaSequence = [
+  { type: 'video', src: heroVideo },
+  { type: 'image', src: heroImg1 },
+  { type: 'image', src: heroImg2 },
+  { type: 'image', src: heroImg3 },
+  { type: 'image', src: heroImg4 },
+  { type: 'image', src: heroImg5 },
+];
 
 const features = [
   {
@@ -108,26 +124,56 @@ function AnimatedCounter({ value }) {
 }
 
 export function Home() {
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+
+  useEffect(() => {
+    let timeout;
+    if (mediaSequence[currentMediaIndex].type === 'image') {
+      timeout = setTimeout(() => {
+        setCurrentMediaIndex((prevIndex) => {
+          return prevIndex >= mediaSequence.length - 1 ? 1 : prevIndex + 1;
+        });
+      }, 5000); 
+    }
+    return () => clearTimeout(timeout);
+  }, [currentMediaIndex]);
+
   return (
     <div className="flex flex-col bg-slate-50 relative">
 
       {/* Premium Minimal Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0 bg-black">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full h-full object-cover opacity-80"
-          >
-            <source src="https://videos.pexels.com/video-files/4146051/4146051-uhd_2560_1440_30fps.mp4" type="video/mp4" />
-            <img
-              src="https://images.unsplash.com/photo-1592289143977-ed052f58a230?q=80&w=2940&auto=format&fit=crop"
-              alt="School Building"
-              className="w-full h-full object-cover"
-            />
-          </video>
+          <AnimatePresence initial={false}>
+            {currentMediaIndex === 0 && (
+              <motion.video
+                key="hero-video"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1.5, ease: "easeInOut" }}
+                autoPlay
+                muted
+                playsInline
+                onEnded={() => setCurrentMediaIndex(1)}
+                className="absolute inset-0 w-full h-full object-cover opacity-80"
+              >
+                <source src={mediaSequence[0].src} type="video/webm" />
+              </motion.video>
+            )}
+            {currentMediaIndex > 0 && (
+              <motion.img
+                key={`hero-img-${currentMediaIndex}`}
+                src={mediaSequence[currentMediaIndex].src}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1.5, ease: "easeInOut" }}
+                className="absolute inset-0 w-full h-full object-cover opacity-80"
+                alt="School Hero"
+              />
+            )}
+          </AnimatePresence>
           {/* Clean, single uniform overlay to let the video shine */}
           <div className="absolute inset-0 bg-black/30" />
         </div>
