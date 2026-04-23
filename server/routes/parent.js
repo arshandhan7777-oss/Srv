@@ -61,64 +61,70 @@ const findHomeworkForStudent = async ({ student, extraQuery = {}, sort = { dueDa
 // @access  Private (Parent only)
 router.get('/dashboard', protect, parentOnly, async (req, res) => {
   try {
-    const parentUser = await import('../models/User.js').then(m => m.default.findById(req.user.id));
+    const parentUser = await import('../models/User.js').then(m => m.default.findById(req.user.id).lean());
     if (!parentUser.studentId) return res.status(404).json({ message: 'No student linked to this account' });
 
-    const student = await Student.findById(parentUser.studentId).populate('facultyId', 'name');
+    const student = await Student.findById(parentUser.studentId).populate('facultyId', 'name').lean();
     if (!student) return res.status(404).json({ message: 'Student record not found' });
 
     console.log('[Dashboard] Parent:', parentUser._id, 'Student:', student._id, 'Grade:', student.grade, 'Section:', student.section);
 
-    // Run auto-archive transparently
-    await archiveOldHomework();
+    // Run auto-archive transparently in background (fire-and-forget)
+    archiveOldHomework().catch(() => {});
 
-    // Get all academic records to build trend graphs
-    const records = await AcademicRecord.find({ studentId: student._id }).sort({ createdAt: 1 });
-    
-    // Get TODAY's homework only (for "Recent Homework & Tasks" section)
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
     const todayEnd = new Date();
     todayEnd.setHours(23, 59, 59, 999);
-
-    const homework = await findHomeworkForStudent({
-      student,
-      extraQuery: {
-      archived: { $ne: true },
-      dueDate: { $gte: todayStart, $lte: todayEnd }
-      },
-      sort: { subject: 1, dueDate: 1 }
-    });
-
-    console.log('[Dashboard] Today\'s homework found:', homework.length);
-
-    // Get today's food menu
+    
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const today = days[new Date().getDay()];
-    let food = await FoodMenu.findOne({ day: today });
+    const todayDayName = days[new Date().getDay()];
 
+    const [
+      records,
+      homework,
+      exactFood,
+      regexFood,
+      weeklyFood,
+      setting,
+      classAttendance,
+      classBehavior
+    ] = await Promise.all([
+      // 1. Records
+      AcademicRecord.find({ studentId: student._id }).sort({ createdAt: 1 }).lean(),
+      // 2. Homework
+      findHomeworkForStudent({
+        student,
+        extraQuery: {
+          archived: { $ne: true },
+          dueDate: { $gte: todayStart, $lte: todayEnd }
+        },
+        sort: { subject: 1, dueDate: 1 }
+      }),
+      // 3. Exact Food
+      FoodMenu.findOne({ day: todayDayName }).lean(),
+      // 4. Regex Food
+      FoodMenu.findOne({ day: { $regex: new RegExp(`^\\s*${todayDayName}\\s*$`, 'i') } }).lean(),
+      // 5. Weekly Food (fallback)
+      FoodMenu.find().lean(),
+      // 6. Settings
+      Setting.findOne({ key: 'onlineFeePayment' }).lean(),
+      // 7. Attendance
+      Attendance.find({ 'records.studentId': student._id }).sort({ date: 1 }).lean(),
+      // 8. Behavior
+      Behavior.find({ 'records.studentId': student._id }).sort({ date: 1 }).lean()
+    ]);
+
+    let food = exactFood;
+    if (!food) food = regexFood;
     if (!food) {
-      food = await FoodMenu.findOne({
-        day: { $regex: new RegExp(`^\\s*${today}\\s*$`, 'i') }
-      });
+      food = weeklyFood.find(item => String(item.day || '').trim().toLowerCase() === todayDayName.toLowerCase()) || null;
     }
 
-    if (!food) {
-      const weeklyMenu = await FoodMenu.find();
-      food = weeklyMenu.find(item => String(item.day || '').trim().toLowerCase() === today.toLowerCase()) || null;
-    }
-
-    // Get online fee setting
-    let setting = await Setting.findOne({ key: 'onlineFeePayment' });
     const isOnlineFeeEnabled = setting ? setting.value : false;
 
-    // Get attendance specifically for this student
-    const classAttendance = await Attendance.find({
-      'records.studentId': student._id
-    }).sort({ date: 1 });
-
     const attendanceFlat = classAttendance.map(doc => {
-      const p = doc.records.find(r => r.studentId.toString() === student._id.toString());
+      const p = (doc.records || []).find(r => r.studentId.toString() === student._id.toString());
       return {
         date: doc.date,
         status: p ? p.status : 'Absent',
@@ -126,19 +132,16 @@ router.get('/dashboard', protect, parentOnly, async (req, res) => {
       };
     });
 
-    // Get behavior specifically for this student
-    const classBehavior = await Behavior.find({
-      'records.studentId': student._id
-    }).sort({ date: 1 });
-
     const behaviorFlat = classBehavior.map(doc => {
-      const p = doc.records.find(r => r.studentId.toString() === student._id.toString());
+      const p = (doc.records || []).find(r => r.studentId.toString() === student._id.toString());
       return {
         date: doc.date,
         score: p ? p.score : null,
         remarks: p ? p.remarks : ''
       };
     }).filter(b => b.score !== null);
+
+    res.set('Cache-Control', 'private, max-age=60'); // 60 seconds localized cache
 
     res.json({
       student,

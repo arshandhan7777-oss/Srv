@@ -16,5 +16,7 @@ const attendanceSchema = new mongoose.Schema({
 
 // Ensure one attendance sheet per faculty per day
 attendanceSchema.index({ facultyId: 1, date: 1 }, { unique: true });
+// Index for fast lookup by student ID
+attendanceSchema.index({ 'records.studentId': 1, date: 1 });
 
 export default mongoose.model('Attendance', attendanceSchema);

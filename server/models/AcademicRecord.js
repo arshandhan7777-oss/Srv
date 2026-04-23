@@ -42,6 +42,9 @@ academicRecordSchema.virtual('attendancePercentage').get(function() {
   return ((this.daysPresent / this.totalWorkingDays) * 100).toFixed(2);
 });
 
+// Index for fast lookup by student ID for dashboard queries
+academicRecordSchema.index({ studentId: 1, createdAt: 1 });
+
 academicRecordSchema.set('toJSON', { virtuals: true });
 academicRecordSchema.set('toObject', { virtuals: true });
 

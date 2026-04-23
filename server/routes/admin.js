@@ -39,6 +39,16 @@ router.post('/faculty', protect, adminOnly, async (req, res) => {
   try {
     // Generate a unique sequential SRV number for faculty (e.g., FAC26001)
     const year = new Date().getFullYear().toString().slice(-2);
+
+// @route   POST /api/admin/faculty
+// @desc    Register a new faculty member
+// @access  Private (Admin only)
+router.post('/faculty', protect, adminOnly, async (req, res) => {
+  const { name, assignedGrade, assignedSection, password, mobileNumber } = req.body;
+
+  try {
+    // Generate a unique sequential SRV number for faculty (e.g., FAC26001)
+    const year = new Date().getFullYear().toString().slice(-2);
     const prefix = `FAC${year}`;
     const lastFaculty = await User.findOne({ 
       role: 'faculty', 
@@ -54,7 +64,8 @@ router.post('/faculty', protect, adminOnly, async (req, res) => {
     }
     const srvNumber = `${prefix}${sequence}`;
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password || 'faculty123', salt);
+    const assignedPassword = password || (Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 6));
+    const hashedPassword = await bcrypt.hash(assignedPassword, salt);
 
     const faculty = await User.create({
       name,
@@ -74,7 +85,8 @@ router.post('/faculty', protect, adminOnly, async (req, res) => {
         srvNumber: faculty.srvNumber,
         assignedGrade: faculty.assignedGrade,
         assignedSection: faculty.assignedSection,
-        mobileNumber: faculty.mobileNumber
+        mobileNumber: faculty.mobileNumber,
+        initialPassword: assignedPassword // Return only once so admin can share
       }
     });
   } catch (error) {
@@ -147,7 +159,7 @@ router.post('/student', protect, adminOnly, async (req, res) => {
 
     // 3. Automatically create the Parent login account
     const salt = await bcrypt.genSalt(10);
-    const defaultPassword = dateOfBirth ? dateOfBirth : 'parent123';
+    const defaultPassword = Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 6);
     const hashedPassword = await bcrypt.hash(defaultPassword, salt);
 
     const parentUser = await User.create({

@@ -64,10 +64,10 @@ app.use(express.json({ limit: '10kb' }));
 // Prevent HTTP Parameter Pollution (Currently incompatible with Express 5)
 // app.use(hpp());
 
-// Global rate limiter — 100 requests per 15 minutes per IP
+// Global rate limiter — 300 requests per 15 minutes per IP
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 300,
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: 'Too many requests, please try again later.' }

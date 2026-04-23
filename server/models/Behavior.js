@@ -15,5 +15,7 @@ const behaviorSchema = new mongoose.Schema({
 
 // Ensure one behavior log per faculty per day
 behaviorSchema.index({ facultyId: 1, date: 1 }, { unique: true });
+// Index for fast lookup by student ID
+behaviorSchema.index({ 'records.studentId': 1, date: 1 });
 
 export default mongoose.model('Behavior', behaviorSchema);
