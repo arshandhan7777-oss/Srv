@@ -14,7 +14,7 @@ const roleConfig = {
     createUrl: '/api/admin/memories',
     deleteUrl: '/api/admin/memories',
     heading: 'Upload Student Photos and Videos',
-    description: 'Upload school memories, keep photos under 5 MB, and remove items anytime from the admin portal.',
+    description: 'Upload school memories to Cloudinary, keep photos under 5 MB, and use the same media in the public gallery.',
     accent: 'emerald'
   },
   faculty: {
@@ -265,7 +265,7 @@ export function MemoriesSection({ role = 'parent' }) {
         {role === 'admin' && (
           <div className="mt-6 rounded-[1.75rem] border border-slate-200 bg-slate-50 p-4 sm:p-6">
             <div className={`mb-4 rounded-2xl border px-4 py-3 text-sm font-semibold ${accent.subtle}`}>
-              Photo uploads are limited to 5 MB. Videos are supported too, and parents/faculty will see them in View Memories.
+              Photo uploads are limited to 5 MB. Videos are supported too, and new uploads are stored in the dedicated Cloudinary gallery folder.
             </div>
 
             {uploadConfig && !uploadConfig.enabled && (

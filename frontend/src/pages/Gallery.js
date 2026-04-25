@@ -79,7 +79,7 @@ export function Gallery() {
             Our Campus Life
           </span>
           <h2 className="text-3xl md:text-5xl font-semibold text-slate-900 tracking-tight max-w-4xl mx-auto">
-            Dome gallery effect with live Cloudinary media and local photo fallback
+            Dome gallery effect with live Cloudinary media
           </h2>
           <p className="text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed mt-5">
             Upload gallery photos once and this page will fetch them from the Cloudinary folder{' '}
@@ -87,7 +87,7 @@ export function Gallery() {
           </p>
           {!usingCloudGallery && !loading && (
             <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-4 py-2 inline-flex mt-6">
-              No Cloudinary gallery images found yet, so Dome Gallery is using bundled fallback photos from {galleryFolderPath}.
+              No Cloudinary gallery images found yet, so Dome Gallery is temporarily using the {galleryFolderPath} until uploads are added.
             </p>
           )}
         </motion.div>

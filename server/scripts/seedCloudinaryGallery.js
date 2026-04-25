@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
-const GALLERY_SOURCE_DIR = path.resolve(__dirname, '../../frontend/src/assest/Gallery');
+const GALLERY_SOURCE_DIR = path.resolve(__dirname, '../../gallery-seed');
 const SUPPORTED_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif']);
 
 const argMap = new Map(

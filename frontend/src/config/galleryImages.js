@@ -1,19 +1,4 @@
-const bundledGalleryFolderPath = 'frontend/src/assest/Gallery';
-
-const bundledGalleryImages = [
-  { url: new URL('../assest/Gallery/107.webp', import.meta.url).href, title: 'Gallery 107' },
-  { url: new URL('../assest/Gallery/112.webp', import.meta.url).href, title: 'Gallery 112' },
-  { url: new URL('../assest/Gallery/131.webp', import.meta.url).href, title: 'Gallery 131' },
-  { url: new URL('../assest/Gallery/143.webp', import.meta.url).href, title: 'Gallery 143' },
-  { url: new URL('../assest/Gallery/195.webp', import.meta.url).href, title: 'Gallery 195' },
-  { url: new URL('../assest/Gallery/219.webp', import.meta.url).href, title: 'Gallery 219' },
-  { url: new URL('../assest/Gallery/248.webp', import.meta.url).href, title: 'Gallery 248' },
-  { url: new URL('../assest/Gallery/305.webp', import.meta.url).href, title: 'Gallery 305' },
-  { url: new URL('../assest/Gallery/344.webp', import.meta.url).href, title: 'Gallery 344' },
-  { url: new URL('../assest/Gallery/399.webp', import.meta.url).href, title: 'Gallery 399' },
-  { url: new URL('../assest/Gallery/552.webp', import.meta.url).href, title: 'Gallery 552' },
-  { url: new URL('../assest/Gallery/613.webp', import.meta.url).href, title: 'Gallery 613' }
-];
+const galleryFallbackSource = 'remote placeholder collection';
 
 const remotePlaceholderImages = [
   {
@@ -35,10 +20,8 @@ const remotePlaceholderImages = [
 ];
 
 export const cloudinaryGalleryFolder = 'SRV/gallery';
-export const galleryFolderPath = bundledGalleryFolderPath;
+export const galleryFolderPath = galleryFallbackSource;
 
-export const defaultFallbackImages = bundledGalleryImages.length > 0
-  ? bundledGalleryImages
-  : remotePlaceholderImages;
+export const defaultFallbackImages = remotePlaceholderImages;
 
 export const getGalleryImages = () => defaultFallbackImages;

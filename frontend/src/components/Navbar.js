@@ -40,19 +40,20 @@ export function Navbar() {
 
   useEffect(() => {
     setIsOpen(false);
-    window.scrollTo(0, 0);
+    if (window.lenis) {
+      window.lenis.scrollTo(0, { immediate: true });
+    } else {
+      window.scrollTo(0, 0);
+    }
   }, [location.pathname]);
 
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
       window.lenis?.stop();
     } else {
-      document.body.style.overflow = 'unset';
       window.lenis?.start();
     }
     return () => {
-      document.body.style.overflow = 'unset';
       window.lenis?.start();
     };
   }, [isOpen]);

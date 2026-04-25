@@ -128,13 +128,23 @@ export function Home() {
 
   useEffect(() => {
     let timeout;
-    if (mediaSequence[currentMediaIndex].type === 'image') {
+    const scheduleNext = () => {
       timeout = setTimeout(() => {
-        setCurrentMediaIndex((prevIndex) => {
-          return prevIndex >= mediaSequence.length - 1 ? 1 : prevIndex + 1;
-        });
-      }, 5000); 
+        // Prevent framer-motion from getting stuck by not transitioning if tab is in the background
+        if (document.hidden) {
+          scheduleNext();
+        } else {
+          setCurrentMediaIndex((prevIndex) => {
+            return prevIndex >= mediaSequence.length - 1 ? 1 : prevIndex + 1;
+          });
+        }
+      }, document.hidden ? 1000 : 5000);
+    };
+
+    if (mediaSequence[currentMediaIndex].type === 'image') {
+      scheduleNext();
     }
+
     return () => clearTimeout(timeout);
   }, [currentMediaIndex]);
 
@@ -145,7 +155,7 @@ export function Home() {
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0 bg-black">
           <AnimatePresence initial={false}>
-            {currentMediaIndex === 0 && (
+            {currentMediaIndex === 0 ? (
               <motion.video
                 key="hero-video"
                 initial={{ opacity: 0 }}
@@ -160,8 +170,7 @@ export function Home() {
               >
                 <source src={mediaSequence[0].src} type="video/webm" />
               </motion.video>
-            )}
-            {currentMediaIndex > 0 && (
+            ) : (
               <motion.img
                 key={`hero-img-${currentMediaIndex}`}
                 src={mediaSequence[currentMediaIndex].src}
@@ -274,6 +283,7 @@ export function Home() {
                 animate={{ y: [-15, 15, -15] }}
                 transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
                 className="absolute inset-0"
+                style={{ willChange: 'transform' }}
               >
                 {/* Center Diamond */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rotate-45 rounded-[2.5rem] overflow-hidden border-8 border-white shadow-2xl z-20">
@@ -475,6 +485,7 @@ export function Home() {
                 animate={{ y: [-15, 15, -15] }}
                 transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
                 className="relative w-full max-w-lg aspect-square rounded-[100px] sm:rounded-[200px] shadow-xl overflow-hidden z-20 border-8 border-white/50"
+                style={{ willChange: 'transform' }}
               >
                 <img src="https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=2940&auto=format&fit=crop" className="object-cover w-full h-full scale-105" alt="Students" referrerPolicy="no-referrer" />
               </motion.div>
@@ -513,7 +524,7 @@ export function Home() {
                 animate={{ y: [-15, 15, -15] }}
                 transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
                 className="relative w-full max-w-lg aspect-square shadow-xl overflow-hidden z-20 border-8 border-white/50"
-                style={{ borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%' }}
+                style={{ borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%', willChange: 'transform' }}
               >
                 <img src="https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=2942&auto=format&fit=crop" className="object-cover w-full h-full scale-105" alt="Kids playing outside" referrerPolicy="no-referrer" />
               </motion.div>
