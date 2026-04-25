@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Users, UserPlus, BookOpen, LogOut, CheckCircle2, Coffee, Trash2, Edit2, Save, X, Megaphone, GraduationCap, CalendarDays, ClipboardList, MessageSquareMore, BellRing, ArrowUpCircle, UtensilsCrossed, LayoutDashboard, ShieldAlert, ChevronLeft, Image as ImageIcon, Trophy, Target } from 'lucide-react';
+import { Users, UserPlus, BookOpen, LogOut, CheckCircle2, Coffee, Trash2, Edit2, Save, X, Megaphone, GraduationCap, CalendarDays, ClipboardList, MessageSquareMore, BellRing, ArrowUpCircle, UtensilsCrossed, LayoutDashboard, ShieldAlert, ChevronLeft, Image as ImageIcon, Trophy, Target, ClipboardCheck } from 'lucide-react';
 import API_URL from '../config/api.js';
 import Swal from 'sweetalert2';
 import { OpinionPollSection } from '../components/OpinionPollSection.js';
@@ -86,6 +86,7 @@ export function AdminDashboard({ section = 'home' }) {
   const [pwRequests, setPwRequests] = useState([]);
   const [resettingPwFor, setResettingPwFor] = useState(null);
   const [newAdminProvidedPw, setNewAdminProvidedPw] = useState('');
+  const [enquiryAlerts, setEnquiryAlerts] = useState({ totalAlerts: 0, staleEnquiries: [] });
 
   // Announcements
   const [announcementForm, setAnnouncementForm] = useState({ title: '', message: '', priority: 'MEDIUM', targetType: 'students', targetGrade: '', targetSection: '' });
@@ -130,6 +131,8 @@ export function AdminDashboard({ section = 'home' }) {
       .then(res => setFeeAlerts(res.data)).catch(console.error);
     axios.get(`${API_URL}/api/admin/password-requests`, { headers: { Authorization: `Bearer ${token}` } })
       .then(res => setPwRequests(res.data)).catch(console.error);
+    axios.get(`${API_URL}/api/enquiry/alerts`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => setEnquiryAlerts(res.data)).catch(console.error);
   };
 
   const handleToggleOnlineFee = async () => {
@@ -536,7 +539,8 @@ export function AdminDashboard({ section = 'home' }) {
     { key: 'events', label: 'Total Events', value: stats.totalEvents, icon: CalendarDays, tone: 'bg-amber-100 text-amber-700' },
     { key: 'polls', label: 'Total Polls', value: stats.totalPolls, icon: ClipboardList, tone: 'bg-violet-100 text-violet-700' },
     { key: 'feedback', label: 'Total Feedback', value: stats.totalFeedback, icon: MessageSquareMore, tone: 'bg-rose-100 text-rose-700' },
-    { key: 'announcements', label: 'Total Announcements', value: stats.totalAnnouncements, icon: BellRing, tone: 'bg-slate-200 text-slate-700' }
+    { key: 'announcements', label: 'Total Announcements', value: stats.totalAnnouncements, icon: BellRing, tone: 'bg-slate-200 text-slate-700' },
+    { key: 'enquiry', label: 'Active Enquiries', value: stats.totalEnquiries || 0, icon: ClipboardCheck, tone: 'bg-cyan-100 text-cyan-700' }
   ];
 
   const appPages = [
@@ -549,7 +553,8 @@ export function AdminDashboard({ section = 'home' }) {
     { key: 'polls', title: 'Poll Center', subtitle: 'Opinion Polls, Analytics', icon: ClipboardList, badge: stats.totalPolls, gradient: 'from-violet-500 to-indigo-500' },
     { key: 'feedback', title: 'Feedback', subtitle: 'Parent Feedback Inbox', icon: MessageSquareMore, badge: stats.totalFeedback, gradient: 'from-rose-500 to-red-500' },
     { key: 'cafeteria', title: 'Cafeteria', subtitle: 'Manage Cafeteria Menu', icon: UtensilsCrossed, badge: weeklyMenu.length || 'Menu', gradient: 'from-orange-500 to-yellow-500' },
-    { key: 'announcements', title: 'Announcements', subtitle: 'Broadcast Announcement', icon: Megaphone, badge: stats.totalAnnouncements, gradient: 'from-slate-700 to-slate-900' }
+    { key: 'announcements', title: 'Announcements', subtitle: 'Broadcast Announcement', icon: Megaphone, badge: stats.totalAnnouncements, gradient: 'from-slate-700 to-slate-900' },
+    { key: 'enquiry', title: 'Enquiry Center', subtitle: 'Student Enquiries, Lead Pipeline', icon: ClipboardCheck, badge: stats.totalEnquiries || 0, gradient: 'from-cyan-500 to-blue-600' }
   ];
 
   const pageMeta = {
@@ -595,7 +600,7 @@ export function AdminDashboard({ section = 'home' }) {
     navigate(targetSection === 'home' ? '/admin/dashboard' : `/admin/${targetSection}`);
   };
 
-  const adminNotificationCount = feeAlerts.length + pwRequests.length;
+  const adminNotificationCount = feeAlerts.length + pwRequests.length + (enquiryAlerts.totalAlerts || 0);
 
   const notificationAction = (
     <div className="relative">
@@ -613,7 +618,7 @@ export function AdminDashboard({ section = 'home' }) {
         open={showNotifications}
         onClose={() => setShowNotifications(false)}
         title="Admin Alerts"
-        subtitle={`${feeAlerts.length} payment alerts • ${pwRequests.length} recovery requests`}
+        subtitle={`${feeAlerts.length} payment • ${pwRequests.length} recovery • ${enquiryAlerts.totalAlerts || 0} enquiry alerts`}
       >
         <div className="space-y-4 p-4">
           <div>
@@ -648,6 +653,26 @@ export function AdminDashboard({ section = 'home' }) {
               )) : (
                 <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-3 py-6 text-center text-sm text-slate-500">
                   No recovery requests.
+                </div>
+              )}
+            </div>
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Enquiry Alerts</p>
+            <div className="mt-2 space-y-2">
+              {(enquiryAlerts.staleEnquiries?.length > 0) ? enquiryAlerts.staleEnquiries.slice(0, 4).map(enq => (
+                <div key={enq._id} className="rounded-2xl border border-cyan-100 bg-cyan-50 px-3 py-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-bold text-cyan-900">{enq.studentName}</p>
+                      <p className="mt-0.5 text-[11px] text-cyan-700">Grade {enq.grade || '?'} • {enq.status} • Score: {enq.leadScore}</p>
+                    </div>
+                    <button onClick={() => navigate('/admin/enquiry')} className="rounded-lg bg-cyan-600 px-2.5 py-1 text-[10px] font-bold text-white hover:bg-cyan-700 transition">View</button>
+                  </div>
+                </div>
+              )) : (
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-3 py-6 text-center text-sm text-slate-500">
+                  No enquiry alerts.
                 </div>
               )}
             </div>

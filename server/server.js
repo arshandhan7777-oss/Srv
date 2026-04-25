@@ -20,6 +20,7 @@ import parentRoutes from './routes/parent.js';
 import publicRoutes from './routes/public.js';
 import taskRoutes from './routes/tasks.js';
 import performanceRoutes from './routes/performance.js';
+import enquiryRoutes from './routes/enquiry.js';
 
 const app = express();
 
@@ -136,6 +137,7 @@ app.use('/api/faculty', facultyRoutes);
 app.use('/api/parent', parentRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/performance', performanceRoutes);
+app.use('/api/enquiry', enquiryRoutes);
 
 app.get('/', (req, res) => {
     res.send('SRV School Management API is running (Serverless Mode)');

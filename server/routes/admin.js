@@ -13,6 +13,7 @@ import Feedback from '../models/Feedback.js';
 import Event from '../models/Event.js';
 import EventRegistration from '../models/EventRegistration.js';
 import Memory from '../models/Memory.js';
+import Enquiry from '../models/Enquiry.js';
 import { protect, adminOnly } from '../middleware/auth.js';
 import { hydratePolls } from '../utils/pollService.js';
 import { normalizeClassValue, validateAndNormalizeQuestions } from '../utils/pollUtils.js';
@@ -198,6 +199,7 @@ router.get('/stats', protect, adminOnly, async (req, res) => {
     const totalPolls = await Poll.countDocuments();
     const totalFeedback = await Feedback.countDocuments();
     const totalAnnouncements = await Announcement.countDocuments();
+    const totalEnquiries = await Enquiry.countDocuments({ status: { $ne: 'Converted' } });
     
     res.json({
       totalStudents,
@@ -205,7 +207,8 @@ router.get('/stats', protect, adminOnly, async (req, res) => {
       totalEvents,
       totalPolls,
       totalFeedback,
-      totalAnnouncements
+      totalAnnouncements,
+      totalEnquiries
     });
   } catch (error) {
     res.status(500).json({ message: 'Server errors fetching stats' });
