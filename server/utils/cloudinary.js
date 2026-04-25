@@ -2,6 +2,12 @@ import crypto from 'crypto';
 
 const trimEnv = (value) => String(value || '').trim();
 
+const joinFolderParts = (...parts) => parts
+  .map(part => trimEnv(part))
+  .filter(Boolean)
+  .map(part => part.replace(/^\/+|\/+$/g, ''))
+  .join('/');
+
 export const getCloudinaryConfig = () => ({
   cloudName: trimEnv(process.env.CLOUDINARY_CLOUD_NAME),
   apiKey: trimEnv(process.env.CLOUDINARY_API_KEY),
@@ -10,7 +16,12 @@ export const getCloudinaryConfig = () => ({
   folder: trimEnv(process.env.CLOUDINARY_FOLDER) || 'SRV'
 });
 
-export const buildCloudinaryUploadConfig = () => {
+export const getCloudinaryGalleryFolder = () => {
+  const config = getCloudinaryConfig();
+  return trimEnv(process.env.CLOUDINARY_GALLERY_FOLDER) || joinFolderParts(config.folder, 'gallery');
+};
+
+export const buildCloudinaryUploadConfig = ({ folder } = {}) => {
   const config = getCloudinaryConfig();
   const unsignedUploadsEnabled = Boolean(config.cloudName && config.uploadPreset);
   const signedUploadsEnabled = Boolean(config.cloudName && config.apiKey && config.apiSecret);
@@ -25,7 +36,7 @@ export const buildCloudinaryUploadConfig = () => {
     cloudName: config.cloudName,
     apiKey: config.apiKey,
     uploadPreset: config.uploadPreset,
-    folder: config.folder,
+    folder: folder || config.folder,
     message: enabled
       ? ''
       : 'Cloudinary upload is not ready yet. Add the cloud name plus either an unsigned preset or full API credentials.'

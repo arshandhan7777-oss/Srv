@@ -57,7 +57,7 @@ export function AdminDashboard({ section = 'home' }) {
   const [editingSrvId, setEditingSrvId] = useState(null);
   const [editSrvValue, setEditSrvValue] = useState('');
   const [editingStudentId, setEditingStudentId] = useState(null);
-  const [editStudentForm, setEditStudentForm] = useState({ admissionNumber: '', name: '', grade: '', section: '', group: '', motherName: '', fatherName: '', guardianName: '', parentMobileNumber: '' });
+  const [editStudentForm, setEditStudentForm] = useState({ admissionNumber: '', name: '', grade: '', section: '', group: '', motherName: '', fatherName: '', guardianName: '', parentMobileNumber: '', parentRecoveryQuestion: '', parentRecoveryAnswer: '' });
   const [promoteFrom, setPromoteFrom] = useState('');
   const [promoteTo, setPromoteTo] = useState('');
 
@@ -70,7 +70,7 @@ export function AdminDashboard({ section = 'home' }) {
   // Manage Faculty State
   const [faculties, setFaculties] = useState([]);
   const [editingFacultyId, setEditingFacultyId] = useState(null);
-  const [editFacultyForm, setEditFacultyForm] = useState({ facultyNumber: '', name: '', mobileNumber: '', assignedGrade: '', assignedSection: '', password: '' });
+  const [editFacultyForm, setEditFacultyForm] = useState({ facultyNumber: '', name: '', mobileNumber: '', assignedGrade: '', assignedSection: '', password: '', recoveryQuestion: '', recoveryAnswer: '' });
   const [manageFacultyMsg, setManageFacultyMsg] = useState({ text: '', type: '' });
 
   // Manage Students State
@@ -361,13 +361,15 @@ export function AdminDashboard({ section = 'home' }) {
       motherName: student.motherName || '',
       fatherName: student.fatherName || '',
       guardianName: student.guardianName || '',
-      parentMobileNumber: student.parentMobileNumber || ''
+      parentMobileNumber: student.parentMobileNumber || '',
+      parentRecoveryQuestion: '',
+      parentRecoveryAnswer: ''
     });
   };
 
   const closeStudentEditor = () => {
     setEditingStudentId(null);
-    setEditStudentForm({ admissionNumber: '', name: '', grade: '', section: '', group: '', motherName: '', fatherName: '', guardianName: '', parentMobileNumber: '' });
+    setEditStudentForm({ admissionNumber: '', name: '', grade: '', section: '', group: '', motherName: '', fatherName: '', guardianName: '', parentMobileNumber: '', parentRecoveryQuestion: '', parentRecoveryAnswer: '' });
   };
 
   const handleUpdateFaculty = async (id) => {
@@ -393,12 +395,14 @@ export function AdminDashboard({ section = 'home' }) {
         mobileNumber: editFacultyForm.mobileNumber,
         assignedGrade: editFacultyForm.assignedGrade,
         assignedSection: editFacultyForm.assignedSection,
-        password: editFacultyForm.password
+        password: editFacultyForm.password,
+        recoveryQuestion: editFacultyForm.recoveryQuestion,
+        recoveryAnswer: editFacultyForm.recoveryAnswer
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setEditingFacultyId(null);
-      setEditFacultyForm({ facultyNumber: '', name: '', mobileNumber: '', assignedGrade: '', assignedSection: '', password: '' });
+      setEditFacultyForm({ facultyNumber: '', name: '', mobileNumber: '', assignedGrade: '', assignedSection: '', password: '', recoveryQuestion: '', recoveryAnswer: '' });
       setManageFacultyMsg({ text: 'Faculty updated successfully', type: 'success' });
       fetchFaculties(token);
       setTimeout(() => setManageFacultyMsg({text:'', type:''}), 3000);
@@ -415,7 +419,9 @@ export function AdminDashboard({ section = 'home' }) {
       mobileNumber: faculty.mobileNumber || '',
       assignedGrade: faculty.assignedGrade || '',
       assignedSection: faculty.assignedSection || '',
-      password: ''
+      password: '',
+      recoveryQuestion: faculty.recoveryQuestion || '',
+      recoveryAnswer: ''
     });
     setManageFacultyMsg({ text: '', type: '' });
   };
@@ -423,7 +429,7 @@ export function AdminDashboard({ section = 'home' }) {
   const closeFacultyEditor = () => {
     setEditingFacultyId(null);
     setManageFacultyMsg({ text: '', type: '' });
-    setEditFacultyForm({ facultyNumber: '', name: '', mobileNumber: '', assignedGrade: '', assignedSection: '', password: '' });
+    setEditFacultyForm({ facultyNumber: '', name: '', mobileNumber: '', assignedGrade: '', assignedSection: '', password: '', recoveryQuestion: '', recoveryAnswer: '' });
   };
 
   const handleApprovePwReset = async () => {
@@ -1764,7 +1770,30 @@ export function AdminDashboard({ section = 'home' }) {
                 />
               </div>
 
-              <p className="text-sm text-slate-500">Enter mother and father names together, or fill only the guardian field. Add the parent mobile here if it was missing during admission.</p>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">Parent Recovery Question</label>
+                  <input
+                    type="text"
+                    value={editStudentForm.parentRecoveryQuestion}
+                    onChange={e => setEditStudentForm({ ...editStudentForm, parentRecoveryQuestion: e.target.value })}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Example: What is your village name?"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">Parent Recovery Answer</label>
+                  <input
+                    type="text"
+                    value={editStudentForm.parentRecoveryAnswer}
+                    onChange={e => setEditStudentForm({ ...editStudentForm, parentRecoveryAnswer: e.target.value })}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Leave blank to keep current answer"
+                  />
+                </div>
+              </div>
+
+              <p className="text-sm text-slate-500">Enter mother and father names together, or fill only the guardian field. Add the parent mobile here if it was missing during admission. You can also set a parent recovery question and answer for self-service password reset.</p>
 
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                 <button type="submit" className="w-full rounded-xl bg-purple-600 px-6 py-3 font-bold text-white transition-colors hover:bg-purple-700 sm:w-auto">
@@ -1879,6 +1908,29 @@ export function AdminDashboard({ section = 'home' }) {
                       placeholder="Leave blank to keep current password"
                     />
                   </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">Recovery Question</label>
+                  <input
+                    type="text"
+                    value={editFacultyForm.recoveryQuestion}
+                    onChange={e => setEditFacultyForm({ ...editFacultyForm, recoveryQuestion: e.target.value })}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Example: What is your hometown?"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">Recovery Answer</label>
+                  <input
+                    type="text"
+                    value={editFacultyForm.recoveryAnswer}
+                    onChange={e => setEditFacultyForm({ ...editFacultyForm, recoveryAnswer: e.target.value })}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Leave blank to keep current answer"
+                  />
+                </div>
               </div>
 
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap sm:items-center">

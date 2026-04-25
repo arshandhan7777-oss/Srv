@@ -17,6 +17,7 @@ import authRoutes from './routes/auth.js';
 import adminRoutes from './routes/admin.js';
 import facultyRoutes from './routes/faculty.js';
 import parentRoutes from './routes/parent.js';
+import publicRoutes from './routes/public.js';
 
 const app = express();
 
@@ -36,9 +37,8 @@ const allowedOrigins = [
   'https://srv-admin-gamma.vercel.app'    // production admin
 ].filter(Boolean);
 
-// Global CORS middleware handles preflight automatically
-app.use(cors({
-  origin: function (origin, callback) {
+const corsOptions = {
+  origin(origin, callback) {
     // Allow requests with no origin (mobile apps, curl, server-to-server)
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) {
@@ -48,8 +48,29 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
-}));
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  optionsSuccessStatus: 204
+};
+
+// Mirror CORS headers early so preflight and error responses still expose the allow-origin header.
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Vary', 'Origin');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
+  }
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+
+  next();
+});
+
+app.use(cors(corsOptions));
 
 
 // Set secure HTTP headers (XSS filter, HSTS, noSniff, etc.)
@@ -107,6 +128,7 @@ app.use(async (req, res, next) => {
 // 2. ROUTES
 // ──────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
+app.use('/api/public', publicRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/faculty', facultyRoutes);
 app.use('/api/parent', parentRoutes);

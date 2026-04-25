@@ -22,23 +22,19 @@ import { archivePastEvents } from '../utils/archiveEvents.js';
 import { applyStudentFamilyDetails, validateStudentFamilyDetails } from '../utils/studentFamilyDetails.js';
 import { buildParentDisplayName, enrichParentLinkedRecord, enrichParentLinkedRecords } from '../utils/parentProfile.js';
 import { hasParentMobileNumber, normalizeParentMobileNumber, syncParentAccountDetails } from '../utils/parentContact.js';
-import { buildCloudinaryUploadConfig, buildCloudinaryUploadSignature, destroyCloudinaryAsset } from '../utils/cloudinary.js';
+import {
+  buildCloudinaryUploadConfig,
+  buildCloudinaryUploadSignature,
+  destroyCloudinaryAsset,
+  getCloudinaryGalleryFolder
+} from '../utils/cloudinary.js';
 
 const router = express.Router();
 const MAX_MEMORY_IMAGE_BYTES = 5 * 1024 * 1024;
+const normalizeRecoveryAnswer = (value) => String(value || '').trim().toLowerCase();
 
 // Generate a random 4 digit string
 const generateRandomDigits = () => Math.floor(1000 + Math.random() * 9000).toString();
-
-// @route   POST /api/admin/faculty
-// @desc    Register a new faculty member
-// @access  Private (Admin only)
-router.post('/faculty', protect, adminOnly, async (req, res) => {
-  const { name, assignedGrade, assignedSection, password, mobileNumber } = req.body;
-
-  try {
-    // Generate a unique sequential SRV number for faculty (e.g., FAC26001)
-    const year = new Date().getFullYear().toString().slice(-2);
 
 // @route   POST /api/admin/faculty
 // @desc    Register a new faculty member
@@ -271,7 +267,7 @@ router.get('/students', protect, adminOnly, async (req, res) => {
 // @access  Private (Admin only)
 router.get('/faculty', protect, adminOnly, async (req, res) => {
   try {
-    const faculty = await User.find({ role: 'faculty' }).select('-password');
+    const faculty = await User.find({ role: 'faculty' }).select('-password -recoveryAnswerHash');
     res.json(faculty);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching faculty' });
@@ -282,7 +278,7 @@ router.get('/faculty', protect, adminOnly, async (req, res) => {
 // @desc    Update faculty assignment and/or password
 // @access  Private (Admin only)
 router.put('/faculty/:id', protect, adminOnly, async (req, res) => {
-  const { name, mobileNumber, assignedGrade, assignedSection, maxStudents, handledClasses, password } = req.body;
+  const { name, mobileNumber, assignedGrade, assignedSection, maxStudents, handledClasses, password, recoveryQuestion, recoveryAnswer } = req.body;
   try {
     const faculty = await User.findById(req.params.id);
     if (!faculty || faculty.role !== 'faculty') {
@@ -299,6 +295,19 @@ router.put('/faculty/:id', protect, adminOnly, async (req, res) => {
     if (password) {
       const salt = await bcrypt.genSalt(10);
       faculty.password = await bcrypt.hash(password, salt);
+    }
+
+    if (recoveryQuestion !== undefined) {
+      faculty.recoveryQuestion = String(recoveryQuestion || '').trim();
+    }
+    if (recoveryAnswer !== undefined) {
+      const normalizedAnswer = normalizeRecoveryAnswer(recoveryAnswer);
+      if (normalizedAnswer) {
+        const salt = await bcrypt.genSalt(10);
+        faculty.recoveryAnswerHash = await bcrypt.hash(normalizedAnswer, salt);
+      } else if (!faculty.recoveryQuestion) {
+        faculty.recoveryAnswerHash = '';
+      }
     }
 
     await faculty.save();
@@ -395,7 +404,7 @@ router.put('/student/:id/fees', protect, adminOnly, async (req, res) => {
 // @desc    Edit student details
 // @access  Private (Admin only)
 router.put('/student/:id', protect, adminOnly, async (req, res) => {
-  const { name, grade, section, group } = req.body;
+  const { name, grade, section, group, parentRecoveryQuestion, parentRecoveryAnswer } = req.body;
   try {
     const student = await Student.findById(req.params.id);
     if (!student) return res.status(404).json({ message: 'Student not found' });
@@ -422,6 +431,25 @@ router.put('/student/:id', protect, adminOnly, async (req, res) => {
     await student.save();
     await syncParentAccountDetails(student, `Parent of ${student.name}`);
 
+    if (parentRecoveryQuestion !== undefined || parentRecoveryAnswer !== undefined) {
+      const parentUser = await User.findOne({ role: 'parent', studentId: student._id });
+      if (parentUser) {
+        if (parentRecoveryQuestion !== undefined) {
+          parentUser.recoveryQuestion = String(parentRecoveryQuestion || '').trim();
+        }
+        if (parentRecoveryAnswer !== undefined) {
+          const normalizedAnswer = normalizeRecoveryAnswer(parentRecoveryAnswer);
+          if (normalizedAnswer) {
+            const salt = await bcrypt.genSalt(10);
+            parentUser.recoveryAnswerHash = await bcrypt.hash(normalizedAnswer, salt);
+          } else if (!parentUser.recoveryQuestion) {
+            parentUser.recoveryAnswerHash = '';
+          }
+        }
+        await parentUser.save();
+      }
+    }
+
     res.json({ message: 'Student updated successfully', student });
   } catch (error) {
     console.error('[Edit Student Error]', error);
@@ -446,7 +474,9 @@ router.get('/memories', protect, adminOnly, async (req, res) => {
 // @access  Private (Admin only)
 router.get('/memories/upload-config', protect, adminOnly, async (req, res) => {
   try {
-    res.json(buildCloudinaryUploadConfig());
+    res.json(buildCloudinaryUploadConfig({
+      folder: getCloudinaryGalleryFolder()
+    }));
   } catch (error) {
     res.status(500).json({ message: 'Error loading upload configuration' });
   }
@@ -458,7 +488,7 @@ router.get('/memories/upload-config', protect, adminOnly, async (req, res) => {
 router.post('/memories/upload-signature', protect, adminOnly, async (req, res) => {
   try {
     res.json(buildCloudinaryUploadSignature({
-      folder: req.body?.folder
+      folder: req.body?.folder || getCloudinaryGalleryFolder()
     }));
   } catch (error) {
     res.status(400).json({ message: error.message || 'Unable to create upload signature.' });

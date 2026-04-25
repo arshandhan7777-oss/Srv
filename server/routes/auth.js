@@ -8,6 +8,7 @@ import Student from '../models/Student.js';
 import { buildParentDisplayName } from '../utils/parentProfile.js';
 
 const router = express.Router();
+const normalizeRecoveryAnswer = (value) => String(value || '').trim().toLowerCase();
 
 // Generate JWT token — uses env secret, shorter expiry
 const generateToken = (id, role, srvNumber) => {
@@ -70,60 +71,131 @@ router.post('/login', loginLimiter, async (req, res) => {
         name: displayName,
         srvNumber: user.srvNumber,
         role: user.role,
+        token: generateToken(user._id, user.role, user.srvNumber),
+      });
+    } else {
+      return res.status(401).json({ message: 'Invalid ID or password.' });
+    }
+  } catch (error) {
+    console.error(`[LOGIN ERROR] ${new Date().toISOString()} | ${error.message}`);
+    return res.status(500).json({ message: 'Server error during login.' });
+  }
+});
+
+// @route   POST /api/auth/admin-login
+// @desc    Auth admin & get token
+// @access  Public (Rate limited)
+router.post('/admin-login', loginLimiter, async (req, res) => {
+  const { srvNumber, password } = req.body;
+
+  const validationError = validateLoginInput(srvNumber, password);
+  if (validationError) {
+    return res.status(400).json({ message: validationError });
+  }
+
+  try {
+    const normalizedSrvNumber = srvNumber.trim();
+    const adminCandidates = normalizedSrvNumber === normalizedSrvNumber.toUpperCase()
+      ? [normalizedSrvNumber]
+      : [normalizedSrvNumber, normalizedSrvNumber.toUpperCase()];
+
+    const user = await User.findOne({
+      srvNumber: { $in: adminCandidates },
+      role: 'admin'
+    });
+
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ message: 'Invalid admin ID or password.' });
+    }
+
+    return res.json({
+      _id: user._id,
+      name: user.name,
+      srvNumber: user.srvNumber,
+      role: user.role,
+      token: generateToken(user._id, user.role, user.srvNumber),
+    });
+  } catch (error) {
+    console.error(`[ADMIN LOGIN ERROR] ${new Date().toISOString()} | ${error.message}`);
+    return res.status(500).json({ message: 'Server error during admin login.' });
+  }
+});
+
+// @route   GET /api/auth/recovery-question/:srvNumber
+// @desc    Get recovery question for a login ID
+// @access  Public
+router.get('/recovery-question/:srvNumber', async (req, res) => {
+  try {
+    const srvNumber = String(req.params.srvNumber || '').trim();
+    if (!srvNumber || srvNumber.length > 50) {
+      return res.status(400).json({ message: 'Invalid ID.' });
+    }
+
+    const user = await User.findOne({ srvNumber }).select('srvNumber role recoveryQuestion');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    if (!user.recoveryQuestion) {
+      return res.status(404).json({ message: 'No recovery question is set for this account. Please contact admin.' });
+    }
+
+    return res.json({
+      srvNumber: user.srvNumber,
+      role: user.role,
+      recoveryQuestion: user.recoveryQuestion
+    });
+  } catch (error) {
+    console.error(`[RECOVERY-QUESTION ERROR] ${new Date().toISOString()} | ${error.message}`);
+    return res.status(500).json({ message: 'Server error loading recovery question.' });
+  }
+});
+
+// @route   POST /api/auth/reset-password-with-answer
+// @desc    Reset password using a security answer
+// @access  Public
+router.post('/reset-password-with-answer', async (req, res) => {
+  const { srvNumber, answer, newPassword } = req.body;
 
   if (!srvNumber || typeof srvNumber !== 'string' || srvNumber.trim().length === 0) {
-    return res.status(400).json({ message: 'SRV Number is required.' });
+    return res.status(400).json({ message: 'ID is required.' });
+  }
+  if (!answer || typeof answer !== 'string' || answer.trim().length === 0) {
+    return res.status(400).json({ message: 'Recovery answer is required.' });
+  }
+  if (!newPassword || typeof newPassword !== 'string' || newPassword.trim().length < 4) {
+    return res.status(400).json({ message: 'New password must be at least 4 characters.' });
   }
 
   try {
     const user = await User.findOne({ srvNumber: srvNumber.trim() });
-    if (!user) return res.status(404).json({ message: 'User not found.' });
-
-    const existingRequest = await PasswordReset.findOne({ srvNumber: srvNumber.trim(), status: 'Pending' });
-    if (existingRequest) {
-      return res.status(400).json({ message: 'A reset request is already pending for this ID.' });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
     }
 
-    await PasswordReset.create({
-      srvNumber: user.srvNumber,
-      role: user.role
-    });
+    if (!user.recoveryQuestion || !user.recoveryAnswerHash) {
+      return res.status(400).json({ message: 'Recovery question is not configured for this account. Please contact admin.' });
+    }
 
-    return res.json({ message: 'Password reset request sent to Admin.' });
+    const isAnswerValid = await bcrypt.compare(
+      normalizeRecoveryAnswer(answer),
+      user.recoveryAnswerHash
+    );
+
+    if (!isAnswerValid) {
+      return res.status(401).json({ message: 'Recovery answer is incorrect.' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    await user.save();
+
+    await PasswordReset.deleteMany({ srvNumber: user.srvNumber });
+
+    return res.json({ message: 'Password reset successful. Please log in with your new password.' });
   } catch (error) {
-    console.error(`[FORGOT-PWD ERROR] ${new Date().toISOString()} | ${error.message}`);
-    return res.status(500).json({ message: 'Server error processing reset request.' });
-  }
-});
-
-// @route   GET /api/auth/reset-status/:srvNumber
-// @desc    Check status and get new password when approved
-// @access  Public
-router.get('/reset-status/:srvNumber', async (req, res) => {
-  try {
-    const srvNumber = req.params.srvNumber;
-    
-    if (!srvNumber || srvNumber.length > 50) {
-      return res.status(400).json({ message: 'Invalid SRV Number.' });
-    }
-
-    const requests = await PasswordReset.find({ srvNumber }).sort({ createdAt: -1 });
-
-    if (!requests || requests.length === 0) {
-      return res.status(404).json({ message: 'No reset requests found for this ID.' });
-    }
-
-    const latest = requests[0];
-    if (latest.status === 'Reset') {
-      const p = latest.newPassword;
-      await PasswordReset.deleteMany({ srvNumber });
-      return res.json({ status: 'Reset', newPassword: p });
-    } else {
-      return res.json({ status: 'Pending' });
-    }
-  } catch (error) {
-    console.error(`[RESET-STATUS ERROR] ${new Date().toISOString()} | ${error.message}`);
-    return res.status(500).json({ message: 'Server error checking status.' });
+    console.error(`[RESET-WITH-ANSWER ERROR] ${new Date().toISOString()} | ${error.message}`);
+    return res.status(500).json({ message: 'Server error resetting password.' });
   }
 });
 
