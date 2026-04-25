@@ -123,3 +123,45 @@ export const buildCloudinaryUploadSignature = ({ folder, publicId } = {}) => {
     signature: signCloudinaryParams(params)
   };
 };
+
+export const fetchCloudinaryGalleryImages = async () => {
+  const { cloudName, apiKey, apiSecret } = getCloudinaryConfig();
+  const folder = getCloudinaryGalleryFolder();
+
+  if (!cloudName || !apiKey || !apiSecret) {
+    return [];
+  }
+
+  const authHeader = 'Basic ' + Buffer.from(`${apiKey}:${apiSecret}`).toString('base64');
+  
+  const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/resources/search`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': authHeader
+    },
+    body: JSON.stringify({
+      expression: `folder:"${folder}" AND resource_type:image`,
+      sort_by: [{ created_at: 'desc' }],
+      max_results: 100
+    })
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    console.error('Cloudinary search failed:', payload);
+    return [];
+  }
+
+  return (payload.resources || []).map((res) => ({
+    title: res.filename,
+    description: '',
+    secureUrl: res.secure_url,
+    publicId: res.public_id,
+    bytes: res.bytes,
+    format: res.format,
+    originalFilename: res.filename,
+    folder: res.folder,
+    createdAt: res.created_at
+  }));
+};
