@@ -11,6 +11,7 @@ import { Login as GeneralLogin } from './portal/Login';
 import { AdminLogin } from './portal/AdminLogin';
 import { AdminDashboard } from './portal/AdminDashboard';
 import { FacultyDashboard } from './portal/FacultyDashboard';
+import { FacultyProgress } from './portal/FacultyProgress';
 import { ParentDashboard } from './portal/ParentDashboard';
 import { NotFound } from './portal/NotFound';
 
@@ -41,6 +42,7 @@ export default function App() {
           <Route path="/admin/feedback" element={<AdminDashboard section="feedback" />} />
           <Route path="/admin/cafeteria" element={<AdminDashboard section="cafeteria" />} />
           <Route path="/admin/announcements" element={<AdminDashboard section="announcements" />} />
+          <Route path="/admin/faculty-progress" element={<FacultyProgress />} />
         </Route>
 
         {/* Protected Faculty Routes */}
@@ -54,6 +56,7 @@ export default function App() {
           <Route path="/faculty/events" element={<FacultyDashboard section="events" />} />
           <Route path="/faculty/polls" element={<FacultyDashboard section="polls" />} />
           <Route path="/faculty/feedback" element={<FacultyDashboard section="feedback" />} />
+          <Route path="/faculty/mytasks" element={<FacultyDashboard section="mytasks" />} />
         </Route>
 
         {/* Protected Parent Routes */}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Users, UserPlus, BookOpen, LogOut, CheckCircle2, Coffee, Trash2, Edit2, Save, X, Megaphone, GraduationCap, CalendarDays, ClipboardList, MessageSquareMore, BellRing, ArrowUpCircle, UtensilsCrossed, LayoutDashboard, ShieldAlert, ChevronLeft, Image as ImageIcon } from 'lucide-react';
+import { Users, UserPlus, BookOpen, LogOut, CheckCircle2, Coffee, Trash2, Edit2, Save, X, Megaphone, GraduationCap, CalendarDays, ClipboardList, MessageSquareMore, BellRing, ArrowUpCircle, UtensilsCrossed, LayoutDashboard, ShieldAlert, ChevronLeft, Image as ImageIcon, Trophy, Target } from 'lucide-react';
 import API_URL from '../config/api.js';
 import Swal from 'sweetalert2';
 import { OpinionPollSection } from '../components/OpinionPollSection.js';
@@ -541,6 +541,7 @@ export function AdminDashboard({ section = 'home' }) {
 
   const appPages = [
     { key: 'faculty', title: 'Faculty', subtitle: 'Add Faculty, Manage Faculty', icon: BookOpen, badge: stats.totalFaculty, gradient: 'from-emerald-500 to-teal-500' },
+    { key: 'faculty-progress', title: 'Faculty Progress', subtitle: 'Tasks, Leaderboard, Scores', icon: Trophy, badge: 'Live', gradient: 'from-indigo-500 to-purple-600' },
     { key: 'students', title: 'Students', subtitle: 'Add Student, Manage Students', icon: GraduationCap, badge: stats.totalStudents, gradient: 'from-amber-500 to-orange-500' },
     { key: 'memories', title: 'Memories', subtitle: 'Upload Photos and Videos', icon: ImageIcon, badge: 'Media', gradient: 'from-sky-500 to-indigo-500' },
     { key: 'promote', title: 'Promote', subtitle: 'Promote Students', icon: ArrowUpCircle, badge: 'Year', gradient: 'from-cyan-500 to-sky-500' },

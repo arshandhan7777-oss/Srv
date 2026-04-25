@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Users, LogOut, CheckSquare, BookOpen, AlertCircle, ChevronLeft, ChevronRight, Calendar as CalIcon, Clock, Edit2, Trash2, CalendarClock, X, Check, History, ArrowRight, Archive, ChevronDown, Megaphone, Bell, LayoutDashboard, ClipboardList, MessageSquareMore, Image as ImageIcon } from 'lucide-react';
+import { Users, LogOut, CheckSquare, BookOpen, AlertCircle, ChevronLeft, ChevronRight, Calendar as CalIcon, Clock, Edit2, Trash2, CalendarClock, X, Check, History, ArrowRight, Archive, ChevronDown, Megaphone, Bell, LayoutDashboard, ClipboardList, MessageSquareMore, Image as ImageIcon, Trophy, TrendingUp, Target, ExternalLink, AlertTriangle, Send, CheckCircle2, XCircle } from 'lucide-react';
 import API_URL from '../config/api.js';
 import { OpinionPollSection } from '../components/OpinionPollSection.js';
 import { FeedbackInboxSection } from '../components/FeedbackInboxSection.js';
@@ -10,6 +10,198 @@ import { Logo } from '../components/Logo.js';
 import { PortalHeader } from '../components/PortalHeader.js';
 import { NotificationPanel } from '../components/NotificationPanel.js';
 import { MemoriesSection } from '../components/MemoriesSection.js';
+import Swal from 'sweetalert2';
+
+function MyTasksSection({ token }) {
+  const [tasks, setTasks] = useState([]);
+  const [performance, setPerformance] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [submittingTask, setSubmittingTask] = useState(null);
+  const [submitForm, setSubmitForm] = useState({ proofUrl: '', proofType: 'link', comments: '' });
+
+  const headers = { Authorization: `Bearer ${token}` };
+
+  useEffect(() => {
+    Promise.all([
+      axios.get(`${API_URL}/api/tasks`, { headers }).then(r => setTasks(r.data)).catch(console.error),
+      axios.get(`${API_URL}/api/performance/me`, { headers }).then(r => setPerformance(r.data)).catch(console.error)
+    ]).finally(() => setLoading(false));
+  }, []);
+
+  const handleSubmitProof = async (taskId) => {
+    try {
+      await axios.post(`${API_URL}/api/tasks/${taskId}/submit`, submitForm, { headers });
+      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Proof submitted!', showConfirmButton: false, timer: 2000 });
+      setSubmittingTask(null);
+      setSubmitForm({ proofUrl: '', proofType: 'link', comments: '' });
+      // Refresh
+      const res = await axios.get(`${API_URL}/api/tasks`, { headers });
+      setTasks(res.data);
+      const perfRes = await axios.get(`${API_URL}/api/performance/me`, { headers });
+      setPerformance(perfRes.data);
+    } catch (err) {
+      Swal.fire('Error', err.response?.data?.message || 'Failed to submit.', 'error');
+    }
+  };
+
+  const getMySubmission = (task) => {
+    const userId = JSON.parse(localStorage.getItem('schoolUser') || '{}').id;
+    return task.submissions?.find(s => s.facultyId?._id === userId || s.facultyId === userId);
+  };
+
+  if (loading) {
+    return <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10"><div className="animate-pulse text-center py-16"><p className="text-sm font-semibold text-slate-400">Loading tasks...</p></div></div>;
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 space-y-6">
+      {/* Performance Scorecard */}
+      {performance && (
+        <div className="rounded-3xl bg-gradient-to-br from-indigo-600 via-purple-600 to-violet-700 p-6 text-white shadow-xl">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center"><TrendingUp size={24} /></div>
+            <div>
+              <h3 className="text-xl font-display font-bold">My Performance Score</h3>
+              <p className="text-sm text-indigo-100">Based on tasks, quality, feedback & contributions</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+            <div className="rounded-2xl bg-white/10 p-4 text-center backdrop-blur">
+              <p className="text-3xl font-display font-black">{performance.finalScore}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-100 mt-1">Overall</p>
+            </div>
+            <div className="rounded-2xl bg-white/10 p-4 text-center backdrop-blur">
+              <p className="text-2xl font-bold">{performance.taskScore}%</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-100 mt-1">Tasks (40%)</p>
+            </div>
+            <div className="rounded-2xl bg-white/10 p-4 text-center backdrop-blur">
+              <p className="text-2xl font-bold">{performance.qualityScore}%</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-100 mt-1">Quality (20%)</p>
+            </div>
+            <div className="rounded-2xl bg-white/10 p-4 text-center backdrop-blur">
+              <p className="text-2xl font-bold">{performance.feedbackScore}%</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-100 mt-1">Feedback (20%)</p>
+            </div>
+            <div className="rounded-2xl bg-white/10 p-4 text-center backdrop-blur col-span-2 sm:col-span-1">
+              <p className="text-2xl font-bold">{performance.contributionScore}%</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-100 mt-1">Contrib. (20%)</p>
+            </div>
+          </div>
+
+          <div className="mt-4 flex items-center gap-3 text-sm">
+            <span className="rounded-full bg-white/20 px-3 py-1 font-bold">✅ {performance.completedTasks}/{performance.totalTasks} tasks completed</span>
+            {performance.pendingTasks > 0 && <span className="rounded-full bg-amber-400/30 px-3 py-1 font-bold text-amber-100">⏳ {performance.pendingTasks} pending</span>}
+          </div>
+
+          {performance.alerts?.length > 0 && (
+            <div className="mt-4 space-y-2">
+              {performance.alerts.map((alert, i) => (
+                <div key={i} className="flex items-center gap-2 rounded-xl bg-red-500/20 px-4 py-2 text-sm font-bold text-red-100">
+                  <AlertTriangle size={16} /> {alert.message}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Task List */}
+      <div>
+        <h2 className="text-2xl font-display font-bold text-slate-900 flex items-center gap-2"><Target className="text-indigo-600" size={24} /> Assigned Tasks</h2>
+        <p className="text-sm text-slate-500 mt-1">{tasks.length} task{tasks.length !== 1 ? 's' : ''} assigned to you</p>
+      </div>
+
+      {tasks.length > 0 ? (
+        <div className="space-y-4">
+          {tasks.map(task => {
+            const mySub = getMySubmission(task);
+            const isOverdue = new Date(task.deadline) < new Date();
+
+            return (
+              <div key={task._id} className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <h3 className="text-lg font-display font-bold text-slate-900">{task.title}</h3>
+                      <span className="rounded-full bg-slate-100 px-3 py-0.5 text-xs font-bold text-slate-600">{task.taskType}</span>
+                      {isOverdue && !mySub && <span className="rounded-full bg-red-100 px-3 py-0.5 text-xs font-bold text-red-700">Overdue</span>}
+                    </div>
+                    <p className="mt-2 text-sm text-slate-600">{task.description}</p>
+                    <p className="mt-2 text-xs font-semibold text-slate-500">⏰ Due: {new Date(task.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                  </div>
+
+                  <div className="shrink-0">
+                    {mySub ? (
+                      <div className="text-center">
+                        <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
+                          mySub.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' :
+                          mySub.status === 'Rejected' ? 'bg-red-100 text-red-800' :
+                          'bg-amber-100 text-amber-800'
+                        }`}>
+                          {mySub.status === 'Approved' ? <CheckCircle2 size={14} /> : mySub.status === 'Rejected' ? <XCircle size={14} /> : <Clock size={14} />}
+                          {mySub.status}
+                        </span>
+                        {mySub.qualityScore > 0 && (
+                          <p className="mt-1 text-xs font-bold text-slate-500">Quality: {mySub.qualityScore}/100</p>
+                        )}
+                        {mySub.adminFeedback && (
+                          <p className="mt-1 text-xs text-slate-500 max-w-[200px]">"{mySub.adminFeedback}"</p>
+                        )}
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setSubmittingTask(task._id)}
+                        className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-indigo-700 active:scale-95 transition"
+                      >
+                        <Send size={16} /> Submit Proof
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Inline submit form */}
+                {submittingTask === task._id && (
+                  <div className="mt-4 rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4 space-y-3">
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-[0.16em] text-slate-600">Proof URL (Cloudinary link, Google Drive, etc.)</label>
+                      <input
+                        type="url" value={submitForm.proofUrl}
+                        onChange={e => setSubmitForm(f => ({ ...f, proofUrl: e.target.value }))}
+                        className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                        placeholder="https://..."
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-[0.16em] text-slate-600">Comments (optional)</label>
+                      <textarea
+                        value={submitForm.comments}
+                        onChange={e => setSubmitForm(f => ({ ...f, comments: e.target.value }))}
+                        rows={2}
+                        className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                        placeholder="Any notes for the admin..."
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => handleSubmitProof(task._id)} className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-indigo-700 active:scale-95 transition">Submit</button>
+                      <button onClick={() => setSubmittingTask(null)} className="rounded-xl bg-slate-200 px-5 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-300 active:scale-95 transition">Cancel</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="rounded-3xl border-2 border-dashed border-slate-200 bg-white px-6 py-16 text-center">
+          <Target size={48} className="mx-auto text-slate-300" />
+          <p className="mt-4 text-lg font-bold text-slate-400">No tasks assigned yet</p>
+          <p className="mt-1 text-sm text-slate-400">Check back later for new task assignments from admin.</p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function FacultyDashboard({ section = 'dashboard' }) {
   const hasValidFamilyDetails = (profile) => Boolean(
@@ -53,7 +245,7 @@ export function FacultyDashboard({ section = 'dashboard' }) {
     daysPresent: 100,
     performanceRemarks: '',
     behaviour: 'Good',
-    nliteSkills: { communication: 5, teamwork: 5, lifelongLearning: 5, positiveAttitude: 5, holisticWellbeing: 5, languageProficiency: 5 }
+    ecSkills: { cdc: 5, suits: 5, srvSkillDevelopment: 5 }
   });
   const [gradeMsg, setGradeMsg] = useState({ text: '', type: '' });
 
@@ -196,6 +388,10 @@ export function FacultyDashboard({ section = 'dashboard' }) {
     memories: {
       title: 'View Memories',
       description: 'Open student photos and videos shared by admin, then download them when needed.'
+    },
+    mytasks: {
+      title: 'My Tasks & Performance',
+      description: 'View assigned tasks, submit proof, and track your performance score.'
     }
   };
 
@@ -439,7 +635,7 @@ export function FacultyDashboard({ section = 'dashboard' }) {
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setGradeMsg({ text: 'Academic and Nlite skills saved successfully!', type: 'success' });
+      setGradeMsg({ text: 'Academic and EC skills saved successfully!', type: 'success' });
       setTimeout(() => setSelectedStudent(null), 2000);
     } catch (err) {
       setGradeMsg({ text: 'Failed to save evaluate student', type: 'error' });
@@ -530,7 +726,8 @@ export function FacultyDashboard({ section = 'dashboard' }) {
     { key: 'memories', title: 'View Memories', subtitle: 'Photos and Videos', icon: ImageIcon, badge: 'Media', gradient: 'from-sky-500 to-indigo-500' },
     { key: 'events', title: 'Events', subtitle: 'Upcoming Events, Event Acknowledgements', icon: CalIcon, badge: 'Live', gradient: 'from-fuchsia-500 to-pink-500' },
     { key: 'polls', title: 'Poll Center', subtitle: 'Opinion Poll Center, Poll Analytics', icon: ClipboardList, badge: 'Polls', gradient: 'from-violet-500 to-indigo-500' },
-    { key: 'feedback', title: 'Feedback', subtitle: 'Parent Feedback Inbox', icon: MessageSquareMore, badge: unreadCount, gradient: 'from-slate-700 to-slate-900' }
+    { key: 'feedback', title: 'Feedback', subtitle: 'Parent Feedback Inbox', icon: MessageSquareMore, badge: unreadCount, gradient: 'from-slate-700 to-slate-900' },
+    { key: 'mytasks', title: 'My Tasks', subtitle: 'Tasks, Performance Score', icon: Trophy, badge: 'Live', gradient: 'from-indigo-500 to-purple-600' }
   ];
 
   const notificationAction = (
@@ -912,7 +1109,7 @@ export function FacultyDashboard({ section = 'dashboard' }) {
                       onClick={() => { setSelectedStudent(s); setGradeMsg({text:'', type:''}); }}
                       className="rounded-lg bg-emerald-100 px-3 py-2 text-xs font-bold text-emerald-700"
                     >
-                      Evaluate Nlite & Marks
+                      Evaluate EC Skills & Marks
                     </button>
                     <button
                       onClick={() => openStudentProfileEditor(s)}
@@ -958,7 +1155,7 @@ export function FacultyDashboard({ section = 'dashboard' }) {
                             onClick={() => { setSelectedStudent(s); setGradeMsg({text:'', type:''}); }}
                             className="text-emerald-600 font-semibold text-sm hover:underline"
                           >
-                            Evaluate Nlite & Marks
+                            Evaluate EC Skills & Marks
                           </button>
                           <button
                             onClick={() => openStudentProfileEditor(s)}
@@ -1539,6 +1736,11 @@ export function FacultyDashboard({ section = 'dashboard' }) {
         {activeSection === 'memories' && <MemoriesSection role="faculty" />}
       </div>
 
+      {/* ══════ MY TASKS & PERFORMANCE SECTION ══════ */}
+      {activeSection === 'mytasks' && (
+        <MyTasksSection token={localStorage.getItem('schoolToken')} />
+      )}
+
       {editingStudentProfile && (
         <div className="fixed inset-0 z-[55] flex items-start justify-center overflow-y-auto bg-slate-900/60 p-3 backdrop-blur-sm sm:items-center sm:p-4">
           <div className="absolute inset-0" onClick={closeStudentProfileEditor} />
@@ -1795,20 +1997,22 @@ export function FacultyDashboard({ section = 'dashboard' }) {
               </div>
 
               <div>
-                <h4 className="font-bold text-slate-700 border-b pb-2 mb-3">Nlite 21st-Century Skills (0-5)</h4>
+                <h4 className="font-bold text-slate-700 border-b pb-2 mb-3">Student EC Skills (0-5)</h4>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-                  {Object.keys(gradeForm.nliteSkills).map(skillName => (
+                  {Object.keys(gradeForm.ecSkills).map(skillName => (
                     <div key={skillName}>
-                      <label htmlFor={`nliteSkill-${skillName}`} className="block text-xs font-bold text-slate-500 mb-1 capitalize">{skillName.replace(/([A-Z])/g, ' $1')}</label>
+                      <label htmlFor={`ecSkill-${skillName}`} className="block text-xs font-bold text-slate-500 mb-1 capitalize">
+                        {skillName === 'cdc' ? 'CDC' : skillName === 'suits' ? 'SUITS' : 'SRV Skill Development'}
+                      </label>
                       <input
-                        id={`nliteSkill-${skillName}`}
-                        name={`nliteSkill-${skillName}`}
+                        id={`ecSkill-${skillName}`}
+                        name={`ecSkill-${skillName}`}
                         type="number"
                         min="0"
                         max="5"
                         required
-                        value={gradeForm.nliteSkills[skillName]}
-                        onChange={e => setGradeForm({...gradeForm, nliteSkills: {...gradeForm.nliteSkills, [skillName]: Number(e.target.value)}})}
+                        value={gradeForm.ecSkills[skillName]}
+                        onChange={e => setGradeForm({...gradeForm, ecSkills: {...gradeForm.ecSkills, [skillName]: Number(e.target.value)}})}
                         className="w-full px-3 py-2 border rounded-xl bg-amber-50"
                       />
                     </div>

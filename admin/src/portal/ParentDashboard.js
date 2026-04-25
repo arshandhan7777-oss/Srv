@@ -113,8 +113,8 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
       description: 'Daily attendance summary, history, and attendance percentage.'
     },
     skills: {
-      title: 'Nlite 21st-Century Skills',
-      description: 'Detailed student skill analysis and score breakdown.'
+      title: 'EC Skills Framework',
+      description: 'Detailed extracurricular skill analysis and score breakdown.'
     },
     homework: {
       title: 'Homework and Tasks',
@@ -395,13 +395,13 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
     ? (data.behavior.reduce((acc, curr) => acc + curr.score, 0) / data.behavior.length).toFixed(1) 
     : 10;
 
-  const nliteData = latestRecord?.nliteSkills ? [
-    { skill: 'Comm.', score: latestRecord.nliteSkills.communication, fullMark: 5 },
-    { skill: 'Teamwork', score: latestRecord.nliteSkills.teamwork, fullMark: 5 },
-    { skill: 'Learning', score: latestRecord.nliteSkills.lifelongLearning, fullMark: 5 },
-    { skill: 'Attitude', score: latestRecord.nliteSkills.positiveAttitude, fullMark: 5 },
-    { skill: 'Wellbeing', score: latestRecord.nliteSkills.holisticWellbeing, fullMark: 5 },
-    { skill: 'Languages', score: latestRecord.nliteSkills.languageProficiency, fullMark: 5 },
+  const ecData = latestRecord?.ecSkills ? [
+    { skill: 'CDC', score: latestRecord.ecSkills.cdc, fullMark: 5 },
+    { skill: 'SUITS', score: latestRecord.ecSkills.suits, fullMark: 5 },
+    { skill: 'SRV Dev', score: latestRecord.ecSkills.srvSkillDevelopment, fullMark: 5 },
+
+
+
   ] : [];
 
   // ========== Fee Calculations ==========
@@ -436,10 +436,10 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
   const appItems = [
     {
       key: 'skills',
-      title: 'Nlite Skills',
-      description: '21st-century skills, radar graph, and score breakdown',
+      title: 'EC Skills',
+      description: 'Extracurricular skills, radar graph, and score breakdown',
       icon: Sparkles,
-      badge: nliteData.length ? `${nliteData.length} areas` : 'New',
+      badge: ecData.length ? `${ecData.length} areas` : 'New',
       gradient: 'from-amber-500 to-orange-500'
     },
     {
@@ -549,10 +549,10 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
     const dashboardApps = [
       {
         key: 'skills',
-        title: 'Nlite Skills',
-        description: '21st-century skills, radar graph, and score breakdown',
+        title: 'EC Skills',
+        description: 'Extracurricular skills, radar graph, and score breakdown',
         icon: Sparkles,
-        badge: nliteData.length ? `${nliteData.length} areas` : 'New',
+        badge: ecData.length ? `${ecData.length} areas` : 'New',
         gradient: 'from-amber-500 to-orange-500'
       },
       {
@@ -958,7 +958,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
             <div className="mb-8 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-8">
               <h2 className="text-2xl font-display font-bold text-slate-900 mb-8">Quick Access</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-4 sm:gap-6">
-                {/* Nlite Skills */}
+                {/* EC Skills */}
                 <button 
                   onClick={() => navigateToSection('skills')}
                   className="group relative p-6 sm:p-8 rounded-2xl sm:rounded-3xl border-2 border-slate-100 hover:border-amber-300 bg-gradient-to-br from-amber-50 to-white hover:shadow-xl transition-all duration-300 text-left"
@@ -966,7 +966,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
                   <div className="absolute top-4 right-4 w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                     <Sparkles className="text-amber-600" size={24} />
                   </div>
-                  <h3 className="font-display font-bold text-slate-900 text-base sm:text-lg mt-2">Nlite 21st-Century Skills</h3>
+                  <h3 className="font-display font-bold text-slate-900 text-base sm:text-lg mt-2">Student EC Skills</h3>
                   <p className="text-xs sm:text-sm text-slate-500 mt-2">Detailed skill analysis & scores</p>
                   <ArrowRight className="text-amber-600 mt-4 group-hover:translate-x-1 transition-transform" size={18} />
                 </button>
@@ -1306,7 +1306,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
           </div>
         )}
 
-        {/* ========== SECTION: NLITE SKILLS ========== */}
+        {/* ========== SECTION: EC SKILLS ========== */}
         {activeSection === 'skills' && (
           <>
             <button 
@@ -1321,16 +1321,16 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
                   <Sparkles className="text-amber-600" size={28} />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-display font-bold text-slate-900">Nlite 21st-Century Skills</h2>
-                  <p className="text-sm text-slate-500 mt-1">Detailed student skill analysis and scores</p>
+                  <h2 className="text-2xl font-display font-bold text-slate-900">Student EC Skills</h2>
+                  <p className="text-sm text-slate-500 mt-1">Detailed extracurricular skill analysis and scores</p>
                 </div>
               </div>
               
-              {nliteData.length > 0 ? (
+              {ecData.length > 0 ? (
                 <>
                   <div className="h-80 w-full mb-8" style={{ minHeight: '320px' }}>
                     <ResponsiveContainer width="100%" height="100%">
-                      <RadarChart cx="50%" cy="50%" outerRadius="70%" data={nliteData}>
+                      <RadarChart cx="50%" cy="50%" outerRadius="70%" data={ecData}>
                         <PolarGrid stroke="#e2e8f0" />
                         <PolarAngleAxis dataKey="skill" tick={{ fill: '#64748b', fontSize: 11, fontWeight: 'bold' }} />
                         <PolarRadiusAxis angle={30} domain={[0, 5]} tick={false} axisLine={false} />
@@ -1341,7 +1341,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
                   </div>
 
                   <div className="grid md:grid-cols-3 gap-6">
-                    {nliteData.map((skill, idx) => (
+                    {ecData.map((skill, idx) => (
                       <div key={idx} className="bg-gradient-to-br from-amber-50 to-white rounded-2xl p-6 border border-amber-100">
                         <div className="flex items-center justify-between mb-3">
                           <h4 className="font-bold text-amber-900">{skill.skill}</h4>
@@ -1357,7 +1357,7 @@ const [data, setData] = useState({ student: null, records: [], homework: [], foo
               ) : (
                 <div className="p-12 border-2 border-dashed border-slate-100 rounded-2xl text-center">
                   <Sparkles size={48} className="mx-auto text-slate-300 mb-3" />
-                  <p className="text-slate-400 font-semibold">No Nlite Skill evaluations published yet.</p>
+                  <p className="text-slate-400 font-semibold">No EC Skill evaluations published yet.</p>
                 </div>
               )}
             </div>

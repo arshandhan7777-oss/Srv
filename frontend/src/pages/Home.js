@@ -440,7 +440,7 @@ export function Home() {
 
               <div className="text-slate-700 leading-relaxed text-[15px] space-y-4">
                 <p>
-                  <strong className="text-slate-900 font-semibold">Go beyond academics</strong> and develop the essential skills needed for success in the 21st century. Our comprehensive Skill Development Program, partnered with Nlite Academy, equips you with not only core subject expertise but also the <strong className="text-slate-900 font-semibold">highly sought-after employability skills</strong> employers crave:
+                  <strong className="text-slate-900 font-semibold">Go beyond academics</strong> and develop the essential skills needed for success in the 21st century. Our comprehensive Extracurricular (EC) Program equips you with not only core subject expertise but also the <strong className="text-slate-900 font-semibold">highly sought-after employability skills</strong> employers crave:
                 </p>
 
                 <ul className="space-y-4 pt-4">

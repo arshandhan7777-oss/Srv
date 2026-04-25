@@ -26,7 +26,8 @@ import {
   buildCloudinaryUploadConfig,
   buildCloudinaryUploadSignature,
   destroyCloudinaryAsset,
-  getCloudinaryGalleryFolder
+  getCloudinaryGalleryFolder,
+  fetchCloudinaryGalleryImages
 } from '../utils/cloudinary.js';
 
 const router = express.Router();
@@ -462,8 +463,22 @@ router.put('/student/:id', protect, adminOnly, async (req, res) => {
 // @access  Private (Admin only)
 router.get('/memories', protect, adminOnly, async (req, res) => {
   try {
-    const memories = await Memory.find().sort({ createdAt: -1 });
-    res.json(memories);
+    const images = await fetchCloudinaryGalleryImages();
+    // Map them to look like the Memory model so the frontend works
+    const mappedMemories = images.map(img => ({
+      _id: img.publicId.replace(/\//g, '___'), // Encode slashes safely for explicit frontend routing
+      title: img.title,
+      description: img.description,
+      secureUrl: img.secureUrl,
+      publicId: img.publicId,
+      resourceType: img.resourceType || 'image',
+      bytes: img.bytes,
+      format: img.format,
+      originalFilename: img.originalFilename,
+      folder: img.folder,
+      createdAt: img.createdAt
+    }));
+    res.json(mappedMemories);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching memories' });
   }
@@ -557,23 +572,43 @@ router.post('/memories', protect, adminOnly, async (req, res) => {
 // @access  Private (Admin only)
 router.delete('/memories/:id', protect, adminOnly, async (req, res) => {
   try {
-    const memory = await Memory.findById(req.params.id);
-    if (!memory) {
+    const rawId = req.params.id;
+    
+    // Support either local DB _id or encoded publicId from Cloudinary
+    let publicId, memory;
+    if (rawId.includes('___')) {
+      publicId = rawId.replace(/___/g, '/');
+      memory = await Memory.findOne({ publicId });
+    } else {
+      memory = await Memory.findById(rawId);
+      publicId = memory?.publicId;
+    }
+
+    if (!publicId && !memory) {
       return res.status(404).json({ message: 'Memory not found.' });
     }
 
     let remoteDeleted = false;
-    try {
-      const remoteResult = await destroyCloudinaryAsset({
-        publicId: memory.publicId,
-        resourceType: memory.resourceType
-      });
-      remoteDeleted = Boolean(remoteResult?.ok);
-    } catch (cloudinaryError) {
-      console.warn('[Memory Delete] Cloudinary cleanup skipped:', cloudinaryError.message);
+    if (publicId) {
+      try {
+        const remoteResult = await destroyCloudinaryAsset({
+          publicId: publicId,
+          // Since we might not know resourceType if it's completely missing from DB, we try image by default.
+          // In a perfect system we'd know or try both.
+          resourceType: memory ? memory.resourceType : 'image' 
+        });
+        remoteDeleted = Boolean(remoteResult?.ok);
+      } catch (cloudinaryError) {
+        console.warn('[Memory Delete] Cloudinary cleanup skipped:', cloudinaryError.message);
+      }
     }
 
-    await Memory.findByIdAndDelete(req.params.id);
+    if (memory) {
+      await Memory.findByIdAndDelete(memory._id);
+    } else {
+      // Just in case there is a rogue document by exact publicID
+      await Memory.findOneAndDelete({ publicId });
+    }
 
     res.json({
       message: 'Memory deleted successfully.',

@@ -121,7 +121,7 @@ router.get('/memories', protect, facultyOrAdmin, async (req, res) => {
 // @desc    Add or Update academic records (Marks, Attendance, Behaviour)
 // @access  Private (Faculty/Admin)
 router.post('/marks', protect, facultyOrAdmin, async (req, res) => {
-  const { studentId, term, marks, totalWorkingDays, daysPresent, performanceRemarks, behaviour, extraActivities, nliteSkills } = req.body;
+  const { studentId, term, marks, totalWorkingDays, daysPresent, performanceRemarks, behaviour, extraActivities, ecSkills } = req.body;
 
   try {
     const student = await Student.findById(studentId);
@@ -137,7 +137,7 @@ router.post('/marks', protect, facultyOrAdmin, async (req, res) => {
       if (performanceRemarks) record.performanceRemarks = performanceRemarks;
       if (behaviour) record.behaviour = behaviour;
       if (extraActivities) record.extraActivities = extraActivities;
-      if (nliteSkills) record.nliteSkills = { ...record.nliteSkills, ...nliteSkills };
+      if (ecSkills) record.ecSkills = { ...record.ecSkills, ...ecSkills };
       
       await record.save();
     } else {
@@ -152,7 +152,7 @@ router.post('/marks', protect, facultyOrAdmin, async (req, res) => {
         performanceRemarks,
         behaviour,
         extraActivities,
-        nliteSkills
+        ecSkills
       });
     }
 

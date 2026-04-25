@@ -75,7 +75,7 @@ export function SkillDevelopment() {
               <span className="text-amber-500">Skill Development</span> at Our School
             </h2>
             <p className="text-slate-600 text-[15px] leading-relaxed mb-6">
-              Go beyond academics and develop the essential skills needed for success in the 21st century. Our comprehensive Skill Development Program, partnered with <strong className="text-emerald-700">Nlite Academy</strong>, equips you with not only core subject expertise but also the <strong className="text-slate-900">highly sought-after employability skills</strong> employers crave.
+              Go beyond academics and develop the essential skills needed for success in the 21st century. Our comprehensive Extracurricular (EC) program equips you with not only core subject expertise but also the <strong className="text-slate-900">highly sought-after employability skills</strong> employers crave.
             </p>
             <div className="bg-emerald-50 border-l-4 border-emerald-500 p-5 rounded-r-xl">
               <p className="text-emerald-800 text-sm font-semibold">
@@ -107,10 +107,10 @@ export function SkillDevelopment() {
                   referrerPolicy="no-referrer"
                 />
               </div>
-              {/* Nlite Badge */}
+              {/* EC Skills Badge */}
               <div className="absolute -bottom-4 -right-4 bg-white rounded-2xl px-5 py-3 shadow-xl border border-amber-100 text-center">
-                <p className="text-amber-500 font-display font-bold text-lg leading-none">Nlite</p>
-                <p className="text-slate-500 text-[9px] uppercase tracking-widest mt-0.5">Enlightens Lives</p>
+                <p className="text-amber-500 font-display font-bold text-lg leading-none">EC Skills</p>
+                <p className="text-slate-500 text-[9px] uppercase tracking-widest mt-0.5">Extracurricular</p>
               </div>
             </motion.div>
           </motion.div>

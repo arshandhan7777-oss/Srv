@@ -141,7 +141,7 @@ export const fetchCloudinaryGalleryImages = async () => {
       'Authorization': authHeader
     },
     body: JSON.stringify({
-      expression: `folder:"${folder}" AND resource_type:image`,
+      expression: `folder:"${folder}"`,
       sort_by: [{ created_at: 'desc' }],
       max_results: 100
     })
@@ -158,6 +158,7 @@ export const fetchCloudinaryGalleryImages = async () => {
     description: '',
     secureUrl: res.secure_url,
     publicId: res.public_id,
+    resourceType: res.resource_type,
     bytes: res.bytes,
     format: res.format,
     originalFilename: res.filename,

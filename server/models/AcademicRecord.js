@@ -24,14 +24,11 @@ const academicRecordSchema = new mongoose.Schema({
   behaviour: { type: String, enum: ['Excellent', 'Good', 'Needs Improvement', 'Poor'], default: 'Good' },
   extraActivities: [{ type: String }], // Optional tags for activities
 
-  // Nlite Academy 21st-century skills evaluation (1 to 5 scale)
-  nliteSkills: {
-    communication: { type: Number, default: 0, min: 0, max: 5 },
-    teamwork: { type: Number, default: 0, min: 0, max: 5 },
-    lifelongLearning: { type: Number, default: 0, min: 0, max: 5 },
-    positiveAttitude: { type: Number, default: 0, min: 0, max: 5 },
-    holisticWellbeing: { type: Number, default: 0, min: 0, max: 5 },
-    languageProficiency: { type: Number, default: 0, min: 0, max: 5 },
+  // Student Extracurricular (EC) Skills evaluation (1 to 5 scale)
+  ecSkills: {
+    cdc: { type: Number, default: 0, min: 0, max: 5 }, // Communication Development Center
+    suits: { type: Number, default: 0, min: 0, max: 5 }, // Computer Program & IT Training
+    srvSkillDevelopment: { type: Number, default: 0, min: 0, max: 5 } // Moral, Cultural, Leadership
   }
 
 }, { timestamps: true });
